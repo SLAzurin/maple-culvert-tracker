@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Track culvert score over a x year(s) progress",
   "main": "index.ts",
+  "type": "module",
   "scripts": {
     "test": "exit 0"
   },
@@ -19,5 +20,22 @@
   "bugs": {
     "url": "https://github.com/SLAzurin/maple-culvert-tracker/issues"
   },
-  "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme"
+  "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.310.0",
+    "discord.js": "^14.9.0",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "@typescript-eslint/eslint-plugin": "^5.58.0",
+    "eslint": "^8.38.0",
+    "eslint-config-standard-with-typescript": "^34.0.1",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.7.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "prettier": "2.8.7",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  }
 }
