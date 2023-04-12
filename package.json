@@ -1,0 +1,23 @@
+{
+  "name": "maple-culvert-tracker",
+  "version": "1.0.0",
+  "description": "Track culvert score over a x year(s) progress",
+  "main": "index.ts",
+  "scripts": {
+    "test": "exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/SLAzurin/maple-culvert-tracker.git"
+  },
+  "keywords": [
+    "maplestory",
+    "culvert"
+  ],
+  "author": "SLAzurin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SLAzurin/maple-culvert-tracker/issues"
+  },
+  "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme"
+}
