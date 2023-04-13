@@ -73,7 +73,7 @@ sharp("bg.png")
       input: chartJSNodeCanvas.renderToBufferSync(lineChartConfig),
     },
   ])
-  .toFile("img.png")
+  .toFile("sample.png")
 
 // fs.writeFileSync(
 //   "img.png",
