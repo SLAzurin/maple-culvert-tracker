@@ -1,6 +1,7 @@
 import fs from "fs"
 import { ChartJSNodeCanvas } from "chartjs-node-canvas"
 import { ChartConfiguration } from "chart.js"
+import sharp from "sharp"
 
 const data: { label: string; score: number }[] = JSON.parse(
   process.env.DATA
@@ -10,7 +11,7 @@ const data: { label: string; score: number }[] = JSON.parse(
 
 const width = 1000
 const height = 600
-const backgroundColour = 'rgba(0, 0, 0, 0.1)'
+const backgroundColour = "rgba(0, 0, 0, 0.1)"
 const chartJSNodeCanvas = new ChartJSNodeCanvas({
   width,
   height,
@@ -33,17 +34,24 @@ const lineChartConfig: ChartConfiguration<any> = {
         label: "Score by week",
         data: rawData,
         fill: false,
-        borderColor: "rgb(75, 192, 192)",
+        borderColor: "rgba(54, 162, 235, 1)",
         tension: 0.1,
+        spanGaps: true,
       },
     ],
   },
-  options: {
-    backgroundColour: "rgb(230,230,230)",
-  },
+  options: {},
 }
 
-;(async () => {
-  const image = await chartJSNodeCanvas.renderToDataURL(lineChartConfig)
-  console.log(image)
-})()
+sharp("bg.png")
+  .composite([
+    {
+      input: chartJSNodeCanvas.renderToBufferSync(lineChartConfig),
+    },
+  ])
+  .toFile("img.png")
+
+// fs.writeFileSync(
+//   "img.png",
+//   chartJSNodeCanvas.renderToBufferSync(lineChartConfig),
+// )

@@ -22,7 +22,8 @@
   "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme",
   "dependencies": {
     "chart.js": "^3.9.1",
-    "chartjs-node-canvas": "^4.1.6"
+    "chartjs-node-canvas": "^4.1.6",
+    "sharp": "^0.32.0"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",
