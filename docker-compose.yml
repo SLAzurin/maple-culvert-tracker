@@ -1,0 +1,9 @@
+version: '2.4'
+
+services:
+  bot:
+    build:
+      dockerfile: Dockerfile.bot
+      context: .
+    restart: unless-stopped
+    env_file: .env
