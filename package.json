@@ -1,0 +1,6 @@
+{
+    "workspaces": [
+        "chartmaker",
+        "culvert-web"
+    ]
+}
