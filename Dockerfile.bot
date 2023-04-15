@@ -4,8 +4,7 @@ RUN cd /root/src && go mod download
 COPY cmd /root/src/cmd/
 COPY internal /root/src/internal
 RUN cd /root/src && go build -o /root/main cmd/main/main.go
-
-FROM alpine:latest
+# TODO: Optimize accordint to this https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
+FROM scratch
 COPY --from=builder /root/main /root/
-WORKDIR /root
 ENTRYPOINT [ "/root/main" ]
