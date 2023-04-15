@@ -7,3 +7,11 @@ services:
       context: .
     restart: unless-stopped
     env_file: .env
+  chartmaker:
+    build:
+      context: .
+      dockerfile: chartmaker/Dockerfile
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    

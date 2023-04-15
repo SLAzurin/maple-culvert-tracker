@@ -1,6 +1,6 @@
 {
-    "workspaces": [
-        "chartmaker",
-        "culvert-web"
-    ]
+    "packageManager": "pnpm@8.2.0",
+    "dependencies": {
+        "chartmaker": "workspace:^"
+    }
 }
