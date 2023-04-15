@@ -1,17 +1,1 @@
-version: '2.4'
-
-services:
-  bot:
-    build:
-      dockerfile: Dockerfile.bot
-      context: .
-    restart: unless-stopped
-    env_file: .env
-  chartmaker:
-    build:
-      context: .
-      dockerfile: chartmaker/Dockerfile
-    restart: unless-stopped
-    environment:
-      - NODE_ENV=production
-    
+base.yml
