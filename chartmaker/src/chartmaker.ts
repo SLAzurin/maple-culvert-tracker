@@ -79,9 +79,7 @@ sharp(
       input: chartJSNodeCanvas.renderToBufferSync(lineChartConfig),
     },
   ])
-  .toFile("sample.png")
-
-// fs.writeFileSync(
-//   "img.png",
-//   chartJSNodeCanvas.renderToBufferSync(lineChartConfig),
-// )
+  .toBuffer()
+  .then(buffer => {
+    console.log(buffer.toString("base64"))
+  })
