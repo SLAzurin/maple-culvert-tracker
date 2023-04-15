@@ -8,6 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands"
+	_ "github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
 var s *discordgo.Session

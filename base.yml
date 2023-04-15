@@ -2,6 +2,9 @@ version: '2.4'
 
 services:
   bot:
+    depends_on:
+      - db
+      - chartmaker
     build:
       dockerfile: Dockerfile.bot
       context: .
@@ -14,4 +17,13 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
-    
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - mapleculverttracker_pg_data:/var/lib/postgresql/data
+      - ./sqlfiles:/root/sqlfiles
+    restart: unless-stopped
+    env_file:
+      - .env
+volumes:
+  mapleculverttracker_pg_data:
