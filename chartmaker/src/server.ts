@@ -1,7 +1,7 @@
 import express from "express"
 import * as child_process from "child_process"
 const app = express()
-const port = 3005
+const port = process.env.PORT || 3000
 
 app.use(express.json())
 

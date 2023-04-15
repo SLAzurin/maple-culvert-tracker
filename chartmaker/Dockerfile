@@ -9,8 +9,9 @@ RUN apt-get update && \
 FROM base AS builder
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
-COPY chartmaker chartmaker/
+COPY chartmaker/package.json chartmaker/
 RUN pnpm i -w chartmaker
+COPY chartmaker chartmaker/
 RUN cd chartmaker && pnpm run build
 
 
@@ -19,8 +20,9 @@ WORKDIR /app/chartmaker
 ENV NODE_ENV production
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /app/
-COPY chartmaker/package.json /app/chartmaker/
+COPY chartmaker/package.json /app/chartmaker
 RUN cd /app && pnpm i -w chartmaker
+COPY chartmaker/package.json /app/chartmaker/
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodeuser
