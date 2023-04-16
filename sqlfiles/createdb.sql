@@ -19,8 +19,8 @@ CREATE INDEX "guild_characters_discord_user_id_key" on guild_characters(discord_
 CREATE TABLE IF NOT EXISTS guild_character_culvert_scores (
     culvert_date DATE not null,
     maple_character_name varchar(255) not null,
-    PRIMARY KEY (maple_character_name, timestamptz),
-)
+    PRIMARY KEY (maple_character_name, culvert_date)
+);
 
 -- auth: One time login with command on discord
 CREATE TABLE IF NOT EXISTS otp_codes (
