@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS guild_characters (
 );
 CREATE INDEX "guild_characters_discord_user_id_key" on guild_characters(discord_user_id);
 
-CREATE TABLE IF NOT EXISTS guild_character_culvert_scores (
+CREATE TABLE IF NOT EXISTS character_culvert_scores (
     culvert_date DATE not null,
     maple_character_name varchar(255) not null,
     PRIMARY KEY (maple_character_name, culvert_date)
