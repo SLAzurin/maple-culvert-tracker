@@ -28,7 +28,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	"culvert": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		// TODO: Fill this with Database query.
 		// TODO: this is stupid but this is just sample for now. Remove this double json-ing later
-		sql := `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM discord_servers INNER JOIN guild_characters ON guild_characters.discord_server_id = discord_servers.id INNER JOIN character_culvert_scores ON character_culvert_scores.maple_character_name = guild_characters.maple_character_name WHERE discord_servers.discord_server_native_id = ? AND guild_characters.discord_user_id = ? ORDER BY character_culvert_scores.culvert_date LIMIT 52`
+		sql := `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM discord_servers INNER JOIN guild_characters ON guild_characters.discord_server_id = discord_servers.id INNER JOIN character_culvert_scores ON character_culvert_scores.maple_character_name = guild_characters.maple_character_name WHERE discord_servers.discord_server_native_id = $1 AND guild_characters.discord_user_id = $2 ORDER BY character_culvert_scores.culvert_date LIMIT 52`
 		stmt, err := db.DB.Prepare(sql)
 		if err != nil {
 			log.Println("Failed 1st prepare at culvert command", err)
@@ -43,12 +43,31 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		chartData := []data.ChartMakerPoints{}
 		for rows.Next() {
 			pt := data.ChartMakerPoints{}
+			rows.Scan(&pt.Label, &pt.Score)
 			chartData = append(chartData, pt)
+		}
+
+		if len(chartData) == 0 {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "No data on your character...",
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			})
+			return
 		}
 
 		jsonData, err := json.Marshal(chartData)
 		if err != nil {
-			log.Println("json at culvert command", err)
+			log.Println("json at culvert command failed?", err)
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Something and something broko...",
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			})
 			return
 		}
 
