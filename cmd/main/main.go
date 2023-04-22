@@ -7,6 +7,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/slazurin/maple-culvert-tracker/internal/api"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands"
 	_ "github.com/slazurin/maple-culvert-tracker/internal/db"
 )
@@ -35,6 +36,12 @@ func main() {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
 	defer s.Close()
+
+	go func() {
+		r := api.NewRouter()
+		r.Run("0.0.0.0:8080")
+	}()
+
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	log.Println("Press Ctrl+C to exit")

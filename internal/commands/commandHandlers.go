@@ -96,7 +96,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	},
 	"login": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		displayName := i.Member.Nick
-		if i.Member.Nick != "" {
+		if i.Member.Nick == "" {
 			displayName = i.Member.User.Username
 		}
 		claims := &data.MCTClaims{
