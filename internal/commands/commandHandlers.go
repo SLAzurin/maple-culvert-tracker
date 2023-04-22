@@ -3,12 +3,14 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
@@ -72,5 +74,28 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 				},
 			})
 		}
+	},
+	"login": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		displayName := i.Member.Nick
+		if i.Member.Nick != "" {
+			displayName = i.Member.User.Username
+		}
+		claims := &data.MCTClaims{
+			DiscordUsername: displayName,
+			RegisteredClaims: jwt.RegisteredClaims{
+				ExpiresAt: jwt.NewNumericDate(time.Now().Add(4 * time.Hour)),
+			},
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, _ := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: fmt.Sprintf("This is your temporary login: `%v`", tokenString),
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		})
 	},
 }
