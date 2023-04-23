@@ -19,11 +19,14 @@ interface GuildMember {
 
 const fetchMembers = async (auth: string): Promise<GuildMember[] | number> => {
   const claims: MCTClaims = JSON.parse(window.atob(auth.split(".")[1]))
+  if (Number(claims.exp) * 1000 <= new Date().getTime()) {
+    return -9 // I use -9 as a code to delete the auth
+  }
   try {
     const res = await fetch(
-      `https://${import.meta.env.VITE_BACKEND_HOST}/api/discord/${
-        claims.discord_server_id
-      }/members`,
+      `${import.meta.env.VITE_BACKEND_SCHEME}://${
+        import.meta.env.VITE_BACKEND_HOST
+      }/api/discord/${claims.discord_server_id}/members`,
       {
         headers: {
           Authorization: `Bearer ${auth}`,
@@ -55,6 +58,9 @@ function App() {
         if (typeof newmembers === "number") {
           console.log("HTTP status not 200", newmembers)
           setAuth("")
+          if (-9 === newmembers) {
+            localStorage.removeItem("auth")
+          }
           return
         }
         setClaims(JSON.parse(window.atob(auth.split(".")[1])))
