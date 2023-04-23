@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +16,8 @@ func (d DiscordServerController) RetrieveMembers(c *gin.Context) {
 		c.Abort()
 		return
 	}
-
-	c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("will retrieve members from %v and you are %v", c.Param("serverid"), discordUsername)})
+	log.Println(discordUsername)
+	// c.JSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("will retrieve members from %v and you are %v", c.Param("serverid"), discordUsername)})
+	c.JSON(http.StatusOK, []struct{}{})
 	c.Abort()
 }

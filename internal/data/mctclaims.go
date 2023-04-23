@@ -7,4 +7,5 @@ import (
 type MCTClaims struct {
 	jwt.RegisteredClaims
 	DiscordUsername string `json:"discord_username"`
+	DiscordServerID string `json:"discord_server_id"`
 }

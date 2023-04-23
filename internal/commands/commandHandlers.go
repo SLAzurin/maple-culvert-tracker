@@ -101,6 +101,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		}
 		claims := &data.MCTClaims{
 			DiscordUsername: displayName,
+			DiscordServerID: i.GuildID,
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(4 * time.Hour)),
 			},
