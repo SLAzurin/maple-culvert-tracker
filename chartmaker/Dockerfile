@@ -20,9 +20,8 @@ WORKDIR /app/chartmaker
 ENV NODE_ENV production
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /app/
-COPY chartmaker/package.json /app/chartmaker
-RUN cd /app && pnpm i -w chartmaker
 COPY chartmaker/package.json /app/chartmaker/
+RUN cd /app && pnpm i -w chartmaker
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodeuser
