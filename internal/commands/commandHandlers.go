@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -49,6 +50,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		count := 0
 		characters := map[string]int64{}
 		choices := ""
+		lastSeenCharName := ""
 		var charID int64 = 0
 		for rows.Next() {
 			count++
@@ -56,13 +58,14 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			var i int64
 			rows.Scan(&i, &c)
 			choices += c + " "
-			characters[c] = i
+			characters[strings.ToLower(c)] = i
 			charID = i
+			lastSeenCharName = c
 		}
 		rows.Close()
 		stmt.Close()
 
-		if _, ok := characters[charName]; count == 0 || !ok {
+		if _, ok := characters[strings.ToLower(charName)]; count == 0 || (count > 1 && charName == "") || (!ok && charName != "") {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -71,6 +74,9 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 				},
 			})
 			return
+		} else if ok {
+			charID = characters[strings.ToLower(charName)]
+			lastSeenCharName = charName
 		}
 		// There is only 1 character, and at this point charID is correct too.
 
@@ -134,9 +140,8 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "// TODO: character name",
+					Content: lastSeenCharName,
 					Files:   []*discordgo.File{{Name: i.ID + ".png", Reader: r.Body}},
-					// TODO: revisit and see if ephemeral is needed FOR CHARTMAKER NOT PING
 					// Flags: discordgo.MessageFlagsEphemeral,
 				},
 			})
