@@ -24,9 +24,7 @@ const fetchMembers = async (auth: string): Promise<GuildMember[] | number> => {
   }
   try {
     const res = await fetch(
-      `${import.meta.env.VITE_BACKEND_SCHEME}://${
-        import.meta.env.VITE_BACKEND_HOST
-      }/api/discord/${claims.discord_server_id}/members`,
+      `/api/discord/${claims.discord_server_id}/members/`,
       {
         headers: {
           Authorization: `Bearer ${auth}`,
@@ -45,11 +43,12 @@ const fetchMembers = async (auth: string): Promise<GuildMember[] | number> => {
 function App() {
   const [claims, setClaims] = useState<MCTClaims>(defaultClaims)
   const [members, setMembers] = useState<GuildMember[]>([])
-  const [auth, setAuth] = useState<string>(
-    localStorage.getItem("auth")
-      ? (localStorage.getItem("auth") as string)
-      : "",
-  )
+  const [auth, setAuth] = useState<string>("")
+
+  useEffect(() => {
+    if (localStorage.getItem("auth"))
+      setAuth(localStorage.getItem("auth") as string)
+  }, [])
 
   useEffect(() => {
     if (auth !== "") {
@@ -65,6 +64,7 @@ function App() {
         }
         setClaims(JSON.parse(window.atob(auth.split(".")[1])))
         setMembers(newmembers as GuildMember[])
+        localStorage.setItem("auth", auth)
       })()
     } else {
       setClaims(defaultClaims)
@@ -85,6 +85,7 @@ function App() {
       // expired
       setAuth("")
       setClaims(defaultClaims)
+      localStorage.removeItem("auth")
       return
     }
 
