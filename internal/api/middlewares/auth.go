@@ -16,7 +16,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		if strings.HasPrefix(auth, "Bearer ") {
 			auth = auth[7:]
 		} else {
-			c.AbortWithStatus(500)
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		claims := &data.MCTClaims{}
