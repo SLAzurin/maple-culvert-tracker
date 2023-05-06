@@ -26,15 +26,63 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		})
 	},
 	"culvert": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		// TODO: Fill this with Database query.
-		// TODO: this is stupid but this is just sample for now. Remove this double json-ing later
-		sql := `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM discord_servers INNER JOIN guild_characters ON guild_characters.discord_server_id = discord_servers.id INNER JOIN character_culvert_scores ON character_culvert_scores.maple_character_name = guild_characters.maple_character_name WHERE discord_servers.discord_server_native_id = $1 AND guild_characters.discord_user_id = $2 ORDER BY character_culvert_scores.culvert_date LIMIT 52`
+		// Parse discord param character-name
+		charName := ""
+		options := i.ApplicationCommandData().Options
+		for _, v := range options {
+			if v.Name == "character-name" {
+				charName = v.StringValue()
+			}
+		}
+		// Count # of chars
+		sql := `SELECT id, maple_character_name FROM characters WHERE characters.discord_user_id = $1 ORDER BY id`
 		stmt, err := db.DB.Prepare(sql)
+		if err != nil {
+			log.Println("Failed prepare find characters", err)
+			return
+		}
+		rows, err := stmt.Query(i.Member.User.ID)
+		if err != nil {
+			log.Println("Query at find characters", err)
+			return
+		}
+		count := 0
+		characters := map[string]int64{}
+		choices := ""
+		var charID int64 = 0
+		for rows.Next() {
+			count++
+			var c string
+			var i int64
+			rows.Scan(&i, &c)
+			choices += c + " "
+			characters[c] = i
+			charID = i
+		}
+		rows.Close()
+		stmt.Close()
+
+		if _, ok := characters[charName]; count == 0 || !ok {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Unable to find your character. Available characters: " + choices,
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			})
+			return
+		}
+		// There is only 1 character, and at this point charID is correct too.
+
+		// query score
+		sql = `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM characters INNER JOIN character_culvert_scores ON character_culvert_scores.character_id = characters.id WHERE characters.id = $1 ORDER BY character_culvert_scores.culvert_date LIMIT 52`
+		stmt, err = db.DB.Prepare(sql)
 		if err != nil {
 			log.Println("Failed 1st prepare at culvert command", err)
 			return
 		}
-		rows, err := stmt.Query(i.GuildID, i.Member.User.ID)
+		defer stmt.Close()
+		rows, err = stmt.Query(charID)
 		if err != nil {
 			log.Println("Query at culvert command", err)
 			return
