@@ -25,5 +25,21 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+  nginx:
+    depends_on:
+      # - web
+      - bot
+    image: nginx:1.23-alpine
+    restart: unless-stopped
+    ports:
+      - "8082:80"
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+  web:
+    build:
+      context: .
+      dockerfile: culvert-web/Dockerfile
+    environment:
+      - NODE_ENV=production
 volumes:
   mapleculverttracker_pg_data:
