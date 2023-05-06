@@ -15,6 +15,14 @@ var Commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "culvert",
 		Description: "Shows your past 12 months culvert progression",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "character-name",
+				Description: "Your character's name",
+			},
+		},
 	},
 	{
 		Name:                     "login",
