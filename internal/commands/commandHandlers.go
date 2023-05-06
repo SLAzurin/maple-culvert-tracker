@@ -32,7 +32,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		options := i.ApplicationCommandData().Options
 		for _, v := range options {
 			if v.Name == "character-name" {
-				charName = v.StringValue()
+				charName = strings.ToLower(v.StringValue())
 			}
 		}
 		// Count # of chars
@@ -48,24 +48,30 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			return
 		}
 		count := 0
-		characters := map[string]int64{}
+		characters := map[string]struct {
+			name string
+			id   int64
+		}{}
 		choices := ""
 		lastSeenCharName := ""
-		var charID int64 = 0
+		var lastSeenCharID int64 = 0
 		for rows.Next() {
 			count++
 			var c string
 			var i int64
 			rows.Scan(&i, &c)
 			choices += c + " "
-			characters[strings.ToLower(c)] = i
-			charID = i
+			characters[strings.ToLower(c)] = struct {
+				name string
+				id   int64
+			}{name: c, id: i}
+			lastSeenCharID = i
 			lastSeenCharName = c
 		}
 		rows.Close()
 		stmt.Close()
 
-		if _, ok := characters[strings.ToLower(charName)]; count == 0 || (count > 1 && charName == "") || (!ok && charName != "") {
+		if _, ok := characters[charName]; count == 0 || (count > 1 && charName == "") || (!ok && charName != "") {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -75,8 +81,8 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			})
 			return
 		} else if ok {
-			charID = characters[strings.ToLower(charName)]
-			lastSeenCharName = charName
+			lastSeenCharID = characters[charName].id
+			lastSeenCharName = characters[charName].name
 		}
 		// There is only 1 character, and at this point charID is correct too.
 
@@ -88,7 +94,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			return
 		}
 		defer stmt.Close()
-		rows, err = stmt.Query(charID)
+		rows, err = stmt.Query(lastSeenCharID)
 		if err != nil {
 			log.Println("Query at culvert command", err)
 			return
@@ -98,6 +104,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		for rows.Next() {
 			pt := data.ChartMakerPoints{}
 			rows.Scan(&pt.Label, &pt.Score)
+			pt.Label = pt.Label[5:10]
 			chartData = append(chartData, pt)
 		}
 
@@ -105,7 +112,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "No data on your character...",
+					Content: "No data on " + lastSeenCharName + "...",
 					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
