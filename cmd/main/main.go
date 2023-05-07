@@ -38,6 +38,7 @@ func main() {
 	defer s.Close()
 
 	go func() {
+		api.DiscordSession = s
 		r := api.NewRouter()
 		r.Run("0.0.0.0:8080")
 	}()
