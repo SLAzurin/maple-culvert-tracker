@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useAppSelector, useAppDispatch } from "../../app/hooks"
 import { setToken, selectToken } from "./loginSlice"
 
@@ -14,6 +13,7 @@ export function Login() {
         onChange={(e) => {
           dispatch(setToken(e.target.value))
         }}
+        value={token}
       />
     </div>
   )
