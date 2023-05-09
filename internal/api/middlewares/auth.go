@@ -28,7 +28,7 @@ func AuthMiddleware() gin.HandlerFunc {
 				c.AbortWithStatus(http.StatusUnauthorized)
 				return
 			}
-			c.AbortWithStatus(http.StatusBadRequest)
+			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
 		if !tkn.Valid {
