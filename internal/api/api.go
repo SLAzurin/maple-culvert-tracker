@@ -20,7 +20,7 @@ func NewRouter() *gin.Engine {
 			discordServer := controllers.DiscordServerController{}
 			discordServerMembers := discordGroup.Group("/members")
 			{
-				discordServerMembers.GET("/", discordServer.RetrieveMembers)
+				discordServerMembers.GET("/fetch", discordServer.RetrieveMembers)
 				discordServerMembers.GET("/force", discordServer.RetrieveMembersForce)
 			}
 
