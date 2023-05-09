@@ -1,19 +1,29 @@
 import { Login } from "./features/login/Login"
 import "./App.css"
-import { useAppSelector } from "./app/hooks"
-import { selectToken } from "./features/login/loginSlice"
 import { useEffect } from "react"
 import fetchMembers from "./helpers/fetchMembers"
+import { resetToken, selectToken } from "./features/login/loginSlice"
+import { store } from "./app/store"
+import { useSelector } from "react-redux"
 
 function App() {
-  const token = useAppSelector(selectToken)
-
+  const token = useSelector(selectToken)
   useEffect(() => {
-    ;(async () => {
-      await fetchMembers(token)
-    })()
+    if (token !== "") {
+      ;(async () => {
+        const res = await fetchMembers(token)
+        if (typeof res === "number") {
+          console.log("failed to get members", res)
+          if (res === 401) {
+            alert("Expired login token")
+            // Using store's dispatch to go around react hook exhaustive deps
+            store.dispatch(resetToken())
+          }
+          return
+        }
+      })()
+    }
   }, [token])
-
   return (
     <div className="App">
       <header className="App-header">

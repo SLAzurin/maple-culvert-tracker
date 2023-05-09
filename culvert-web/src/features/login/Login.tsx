@@ -1,10 +1,10 @@
-import { useAppSelector, useAppDispatch } from "../../app/hooks"
+import { useDispatch, useSelector } from "react-redux"
 import { selectClaims, setToken, selectToken } from "./loginSlice"
 
 export function Login() {
-  const token = useAppSelector(selectToken)
-  const claims = useAppSelector(selectClaims)
-  const dispatch = useAppDispatch()
+  const token = useSelector(selectToken)
+  const claims = useSelector(selectClaims)
+  const dispatch = useDispatch()
 
   return (
     <div>
