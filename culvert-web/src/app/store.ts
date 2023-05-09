@@ -6,6 +6,8 @@ import {
 } from "@reduxjs/toolkit"
 import counterReducer from "../features/counter/counterSlice"
 import loginReducer from "../features/login/loginSlice"
+import membersReducer from "../features/members/membersSlice"
+
 import { persistStore, persistReducer } from "redux-persist"
 import storage from "redux-persist/lib/storage"
 
@@ -19,6 +21,7 @@ const persistedReducer = persistReducer(
   combineReducers({
     counter: counterReducer,
     login: loginReducer,
+    members: membersReducer,
   }),
 )
 
