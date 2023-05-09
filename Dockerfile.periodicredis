@@ -1,0 +1,10 @@
+FROM golang:1.20-alpine AS builder
+COPY go.mod go.sum /root/src/
+RUN cd /root/src && go mod download
+COPY cmd /root/src/cmd/
+COPY internal /root/src/internal
+RUN cd /root/src && go build -o /root/periodicredis cmd/periodicredis/periodicredis.go
+# TODO: Optimize accordint to this https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
+FROM alpine
+COPY --from=builder /root/periodicredis /root/
+ENTRYPOINT [ "/root/periodicredis" ]

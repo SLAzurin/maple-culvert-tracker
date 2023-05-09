@@ -5,6 +5,7 @@ services:
     depends_on:
       - db
       - chartmaker
+      - redis
     build:
       dockerfile: Dockerfile.bot
       context: .
@@ -17,6 +18,11 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - mapleculverttracker_redis_data:/data
+    restart: unless-stopped
   db:
     image: postgres:15-alpine
     volumes:
@@ -41,5 +47,14 @@ services:
       dockerfile: culvert-web/Dockerfile
     environment:
       - NODE_ENV=production
+  periodicredis:
+    depends_on:
+      - redis
+    build:
+      dockerfile: Dockerfile.periodicredis
+      context: .
+    restart: unless-stopped
+    env_file: .env
 volumes:
   mapleculverttracker_pg_data:
+  mapleculverttracker_redis_data:
