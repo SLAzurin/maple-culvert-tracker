@@ -37,6 +37,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		c.Set("discord_username", claims.DiscordUsername)
+		c.Set("discord_server_id", claims.DiscordServerID)
 
 		c.Next()
 	}

@@ -17,14 +17,13 @@ func NewRouter() *gin.Engine {
 		apiGroup.Use(middlewares.AuthMiddleware())
 		discordGroup := apiGroup.Group("/discord")
 		{
-			discordServerGroup := discordGroup.Group("/:serverid")
+			discordServer := controllers.DiscordServerController{}
+			discordServerMembers := discordGroup.Group("/members")
 			{
-				discordServer := controllers.DiscordServerController{}
-				discordServerMembers := discordServerGroup.Group("/members")
-				{
-					discordServerMembers.GET("/", discordServer.RetrieveMembers)
-				}
+				discordServerMembers.GET("/", discordServer.RetrieveMembers)
+				discordServerMembers.GET("/force", discordServer.RetrieveMembersForce)
 			}
+
 		}
 	}
 	return router
