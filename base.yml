@@ -47,6 +47,7 @@ services:
       dockerfile: culvert-web/Dockerfile
     environment:
       - NODE_ENV=production
+    restart: unless-stopped
   periodicredis:
     depends_on:
       - redis
