@@ -1,15 +1,31 @@
 import { Login } from "./features/login/Login"
 import "./App.css"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import fetchMembers from "./helpers/fetchMembers"
-import { resetToken, selectToken } from "./features/login/loginSlice"
+import {
+  resetToken,
+  selectClaims,
+  selectToken,
+} from "./features/login/loginSlice"
 import { setMembers } from "./features/members/membersSlice"
 import { store } from "./app/store"
 import { useSelector } from "react-redux"
 
 function App() {
   const token = useSelector(selectToken)
+  const claims = useSelector(selectClaims)
+  const [action, setAction] = useState("")
   useEffect(() => {
+    // claims expired
+    if (
+      claims.exp !== "0" &&
+      Number(claims.exp) * 1000 < new Date().getTime()
+    ) {
+      alert("Expired login token")
+      store.dispatch(resetToken())
+      return
+    }
+    // if new token was entered
     if (token !== "") {
       ;(async () => {
         const res = await fetchMembers(token)
@@ -25,7 +41,7 @@ function App() {
         store.dispatch(setMembers(res))
       })()
     }
-  }, [token])
+  }, [token, claims])
   return (
     <div className="App">
       <header className="App-header">
