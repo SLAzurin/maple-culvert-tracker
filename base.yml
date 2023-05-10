@@ -9,12 +9,14 @@ services:
     build:
       dockerfile: Dockerfile.bot
       context: .
+      target: runner
     restart: unless-stopped
     env_file: .env
   chartmaker:
     build:
       context: .
       dockerfile: chartmaker/Dockerfile
+      target: runner
     restart: unless-stopped
     environment:
       - NODE_ENV=production
@@ -45,6 +47,7 @@ services:
     build:
       context: .
       dockerfile: culvert-web/Dockerfile
+      target: runner
     environment:
       - NODE_ENV=production
     restart: unless-stopped
@@ -54,6 +57,7 @@ services:
     build:
       dockerfile: Dockerfile.periodicredis
       context: .
+      target: runner
     restart: unless-stopped
     env_file: .env
 volumes:

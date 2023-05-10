@@ -5,6 +5,6 @@ COPY cmd /root/src/cmd/
 COPY internal /root/src/internal
 RUN cd /root/src && go build -o /root/main cmd/main/main.go
 # TODO: Optimize accordint to this https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
-FROM alpine
+FROM alpine AS runner
 COPY --from=builder /root/main /root/
 ENTRYPOINT [ "/root/main" ]
