@@ -27,7 +27,7 @@ type postCulvertBody struct {
 }
 
 func (m MapleController) GETCharacters(c *gin.Context) {
-	rows, err := db.DB.Query("SELECT id, character_name FROM characters;")
+	rows, err := db.DB.Query("SELECT id, maple_character_name FROM characters;")
 	if err != nil {
 		log.Println("DB ERROR GETCharacters", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -63,7 +63,7 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 	var err error
 	if body.IsNew {
 		query := ""
-		args := []any{}
+		args := []interface{}{}
 		d := 1
 		for _, v := range body.Payload {
 			query += fmt.Sprintf("($%d,'%s',$%d),", d, thisWeekStr, d+1)
@@ -71,8 +71,8 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 			args = append(args, v.CharacterID, v.Score)
 		}
 		query = "INSERT INTO character_culvert_scores (character_id, culvert_date, score) VALUES " + query[:len(query)-1]
-		_, err = db.DB.Exec(query, args)
-	} else {
+		_, err = db.DB.Exec(query, args...)
+	} else { //typically this should be a patch request
 		tx, errtx := db.DB.BeginTx(context.Background(), nil)
 		if errtx != nil {
 			log.Println("DB ERROR tx POSTCulvert", err)
@@ -122,12 +122,12 @@ func (m MapleController) GETCulvert(c *gin.Context) {
 	result := []gin.H{}
 	for rows.Next() {
 		var charID int64
-		var culvertDate string
+		var culvertDate time.Time
 		var score int
 		rows.Scan(&charID, &culvertDate, &score)
 		result = append(result, gin.H{
 			"character_id": charID,
-			"culvert_date": culvertDate,
+			"culvert_date": culvertDate.Format("2006-01-02"),
 			"score":        score,
 		})
 	}
