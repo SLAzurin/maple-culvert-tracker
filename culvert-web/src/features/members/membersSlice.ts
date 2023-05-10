@@ -38,6 +38,8 @@ export const selectMembersByID = (state: RootState) => state.members.membersByID
 export const { setMembers } = membersSlice.actions
 // TODO: notes
 /* 
+gotta fix fetch requests in link discord
+
 sorting done in frontend 
 
 update gpq has 2 sections
