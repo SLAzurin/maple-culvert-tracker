@@ -23,7 +23,12 @@ func NewRouter() *gin.Engine {
 				discordServerMembers.GET("/fetch", discordServer.RetrieveMembers)
 				discordServerMembers.GET("/force", discordServer.RetrieveMembersForce)
 			}
-
+		}
+		mapleGroup := apiGroup.Group("/maple")
+		{
+			maple := controllers.MapleController{}
+			mapleGroup.GET("/link", maple.LinkDiscord)
+			
 		}
 	}
 	return router
