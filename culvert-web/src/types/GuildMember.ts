@@ -1,5 +1,5 @@
 interface GuildMember {
-  character_name: string
+  discord_user_id: string
   discord_username: string
 }
 

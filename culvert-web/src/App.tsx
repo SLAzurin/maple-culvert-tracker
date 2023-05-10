@@ -3,6 +3,7 @@ import "./App.css"
 import { useEffect } from "react"
 import fetchMembers from "./helpers/fetchMembers"
 import { resetToken, selectToken } from "./features/login/loginSlice"
+import { setMembers } from "./features/members/membersSlice"
 import { store } from "./app/store"
 import { useSelector } from "react-redux"
 
@@ -21,6 +22,7 @@ function App() {
           }
           return
         }
+        store.dispatch(setMembers(res))
       })()
     }
   }, [token])

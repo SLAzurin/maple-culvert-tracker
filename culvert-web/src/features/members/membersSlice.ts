@@ -1,17 +1,38 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { PayloadAction, createSlice } from "@reduxjs/toolkit"
+import GuildMember from "../../types/GuildMember"
+import { RootState } from "../../app/store"
 
-interface MembersState {}
+interface MembersState {
+  members: GuildMember[]
+  membersByID: {
+    [key: string]: string
+  }
+}
 
-const initialState: MembersState = {}
+const initialState: MembersState = {
+  members: [],
+  membersByID: {},
+}
 
 export const membersSlice = createSlice({
   name: "members",
   initialState,
-  reducers: {},
+  reducers: {
+    setMembers: (state, action: PayloadAction<GuildMember[]>) => {
+      state.members = action.payload
+      const newMembersByID: {
+        [key: string]: string
+      } = {}
+      for (const v of action.payload) {
+        newMembersByID[v.discord_username] = v.discord_user_id
+      }
+      state.membersByID = newMembersByID
+    },
+  },
 })
 export default membersSlice.reducer
 
-// export const selectToken = (state: RootState) => state.login.token
-// export const selectClaims = (state: RootState) => state.login.claims
+export const selectMembers = (state: RootState) => state.members.members
+export const selectMembersByID = (state: RootState) => state.members.membersByID
 
-// export const {  } = membersSlice.actions
+export const { setMembers } = membersSlice.actions
