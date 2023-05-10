@@ -28,6 +28,12 @@ func NewRouter() *gin.Engine {
 		{
 			maple := controllers.MapleController{}
 			mapleGroup.POST("/link", maple.LinkDiscord)
+			mapleCharacters := mapleGroup.Group("/characters")
+			{
+				mapleCharacters.GET("/culvert", maple.GETCulvert)
+				mapleCharacters.POST("/culvert", maple.POSTCulvert)
+				mapleCharacters.GET("/fetch", maple.GETCharacters)
+			}
 
 		}
 	}

@@ -3,6 +3,7 @@ package controllers
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
@@ -15,9 +16,47 @@ type linkDiscordBody struct {
 	CharacterName string `json:"character_name"`
 	Link          bool   `json:"link"`
 }
-// func RetrieveCharacters
 
-// func RetrieveCulvertScores
+func (m MapleController) GETCharacters(c *gin.Context) {
+
+	//return []{character_id: character_name}
+}
+
+func (m MapleController) POSTCulvert(c *gin.Context) {
+	// hardcode past sunday
+	// body []{ character_id, score }
+}
+func (m MapleController) GETCulvert(c *gin.Context) {
+	thisWeek := time.Now()
+	sub := int(thisWeek.Weekday())
+	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(sub))
+	thisWeekStr := thisWeek.Format("2006-01-02")
+	lastWeek := thisWeek.Add(time.Hour * -24 * 7)
+	lastWeekStr := lastWeek.Format("2006-01-02")
+	rows, err := db.DB.Query("SELECT character_id, culvert_date, score FROM character_culvert_scores WHERE culvert_date = $1 or culvert_date = $2 ORDER BY score DESC;", thisWeekStr, lastWeekStr)
+	if err != nil {
+		log.Println("DB ERROR GETCulvert", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "DB failed.",
+		})
+		return
+	}
+	defer rows.Close()
+	result := []gin.H{}
+	for rows.Next() {
+		var charID int64
+		var culvertDate string
+		var score int
+		rows.Scan(&charID, &culvertDate, &score)
+		result = append(result, gin.H{
+			"character_id": charID,
+			"culvert_date": culvertDate,
+			"score":        score,
+		})
+	}
+	c.AbortWithStatusJSON(http.StatusOK, result)
+	//return []{character_id: { PreviousWeek, CurrentWeek }}
+}
 
 func (m MapleController) LinkDiscord(c *gin.Context) {
 	body := linkDiscordBody{}
@@ -33,7 +72,7 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 		_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2 WHERE maple_character_name = $1", body.CharacterName, body.DiscordUserID)
 	}
 	if err != nil {
-		log.Println("DB ERROR", err)
+		log.Println("DB ERROR LinkDiscord", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": "DB failed.",
 		})
