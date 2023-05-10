@@ -27,8 +27,8 @@ func NewRouter() *gin.Engine {
 		mapleGroup := apiGroup.Group("/maple")
 		{
 			maple := controllers.MapleController{}
-			mapleGroup.GET("/link", maple.LinkDiscord)
-			
+			mapleGroup.POST("/link", maple.LinkDiscord)
+
 		}
 	}
 	return router
