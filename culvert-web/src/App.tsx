@@ -7,14 +7,19 @@ import {
   selectClaims,
   selectToken,
 } from "./features/login/loginSlice"
-import { setMembers } from "./features/members/membersSlice"
+import { selectMembers, setMembers } from "./features/members/membersSlice"
 import { store } from "./app/store"
 import { useSelector } from "react-redux"
 
 function App() {
   const token = useSelector(selectToken)
   const claims = useSelector(selectClaims)
+  const members = useSelector(selectMembers)
   const [action, setAction] = useState("")
+
+  const [selectedDiscordID, setSelectedDiscordID] = useState(
+    members.length !== 0 ? members[0].discord_user_id : "",
+  )
   useEffect(() => {
     // claims expired
     if (
@@ -57,12 +62,51 @@ function App() {
               value={action}
             >
               <option value={""}></option>
-              <option value={"link_member"}>Link member's discord</option>
+              <option value={"link_member"}>
+                Link discord user with maple character
+              </option>
               <option value={"culvert_score"}>Add culvert score</option>
             </select>
           </div>
         )}
-        {action === "link_member" && <div>WIP</div>}
+        {action === "link_member" && members.length !== 0 && (
+          <div>
+            <select
+              value={selectedDiscordID}
+              onChange={(e) => {
+                setSelectedDiscordID(e.target.value)
+              }}
+            >
+              {members.map((member) => (
+                <option
+                  key={member.discord_user_id}
+                  value={member.discord_user_id}
+                >
+                  {member.discord_username}
+                </option>
+              ))}
+            </select>
+            <input type="text" placeholder="character name"></input>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                console.log("Clicked link character to discord id")
+              }}
+            >
+              link
+            </button>
+            <div className="mt-5">
+              <button
+                className="btn btn-danger"
+                onClick={() => {
+                  console.log("unlinking character")
+                }}
+              >
+                unlink
+              </button>
+            </div>
+          </div>
+        )}
         {action === "culvert_score" && <div>WIP</div>}
       </header>
     </div>
