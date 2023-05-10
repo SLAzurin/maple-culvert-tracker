@@ -28,6 +28,7 @@ function App() {
     // if new token was entered
     if (token !== "") {
       ;(async () => {
+        console.log("fetching members")
         const res = await fetchMembers(token)
         if (typeof res === "number") {
           console.log("failed to get members", res)
@@ -46,6 +47,23 @@ function App() {
     <div className="App">
       <header className="App-header">
         <Login />
+        {claims.exp !== "0" && (
+          <div className="m-5">
+            What would you like to do?
+            <select
+              onChange={(e) => {
+                setAction(e.target.value)
+              }}
+              value={action}
+            >
+              <option value={""}></option>
+              <option value={"link_member"}>Link member's discord</option>
+              <option value={"culvert_score"}>Add culvert score</option>
+            </select>
+          </div>
+        )}
+        {action === "link_member" && <div>WIP</div>}
+        {action === "culvert_score" && <div>WIP</div>}
       </header>
     </div>
   )
