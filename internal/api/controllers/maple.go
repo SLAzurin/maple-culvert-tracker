@@ -27,8 +27,27 @@ type postCulvertBody struct {
 }
 
 func (m MapleController) GETCharacters(c *gin.Context) {
-
-	//return []{character_id: character_name}
+	rows, err := db.DB.Query("SELECT id, character_name FROM characters;")
+	if err != nil {
+		log.Println("DB ERROR GETCharacters", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "DB failed.",
+		})
+		return
+	}
+	result := []struct {
+		CharacterID   int    `json:"character_id"`
+		CharacterName string `json:"character_name"`
+	}{}
+	for rows.Next() {
+		r := struct {
+			CharacterID   int    `json:"character_id"`
+			CharacterName string `json:"character_name"`
+		}{}
+		rows.Scan(&r.CharacterID, &r.CharacterName)
+		result = append(result, r)
+	}
+	c.AbortWithStatusJSON(http.StatusOK, result)
 }
 
 func (m MapleController) POSTCulvert(c *gin.Context) {
