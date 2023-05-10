@@ -11,6 +11,5 @@ CREATE TABLE IF NOT EXISTS character_culvert_scores (
   score int not null,
   FOREIGN KEY (character_id) references characters(id) on delete cascade
 );
-CREATE INDEX character_culvert_scores_culvert_date ON character_culvert_scores (culvert_date);
 ALTER TABLE character_culvert_scores
   ADD CONSTRAINT character_culvert_scores_culvert_date_character_id UNIQUE (culvert_date, character_id);
