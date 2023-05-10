@@ -1,6 +1,8 @@
 package controllers
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -16,6 +18,13 @@ type linkDiscordBody struct {
 	CharacterName string `json:"character_name"`
 	Link          bool   `json:"link"`
 }
+type postCulvertBody struct {
+	IsNew   bool `json:"isNew"`
+	Payload []struct {
+		CharacterID int64 `json:"character_id"`
+		Score       int   `json:"score"`
+	} `json:"payload"`
+}
 
 func (m MapleController) GETCharacters(c *gin.Context) {
 
@@ -23,8 +32,57 @@ func (m MapleController) GETCharacters(c *gin.Context) {
 }
 
 func (m MapleController) POSTCulvert(c *gin.Context) {
-	// hardcode past sunday
-	// body []{ character_id, score }
+	body := postCulvertBody{}
+	if err := c.BindJSON(&body); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	thisWeek := time.Now()
+	sub := int(thisWeek.Weekday())
+	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(sub))
+	thisWeekStr := thisWeek.Format("2006-01-02")
+	var err error
+	if body.IsNew {
+		query := ""
+		args := []any{}
+		d := 1
+		for _, v := range body.Payload {
+			query += fmt.Sprintf("($%d,'%s',$%d),", d, thisWeekStr, d+1)
+			d += 2
+			args = append(args, v.CharacterID, v.Score)
+		}
+		query = "INSERT INTO character_culvert_scores (character_id, culvert_date, score) VALUES " + query[:len(query)-1]
+		_, err = db.DB.Exec(query, args)
+	} else {
+		tx, errtx := db.DB.BeginTx(context.Background(), nil)
+		if errtx != nil {
+			log.Println("DB ERROR tx POSTCulvert", err)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"error": "DB failed.",
+			})
+			return
+		}
+		for _, v := range body.Payload {
+			_, err = tx.Exec("UPDATE character_culvert_scores SET score = $1 WHERE character_id = $2 AND culvert_date = $3", v.Score, v.CharacterID, thisWeekStr)
+			if err != nil {
+				log.Println("DB ERROR POSTCulvert", err)
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+					"error": "DB failed.",
+				})
+				tx.Rollback()
+				return
+			}
+		}
+		err = tx.Commit()
+	}
+	if err != nil {
+		log.Println("DB ERROR POSTCulvert", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "DB failed.",
+		})
+		return
+	}
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{})
 }
 func (m MapleController) GETCulvert(c *gin.Context) {
 	thisWeek := time.Now()
@@ -55,7 +113,6 @@ func (m MapleController) GETCulvert(c *gin.Context) {
 		})
 	}
 	c.AbortWithStatusJSON(http.StatusOK, result)
-	//return []{character_id: { PreviousWeek, CurrentWeek }}
 }
 
 func (m MapleController) LinkDiscord(c *gin.Context) {
