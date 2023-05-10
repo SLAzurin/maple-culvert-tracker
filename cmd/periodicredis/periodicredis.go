@@ -30,15 +30,17 @@ func main() {
 	}
 	defer s.Close()
 	go func() {
-		result, err := helpers.FetchMembers(os.Getenv("DISCORD_GUILD_ID"), s)
-		if err != nil {
-			log.Println("Failed to fetch members periodically")
-		} else {
-			resultArr, _ := json.Marshal(result)
-			cmd := apiredis.RedisDB.Set(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID"), string(resultArr), 0)
-			log.Println("Set", "discord_members_"+os.Getenv("DISCORD_GUILD_ID"), cmd.Err())
+		for {
+			result, err := helpers.FetchMembers(os.Getenv("DISCORD_GUILD_ID"), s)
+			if err != nil {
+				log.Println("Failed to fetch members periodically")
+			} else {
+				resultArr, _ := json.Marshal(result)
+				cmd := apiredis.RedisDB.Set(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID"), string(resultArr), 0)
+				log.Println("Set", "discord_members_"+os.Getenv("DISCORD_GUILD_ID"), cmd.Err())
+			}
+			time.Sleep(time.Minute * 30)
 		}
-		time.Sleep(time.Minute * 30)
 	}()
 
 	stop := make(chan os.Signal, 1)
