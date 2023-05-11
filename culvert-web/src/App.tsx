@@ -13,8 +13,11 @@ import { useSelector } from "react-redux"
 import linkDiscordMaple from "./helpers/linkDiscordMaple"
 import {
   addNewCharacterScore,
+  applyCulvertChanges,
+  resetCharacterScores,
   selectCharacterScores,
   selectCharacters,
+  selectUpdateCulvertScoresResult,
   setCharacterScores,
   setCharacters,
   updateScoreValue,
@@ -28,6 +31,7 @@ function App() {
   const members = useSelector(selectMembers)
   const characters = useSelector(selectCharacters)
   const characterScores = useSelector(selectCharacterScores)
+  const updateCulvertScoresResult = useSelector(selectUpdateCulvertScoresResult)
   const [action, setAction] = useState("")
   const [disabledLink, setDisabledLink] = useState(false)
   const [linkCharacterName, setLinkCharacterName] = useState("")
@@ -37,6 +41,16 @@ function App() {
   const [selectedDiscordID, setSelectedDiscordID] = useState(
     members.length !== 0 ? members[0].discord_user_id : "",
   )
+
+  useEffect(() => {
+    if (updateCulvertScoresResult !== null) {
+      updateCulvertScoresResult.then((res) => {
+        setSuccessful(res.status === 200)
+        setStatusMessage(res.statusMessage)
+        store.dispatch(resetCharacterScores())
+      })
+    }
+  }, [updateCulvertScoresResult])
 
   useEffect(() => {
     if (action === "culvert_score" && Object.values(characters).length === 0) {
@@ -289,7 +303,8 @@ function App() {
             <button
               className="btn btn-primary"
               onClick={() => {
-                console.log("TO BE IMPLEMENTED")
+                console.log("apply changes for culvert scores")
+                store.dispatch(applyCulvertChanges(token))
               }}
             >
               Submit

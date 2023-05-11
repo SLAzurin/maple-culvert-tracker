@@ -45,31 +45,3 @@ export const selectMembers = (state: RootState) => state.members.members
 export const selectMembersByID = (state: RootState) => state.members.membersByID
 
 export const { setMembers } = membersSlice.actions
-// TODO: notes
-/* 
-
-sorting done in frontend 
-
-
-scores: (MUST FRONTEND SORT, by gpq desc)
-[]{
-  charid
-  score
-}
-
-transform into
-id -> {
-  last week,
-  this week
-}
-
-frontend:
-table:
-charname, last week, this week (input edit old value or empty field. POST/PATCH)
-
-post request:
-filter by isNew
-  2 payloads
-make 2 post requests
-
-*/
