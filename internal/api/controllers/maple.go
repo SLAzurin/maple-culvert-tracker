@@ -28,7 +28,7 @@ type postCulvertBody struct {
 }
 
 func (m MapleController) GETCharacters(c *gin.Context) {
-	rows, err := db.DB.Query("SELECT id, maple_character_name FROM characters;")
+	rows, err := db.DB.Query("SELECT id, maple_character_name FROM characters WHERE discord_user_id != '1';")
 	if err != nil {
 		log.Println("DB ERROR GETCharacters", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
