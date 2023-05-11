@@ -27,6 +27,8 @@ RUN adduser --system --uid 1001 nodeuser
 
 COPY --from=builder /app/chartmaker/dist ./dist
 
+RUN apt-get update && apt-get install -y -q libfontconfig1 && rm -rf /var/lib/apt/lists/*
+
 USER nodeuser
 
 EXPOSE 3000
