@@ -148,7 +148,7 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 	var err error
 	if body.Link {
 		var rows *sql.Rows
-		rows, err = db.DB.Query("SELECT discord_user_id, maple_character_name FROM characters WHERE maple_character_name LIKE $1;", body.CharacterName)
+		rows, err = db.DB.Query("SELECT discord_user_id, maple_character_name FROM characters WHERE maple_character_name ILIKE $1;", body.CharacterName)
 		if err != nil {
 			log.Println("DB ERROR LinkDiscord check dupe name", err)
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -168,13 +168,15 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 				return
 			}
 		}
-		if realCharName != "" {
-			body.CharacterName = realCharName
+		if realCharName != "" && realCharName != body.CharacterName {
+			// body.CharacterName = realCharName
+			_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2, maple_character_name = $1 WHERE maple_character_name = $3", body.CharacterName, body.DiscordUserID, realCharName)
+		} else {
+			_, err = db.DB.Exec("INSERT INTO characters (maple_character_name, discord_user_id) VALUES ($1, $2) ON CONFLICT (maple_character_name) DO UPDATE SET discord_user_id = $2", body.CharacterName, body.DiscordUserID)
 		}
-		_, err = db.DB.Exec("INSERT INTO characters (maple_character_name, discord_user_id) VALUES ($1, $2) ON CONFLICT (maple_character_name) DO UPDATE SET discord_user_id = $2", body.CharacterName, body.DiscordUserID)
 	} else {
 		body.DiscordUserID = "1"
-		_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2 WHERE maple_character_name LIKE $1", body.CharacterName, body.DiscordUserID)
+		_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2 WHERE maple_character_name ILIKE $1", body.CharacterName, body.DiscordUserID)
 	}
 	if err != nil {
 		log.Println("DB ERROR LinkDiscord", err)
