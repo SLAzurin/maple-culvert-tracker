@@ -158,11 +158,12 @@ function App() {
                 ).then((res) => {
                   setDisabledLink(false)
                   if (res.status !== 200) {
-                    setStatusMessage(res.payload)
                     setSuccessful(false)
+                    setStatusMessage(res.payload)
                   } else {
-                    setStatusMessage("Successfully linked " + linkCharacterName)
                     setSuccessful(true)
+                    setStatusMessage("Successfully linked " + linkCharacterName)
+                    store.dispatch(setCharacters([]))
                   }
                 })
               }}
@@ -244,6 +245,25 @@ function App() {
                 })}
               </tbody>
             </table>
+            <div>
+              Add character score{" "}
+              <select
+                value=""
+                onChange={(e) => {
+                  console.log(e.target.value)
+                }}
+              >
+                <option value={""}></option>
+                {Object.keys(characters)
+                  .filter(
+                    (charID) =>
+                      typeof characterScores[Number(charID)] === "undefined",
+                  )
+                  .map((charID) => (
+                    <option value={charID}>{characters[Number(charID)]}</option>
+                  ))}
+              </select>
+            </div>
             <button
               className="btn btn-primary"
               onClick={() => {
