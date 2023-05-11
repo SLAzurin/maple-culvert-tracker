@@ -192,6 +192,7 @@ function App() {
                         "Successfully unlinked " + linkCharacterName,
                       )
                       setSuccessful(true)
+                      store.dispatch(setCharacters([]))
                     }
                   })
                 }}
@@ -231,6 +232,7 @@ function App() {
                       : -1
                   })
                   .map(([charID, scores], i) => {
+                    if (!characters[Number(charID)]) return null
                     return (
                       <tr className="" key={"scores-" + i}>
                         <td>
