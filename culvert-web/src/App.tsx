@@ -203,40 +203,46 @@ function App() {
         {action === "culvert_score" && (
           <div>
             <table>
-              <th>Character name</th>
-              <th>Last week</th>
-              <th>This week</th>
-              {Object.entries(characterScores).map(([charID, scores], i) => {
-                return (
-                  <tr className="" key={"scores-" + i}>
-                    <td>
-                      <span>{characters[Number(charID)] || charID}</span>
-                    </td>
-                    <td>
-                      <input
-                        placeholder={scores.prev?.toString()}
-                        disabled={true}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        onChange={(e) => {
-                          const n = Number(e.target.value)
-                          if (!Number.isNaN(n)) {
-                            store.dispatch(
-                              updateScoreValue({
-                                score: n,
-                                character_id: Number(charID),
-                              }),
-                            )
-                          }
-                        }}
-                        value={scores.current || ""}
-                      />
-                    </td>
-                  </tr>
-                )
-              })}
+              <thead>
+                <tr>
+                  <th>Character name</th>
+                  <th>Last week</th>
+                  <th>This week</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(characterScores).map(([charID, scores], i) => {
+                  return (
+                    <tr className="" key={"scores-" + i}>
+                      <td>
+                        <span>{characters[Number(charID)] || charID}</span>
+                      </td>
+                      <td>
+                        <input
+                          placeholder={scores.prev?.toString()}
+                          disabled={true}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          onChange={(e) => {
+                            const n = Number(e.target.value)
+                            if (!Number.isNaN(n)) {
+                              store.dispatch(
+                                updateScoreValue({
+                                  score: n,
+                                  character_id: Number(charID),
+                                }),
+                              )
+                            }
+                          }}
+                          value={scores.current || ""}
+                        />
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
             </table>
             <button
               className="btn btn-primary"
