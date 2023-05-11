@@ -16,6 +16,7 @@ import {
   selectCharacters,
   setCharacterScores,
   setCharacters,
+  updateScoreValue,
 } from "./features/characters/charactersSlice"
 import fetchCharacters from "./helpers/fetchCharacters"
 import fetchCharacterScores from "./helpers/fetchCharacterScores"
@@ -199,7 +200,54 @@ function App() {
             </div>
           </div>
         )}
-        {action === "culvert_score" && <div>WIP</div>}
+        {action === "culvert_score" && (
+          <div>
+            <table>
+              <th>Character name</th>
+              <th>Last week</th>
+              <th>This week</th>
+              {Object.entries(characterScores).map(([charID, scores], i) => {
+                return (
+                  <tr className="" key={"scores-" + i}>
+                    <td>
+                      <span>{characters[Number(charID)] || charID}</span>
+                    </td>
+                    <td>
+                      <input
+                        placeholder={scores.prev?.toString()}
+                        disabled={true}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        onChange={(e) => {
+                          const n = Number(e.target.value)
+                          if (!Number.isNaN(n)) {
+                            store.dispatch(
+                              updateScoreValue({
+                                score: n,
+                                character_id: Number(charID),
+                              }),
+                            )
+                          }
+                        }}
+                        value={scores.current || ""}
+                      />
+                    </td>
+                  </tr>
+                )
+              })}
+            </table>
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                console.log("TO BE IMPLEMENTED")
+              }}
+            >
+              Submit
+            </button>
+          </div>
+        )}
       </header>
     </div>
   )

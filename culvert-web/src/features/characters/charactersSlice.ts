@@ -9,11 +9,18 @@ interface CharactersState {
       current?: number
     }
   }
+  characterScoresOriginal: {
+    [key: number]: {
+      prev?: number
+      current?: number
+    }
+  }
 }
 
 const initialState: CharactersState = {
   characters: {},
   characterScores: {},
+  characterScoresOriginal: {},
 }
 
 export const membersSlice = createSlice({
@@ -54,6 +61,15 @@ export const membersSlice = createSlice({
         }
       }
       state.characterScores = newScores
+      state.characterScoresOriginal = newScores
+    },
+    updateScoreValue: (
+      state,
+      action: PayloadAction<{ character_id: number; score: number }>,
+    ) => {
+      const newScores = { ...state.characterScores }
+      newScores[action.payload.character_id].current = action.payload.score
+      state.characterScores = newScores
     },
   },
 })
@@ -64,4 +80,5 @@ export const selectCharacters = (state: RootState) =>
 export const selectCharacterScores = (state: RootState) =>
   state.characters.characterScores
 
-export const { setCharacters, setCharacterScores } = membersSlice.actions
+export const { setCharacters, setCharacterScores, updateScoreValue } =
+  membersSlice.actions
