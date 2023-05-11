@@ -133,7 +133,10 @@ func (m MapleController) GETCulvert(c *gin.Context) {
 			"score":        score,
 		})
 	}
-	c.AbortWithStatusJSON(http.StatusOK, result)
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{
+		"current": thisWeekStr,
+		"data":    result,
+	})
 }
 
 func (m MapleController) LinkDiscord(c *gin.Context) {
