@@ -19,7 +19,16 @@ export const membersSlice = createSlice({
   initialState,
   reducers: {
     setMembers: (state, action: PayloadAction<GuildMember[]>) => {
-      state.members = action.payload
+      state.members = action.payload.sort((a, b) => {
+        if (
+          a.discord_username.toLowerCase() === b.discord_username.toLowerCase()
+        )
+          return 0
+        return a.discord_username.toLowerCase() >
+          b.discord_username.toLowerCase()
+          ? 1
+          : -1
+      })
       const newMembersByID: {
         [key: string]: string
       } = {}
@@ -38,18 +47,8 @@ export const selectMembersByID = (state: RootState) => state.members.membersByID
 export const { setMembers } = membersSlice.actions
 // TODO: notes
 /* 
-gotta fix fetch requests in link discord
 
 sorting done in frontend 
-
-update gpq has 2 sections
-
-members:
-map style (done)
-array style (done)
-
-chars: todo something of it
-map charid -> charname
 
 
 scores: (MUST FRONTEND SORT, by gpq desc)

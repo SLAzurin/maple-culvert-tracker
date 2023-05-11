@@ -11,11 +11,21 @@ import { selectMembers, setMembers } from "./features/members/membersSlice"
 import { store } from "./app/store"
 import { useSelector } from "react-redux"
 import linkDiscordMaple from "./helpers/linkDiscordMaple"
+import {
+  selectCharacterScores,
+  selectCharacters,
+  setCharacterScores,
+  setCharacters,
+} from "./features/characters/charactersSlice"
+import fetchCharacters from "./helpers/fetchCharacters"
+import fetchCharacterScores from "./helpers/fetchCharacterScores"
 
 function App() {
   const token = useSelector(selectToken)
   const claims = useSelector(selectClaims)
   const members = useSelector(selectMembers)
+  const characters = useSelector(selectCharacters)
+  const characterScores = useSelector(selectCharacterScores)
   const [action, setAction] = useState("")
   const [disabledLink, setDisabledLink] = useState(false)
   const [linkCharacterName, setLinkCharacterName] = useState("")
@@ -25,6 +35,37 @@ function App() {
   const [selectedDiscordID, setSelectedDiscordID] = useState(
     members.length !== 0 ? members[0].discord_user_id : "",
   )
+
+  useEffect(() => {
+    if (action === "culvert_score" && Object.values(characters).length === 0) {
+      console.log("action get characters")
+      fetchCharacters(token).then((res) => {
+        if (typeof res === "number") {
+          setSuccessful(false)
+          setStatusMessage("Failed with error " + res)
+          return
+        }
+        store.dispatch(setCharacters(res))
+      })
+    }
+  }, [action, characters, token])
+  useEffect(() => {
+    if (
+      action === "culvert_score" &&
+      Object.values(characters).length !== 0 &&
+      Object.values(characterScores).length === 0
+    ) {
+      console.log("action get character scores")
+      fetchCharacterScores(token).then((res) => {
+        if (typeof res === "number") {
+          setSuccessful(false)
+          setStatusMessage("Failed with error " + res)
+          return
+        }
+        store.dispatch(setCharacterScores(res))
+      })
+    }
+  }, [action, characters, token, characterScores])
   useEffect(() => {
     // claims expired
     if (

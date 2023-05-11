@@ -4,14 +4,15 @@ import {
   Action,
   combineReducers,
 } from "@reduxjs/toolkit"
-import counterReducer from "../features/counter/counterSlice"
 import loginReducer from "../features/login/loginSlice"
 import membersReducer from "../features/members/membersSlice"
 
 import { persistStore, persistReducer } from "redux-persist"
 import storage from "redux-persist/lib/storage"
+import charactersSlice from "../features/characters/charactersSlice"
 
 const persistConfig = {
+  blacklist: ["members", "characters"],
   key: "root",
   storage,
 }
@@ -19,9 +20,9 @@ const persistConfig = {
 const persistedReducer = persistReducer(
   persistConfig,
   combineReducers({
-    counter: counterReducer,
     login: loginReducer,
     members: membersReducer,
+    characters: charactersSlice,
   }),
 )
 
