@@ -10,12 +10,17 @@ import {
 import { selectMembers, setMembers } from "./features/members/membersSlice"
 import { store } from "./app/store"
 import { useSelector } from "react-redux"
+import linkDiscordMaple from "./helpers/linkDiscordMaple"
 
 function App() {
   const token = useSelector(selectToken)
   const claims = useSelector(selectClaims)
   const members = useSelector(selectMembers)
   const [action, setAction] = useState("")
+  const [disabledLink, setDisabledLink] = useState(false)
+  const [linkCharacterName, setLinkCharacterName] = useState("")
+  const [statusMessage, setStatusMessage] = useState("")
+  const [successful, setSuccessful] = useState(true)
 
   const [selectedDiscordID, setSelectedDiscordID] = useState(
     members.length !== 0 ? members[0].discord_user_id : "",
@@ -52,6 +57,11 @@ function App() {
     <div className="App">
       <header className="App-header">
         <Login />
+        {statusMessage !== "" && (
+          <div className="m-5" style={{ color: successful ? "green" : "red" }}>
+            {statusMessage}
+          </div>
+        )}
         {claims.exp !== "0" && (
           <div className="m-5">
             What would you like to do?
@@ -86,12 +96,35 @@ function App() {
                 </option>
               ))}
             </select>
-            <input type="text" placeholder="character name"></input>
+            <input
+              type="text"
+              placeholder="character name"
+              value={linkCharacterName}
+              onChange={(e) => {
+                setLinkCharacterName(e.target.value)
+              }}
+            ></input>
             <button
               className="btn btn-primary"
               onClick={() => {
-                console.log("Clicked link character to discord id")
+                setDisabledLink(true)
+                linkDiscordMaple(
+                  token,
+                  selectedDiscordID,
+                  linkCharacterName,
+                  true,
+                ).then((res) => {
+                  setDisabledLink(false)
+                  if (res.status !== 200) {
+                    setStatusMessage(res.payload)
+                    setSuccessful(false)
+                  } else {
+                    setStatusMessage("Successfully linked " + linkCharacterName)
+                    setSuccessful(true)
+                  }
+                })
               }}
+              disabled={disabledLink}
             >
               link
             </button>
@@ -100,7 +133,25 @@ function App() {
                 className="btn btn-danger"
                 onClick={() => {
                   console.log("unlinking character")
+                  linkDiscordMaple(
+                    token,
+                    selectedDiscordID,
+                    linkCharacterName,
+                    false,
+                  ).then((res) => {
+                    setDisabledLink(false)
+                    if (res.status !== 200) {
+                      setStatusMessage(res.payload)
+                      setSuccessful(false)
+                    } else {
+                      setStatusMessage(
+                        "Successfully unlinked " + linkCharacterName,
+                      )
+                      setSuccessful(true)
+                    }
+                  })
                 }}
+                disabled={disabledLink}
               >
                 unlink
               </button>
