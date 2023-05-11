@@ -12,6 +12,7 @@ import { store } from "./app/store"
 import { useSelector } from "react-redux"
 import linkDiscordMaple from "./helpers/linkDiscordMaple"
 import {
+  addNewCharacterScore,
   selectCharacterScores,
   selectCharacters,
   setCharacterScores,
@@ -212,45 +213,62 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(characterScores).map(([charID, scores], i) => {
-                  return (
-                    <tr className="" key={"scores-" + i}>
-                      <td>
-                        <span>{characters[Number(charID)] || charID}</span>
-                      </td>
-                      <td>
-                        <input
-                          placeholder={scores.prev?.toString()}
-                          disabled={true}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          onChange={(e) => {
-                            const n = Number(e.target.value)
-                            if (!Number.isNaN(n)) {
-                              store.dispatch(
-                                updateScoreValue({
-                                  score: n,
-                                  character_id: Number(charID),
-                                }),
-                              )
-                            }
-                          }}
-                          value={scores.current || ""}
-                        />
-                      </td>
-                    </tr>
-                  )
-                })}
+                {Object.entries(characterScores)
+                  .sort(([aKey], [bKey]) => {
+                    if (
+                      typeof characters[Number(aKey)] === "undefined" ||
+                      typeof characters[Number(bKey)] === "undefined"
+                    )
+                      return 0
+                    if (
+                      characters[Number(aKey)].toLowerCase() ===
+                      characters[Number(bKey)].toLowerCase()
+                    )
+                      return 0
+                    return characters[Number(aKey)].toLowerCase() >
+                      characters[Number(bKey)].toLowerCase()
+                      ? 1
+                      : -1
+                  })
+                  .map(([charID, scores], i) => {
+                    return (
+                      <tr className="" key={"scores-" + i}>
+                        <td>
+                          <span>{characters[Number(charID)] || charID}</span>
+                        </td>
+                        <td>
+                          <input
+                            placeholder={scores.prev?.toString()}
+                            disabled={true}
+                          />
+                        </td>
+                        <td>
+                          <input
+                            onChange={(e) => {
+                              const n = Number(e.target.value)
+                              if (!Number.isNaN(n)) {
+                                store.dispatch(
+                                  updateScoreValue({
+                                    score: n,
+                                    character_id: Number(charID),
+                                  }),
+                                )
+                              }
+                            }}
+                            value={scores.current || ""}
+                          />
+                        </td>
+                      </tr>
+                    )
+                  })}
               </tbody>
             </table>
             <div>
-              Add character score{" "}
+              Add character score
               <select
                 value=""
                 onChange={(e) => {
-                  console.log(e.target.value)
+                  store.dispatch(addNewCharacterScore(Number(e.target.value)))
                 }}
               >
                 <option value={""}></option>
@@ -260,7 +278,9 @@ function App() {
                       typeof characterScores[Number(charID)] === "undefined",
                   )
                   .map((charID) => (
-                    <option value={charID}>{characters[Number(charID)]}</option>
+                    <option value={charID} key={"addnewcharacter-" + charID}>
+                      {characters[Number(charID)]}
+                    </option>
                   ))}
               </select>
             </div>

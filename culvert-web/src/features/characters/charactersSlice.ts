@@ -71,6 +71,11 @@ export const membersSlice = createSlice({
       newScores[action.payload.character_id].current = action.payload.score
       state.characterScores = newScores
     },
+    addNewCharacterScore: (state, action: PayloadAction<number>) => {
+      const newScores = { ...state.characterScores }
+      newScores[action.payload] = {}
+      state.characterScores = newScores
+    },
   },
 })
 export default membersSlice.reducer
@@ -80,5 +85,9 @@ export const selectCharacters = (state: RootState) =>
 export const selectCharacterScores = (state: RootState) =>
   state.characters.characterScores
 
-export const { setCharacters, setCharacterScores, updateScoreValue } =
-  membersSlice.actions
+export const {
+  setCharacters,
+  setCharacterScores,
+  updateScoreValue,
+  addNewCharacterScore,
+} = membersSlice.actions
