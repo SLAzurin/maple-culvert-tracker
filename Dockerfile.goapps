@@ -3,7 +3,8 @@ COPY go.mod go.sum /root/src/
 RUN cd /root/src && go mod download
 COPY cmd /root/src/cmd/
 COPY internal /root/src/internal
-RUN cd /root/src && go build -o /root/main cmd/main/main.go
+ARG APPNAME main
+RUN cd /root/src && go build -o /root/main cmd/$APPNAME/$APPNAME.go
 # TODO: Optimize accordint to this https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
 FROM alpine AS runner
 COPY --from=builder /root/main /root/

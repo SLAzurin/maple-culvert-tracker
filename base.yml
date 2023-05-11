@@ -7,9 +7,11 @@ services:
       - chartmaker
       - redis
     build:
-      dockerfile: Dockerfile.bot
+      dockerfile: Dockerfile.goapps
       context: .
       target: runner
+      args:
+        APPNAME: main
     restart: unless-stopped
     env_file: .env
   chartmaker:
@@ -55,9 +57,11 @@ services:
     depends_on:
       - redis
     build:
-      dockerfile: Dockerfile.periodicredis
+      dockerfile: Dockerfile.goapps
       context: .
       target: runner
+      args:
+        APPNAME: periodicredis
     restart: unless-stopped
     env_file: .env
 volumes:
