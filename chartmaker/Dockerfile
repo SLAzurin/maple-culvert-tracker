@@ -1,18 +1,17 @@
 FROM node:18-slim AS base
 RUN npm i -g pnpm
+ARG BUILDARCH
 # TODO: Either include this code or fork the project, replace with @napi-rs/canvas to make it work on arm64
-RUN apt-get update && \
+RUN echo "$BUILDARCH" | grep -v "amd64" && apt-get update && \
     apt-get install -y build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* || true
 
 
 FROM base AS builder
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
-COPY chartmaker/package.json chartmaker/
-RUN pnpm i -w chartmaker
 COPY chartmaker chartmaker/
-RUN cd chartmaker && pnpm run build
+RUN pnpm i -w chartmaker && cd chartmaker && pnpm run build && rm -rf /app/node_modules /app/chartmaker/node_modules $(pnpm store path)
 
 
 FROM base AS runner
