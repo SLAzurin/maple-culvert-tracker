@@ -37,7 +37,7 @@ services:
       - .env
   nginx:
     depends_on:
-      # - web
+      - web
       - bot
     image: nginx:1.23-alpine
     restart: unless-stopped
