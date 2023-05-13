@@ -21,7 +21,7 @@ func init() {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if h, ok := commands.CommandHandlers[i.ApplicationCommandData().Name]; ok {
+		if h, ok := commands.CommandHandlers[i.ApplicationCommandData().Name]; ok && os.Getenv("DISCORD_GUILD_ID") == i.GuildID {
 			h(s, i)
 		}
 	})
