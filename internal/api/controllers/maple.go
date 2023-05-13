@@ -107,14 +107,43 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 }
 func (m MapleController) GETCulvert(c *gin.Context) {
 	thisWeek := time.Now()
-	sub := int(thisWeek.Weekday())
-	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(sub))
+	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(int(thisWeek.Weekday())))
+	lastWeek := thisWeek.Add(time.Hour * -24 * 7)
 	editableDays := []string{}
 	for i := 0; i < 3; i++ {
 		editableDays = append(editableDays, thisWeek.Format("2006-01-02"))
 		thisWeek = thisWeek.Add(time.Hour * -24 * 7)
 	}
-	rows, err := db.DB.Query("SELECT character_id, culvert_date, score FROM character_culvert_scores WHERE culvert_date = $1 or culvert_date = $2 ORDER BY score DESC;", editableDays[0], editableDays[1])
+	week := c.Query("week")
+	if week != "" {
+		queryWeek, err := time.Parse("2006-01-02", week)
+		if err != nil || queryWeek.Weekday() != 0 {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "Date format error... Probably not your fault. Also date must be Sunday.",
+			})
+			return
+		}
+		found := false
+		for i := 0; i < len(editableDays); i++ {
+			if week == editableDays[i] {
+				found = true
+				break
+			}
+		}
+		if !found {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "Date not editable.",
+			})
+			return
+		}
+		thisWeek = queryWeek
+		lastWeek = thisWeek.Add(time.Hour * -24 * 7)
+	} else {
+		thisWeek, _ = time.Parse("2006-01-02", editableDays[0])
+		// lastWeek was not manipulated
+	}
+
+	rows, err := db.DB.Query("SELECT character_id, culvert_date, score FROM character_culvert_scores WHERE culvert_date = $1 or culvert_date = $2 ORDER BY score DESC;", thisWeek, lastWeek)
 	if err != nil {
 		log.Println("DB ERROR GETCulvert", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
