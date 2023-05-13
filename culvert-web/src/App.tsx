@@ -167,7 +167,9 @@ function App() {
                   }}
                   checked={"dropdown" === searchMode}
                 />
-                <label htmlFor="search-mode-dropdown">Dropdown</label>
+                <label htmlFor="search-mode-dropdown">
+                  Dropdown of all members
+                </label>
               </div>
             </div>
             {searchMode === "text" && (
