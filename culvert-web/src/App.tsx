@@ -17,6 +17,7 @@ import {
   resetCharacterScores,
   selectCharacterScores,
   selectCharacters,
+  selectMembersCharacters,
   selectEditableWeeks,
   selectSelectedWeek,
   selectUpdateCulvertScoresResult,
@@ -38,6 +39,7 @@ function App() {
   const characters = useSelector(selectCharacters)
   const characterScores = useSelector(selectCharacterScores)
   const updateCulvertScoresResult = useSelector(selectUpdateCulvertScoresResult)
+  const membersCharacters = useSelector(selectMembersCharacters)
   const editableWeeks = useSelector(selectEditableWeeks)
   const selectedWeek = useSelector(selectSelectedWeek)
   const [action, setAction] = useState("")
@@ -88,7 +90,9 @@ function App() {
 
   useEffect(() => {
     if (
-      (action === "culvert_score" || action === "rename_character") &&
+      (action === "culvert_score" ||
+        action === "rename_character" ||
+        action === "link_member") &&
       Object.values(characters).length === 0
     ) {
       console.log("action get characters")
@@ -331,6 +335,15 @@ function App() {
                 unlink
               </button>
             </div>
+            {selectedDiscordID !== "" && (
+              <div>
+                Currently linked characters:
+                {membersCharacters[selectedDiscordID] &&
+                  membersCharacters[selectedDiscordID].map((cid) => (
+                    <div>{characters[cid]}</div>
+                  ))}
+              </div>
+            )}
           </div>
         )}
         {action === "culvert_score" && (

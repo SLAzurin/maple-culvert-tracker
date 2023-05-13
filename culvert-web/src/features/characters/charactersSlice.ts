@@ -4,6 +4,7 @@ import updateCulvertScores from "../../helpers/updateCulvertScores"
 
 interface CharactersState {
   characters: { [key: number]: string }
+  membersCharacters: { [key: string]: number[] }
   characterScores: {
     [key: number]: {
       prev?: number
@@ -27,6 +28,7 @@ interface CharactersState {
 
 const initialState: CharactersState = {
   characters: {},
+  membersCharacters: {},
   characterScores: null,
   characterScoresOriginal: {},
   updateCulvertScoresResult: null,
@@ -40,13 +42,24 @@ export const membersSlice = createSlice({
   reducers: {
     setCharacters: (
       state,
-      action: PayloadAction<{ character_id: number; character_name: string }[]>,
+      action: PayloadAction<
+        {
+          character_id: number
+          character_name: string
+          discord_user_id: string
+        }[]
+      >,
     ) => {
       const newCharacters: { [key: number]: string } = {}
+      const newMembersCharacters: { [key: string]: number[] } = {}
       for (let v of action.payload) {
         newCharacters[v.character_id] = v.character_name
+        if (!newMembersCharacters[v.discord_user_id])
+          newMembersCharacters[v.discord_user_id] = []
+        newMembersCharacters[v.discord_user_id].push(v.character_id)
       }
       state.characters = newCharacters
+      state.membersCharacters = newMembersCharacters
     },
     resetCharacterScores: (state) => {
       state.characterScoresOriginal = null
@@ -181,6 +194,8 @@ export const selectEditableWeeks = (state: RootState) =>
   state.characters.editableWeeks
 export const selectSelectedWeek = (state: RootState) =>
   state.characters.selectedWeek
+export const selectMembersCharacters = (state: RootState) =>
+  state.characters.membersCharacters
 
 export const {
   setCharacters,

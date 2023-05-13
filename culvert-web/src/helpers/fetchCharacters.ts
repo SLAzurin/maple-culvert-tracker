@@ -1,6 +1,9 @@
 const fetchCharacters = async (
   auth: string,
-): Promise<{ character_name: string; character_id: number }[] | number> => {
+): Promise<
+  | { character_name: string; character_id: number; discord_user_id: string }[]
+  | number
+> => {
   try {
     const res = await fetch("/api/maple/characters/fetch", {
       headers: {
