@@ -28,6 +28,7 @@ import {
 import fetchCharacters from "./helpers/fetchCharacters"
 import fetchCharacterScores from "./helpers/fetchCharacterScores"
 import { selectMembersByID } from "./features/members/membersSlice"
+import renameCharacter from "./helpers/renameCharacter"
 
 function App() {
   const token = useSelector(selectToken)
@@ -47,6 +48,9 @@ function App() {
   const [statusMessage, setStatusMessage] = useState("")
   const [successful, setSuccessful] = useState(true)
   const [selectedWeekFE, setSelectedWeekFE] = useState("")
+  const [selectedCharacterID, setSelectedCharacterID] = useState(0)
+  const [searchCharacter, setSearchCharacter] = useState("")
+  const [newCharacterName, setNewCharacterName] = useState("")
 
   const [selectedDiscordID, setSelectedDiscordID] = useState(
     members.length !== 0 ? members[0].discord_user_id : "",
@@ -82,7 +86,10 @@ function App() {
   }, [updateCulvertScoresResult])
 
   useEffect(() => {
-    if (action === "culvert_score" && Object.values(characters).length === 0) {
+    if (
+      (action === "culvert_score" || action === "rename_character") &&
+      Object.values(characters).length === 0
+    ) {
       console.log("action get characters")
       fetchCharacters(token).then((res) => {
         if (typeof res === "number") {
@@ -165,6 +172,7 @@ function App() {
                 Link discord user with maple character
               </option>
               <option value={"culvert_score"}>Add culvert score</option>
+              <option value={"rename_character"}>Rename character</option>
             </select>
           </div>
         )}
@@ -445,6 +453,81 @@ function App() {
               }}
             >
               Submit
+            </button>
+          </div>
+        )}
+        {action === "rename_character" && (
+          <div>
+            <div>
+              {selectedCharacterID !== 0 && (
+                <div>Selected: {characters[selectedCharacterID]}</div>
+              )}
+              <input
+                type="text"
+                placeholder="character name"
+                value={searchCharacter}
+                onChange={(e) => {
+                  setSearchCharacter(e.target.value)
+                }}
+              />
+              {searchCharacter !== "" && (
+                <div>
+                  {Object.keys(characters)
+                    .filter((m) => {
+                      return (
+                        characters[Number(m)]
+                          .toLowerCase()
+                          .includes(searchCharacter.toLowerCase()) ||
+                        characters[Number(m)]
+                          .toLowerCase()
+                          .includes(searchCharacter.toLowerCase()) ||
+                        characters[Number(m)]
+                          .toLowerCase()
+                          .includes(searchCharacter.toLowerCase())
+                      )
+                    })
+                    .map((m) => (
+                      <button
+                        className="btn btn-success"
+                        onClick={() => {
+                          setSelectedCharacterID(Number(m))
+                        }}
+                      >
+                        {characters[Number(m)]}
+                      </button>
+                    ))}
+                </div>
+              )}
+            </div>
+            <input
+              onChange={(e) => {
+                setNewCharacterName(e.target.value)
+              }}
+              value={newCharacterName}
+              placeholder="new name"
+            />
+            <br />
+            <button
+              className="btn btn-danger"
+              onClick={() => {
+                renameCharacter(token, {
+                  character_id: selectedCharacterID,
+                  new_name: newCharacterName,
+                }).then((res) => {
+                  if (res.status !== 200) {
+                    setSuccessful(false)
+                    setStatusMessage(res.payload)
+                  } else {
+                    setSuccessful(true)
+                    setStatusMessage(
+                      "Successfully renamed to " + newCharacterName,
+                    )
+                    store.dispatch(setCharacters([]))
+                  }
+                })
+              }}
+            >
+              Rename
             </button>
           </div>
         )}
