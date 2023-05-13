@@ -5,6 +5,7 @@ const updateCulvertScores = async (
   data: {
     payload: { character_id: number; score: number }[]
     isNew: boolean
+    week: string
   },
 ): Promise<FetchResult> => {
   const res = await fetch("/api/maple/characters/culvert", {

@@ -1,5 +1,6 @@
 const fetchCharacterScores = async (
   auth: string,
+  week?: string,
 ): Promise<
   | {
       weeks: string[]
@@ -8,11 +9,14 @@ const fetchCharacterScores = async (
   | number
 > => {
   try {
-    const res = await fetch("/api/maple/characters/culvert", {
-      headers: {
-        Authorization: `Bearer ${auth}`,
+    const res = await fetch(
+      `/api/maple/characters/culvert?week=${week || ""}`,
+      {
+        headers: {
+          Authorization: `Bearer ${auth}`,
+        },
       },
-    })
+    )
     if (res.status !== 200) {
       return Promise.resolve(res.status)
     }

@@ -17,9 +17,12 @@ import {
   resetCharacterScores,
   selectCharacterScores,
   selectCharacters,
+  selectEditableWeeks,
+  selectSelectedWeek,
   selectUpdateCulvertScoresResult,
   setCharacterScores,
   setCharacters,
+  setSelectedWeek,
   updateScoreValue,
 } from "./features/characters/charactersSlice"
 import fetchCharacters from "./helpers/fetchCharacters"
@@ -34,6 +37,8 @@ function App() {
   const characters = useSelector(selectCharacters)
   const characterScores = useSelector(selectCharacterScores)
   const updateCulvertScoresResult = useSelector(selectUpdateCulvertScoresResult)
+  const editableWeeks = useSelector(selectEditableWeeks)
+  const selectedWeek = useSelector(selectSelectedWeek)
   const [action, setAction] = useState("")
   const [searchDiscordID, setSearchDiscordID] = useState("")
   const [searchMode, setSearchMode] = useState("text")
@@ -41,10 +46,30 @@ function App() {
   const [linkCharacterName, setLinkCharacterName] = useState("")
   const [statusMessage, setStatusMessage] = useState("")
   const [successful, setSuccessful] = useState(true)
+  const [selectedWeekFE, setSelectedWeekFE] = useState("")
 
   const [selectedDiscordID, setSelectedDiscordID] = useState(
     members.length !== 0 ? members[0].discord_user_id : "",
   )
+
+  useEffect(() => {
+    if (selectedWeekFE !== "") {
+      store.dispatch(setSelectedWeek(selectedWeekFE))
+    }
+  }, [selectedWeekFE])
+
+  useEffect(() => {
+    if (token !== "" && action === "culvert_score" && selectedWeek !== null) {
+      fetchCharacterScores(token, selectedWeek).then((res) => {
+        if (typeof res === "number") {
+          setSuccessful(false)
+          setStatusMessage("Failed with error " + res)
+          return
+        }
+        store.dispatch(setCharacterScores(res))
+      })
+    }
+  }, [selectedWeek, token, action])
 
   useEffect(() => {
     if (updateCulvertScoresResult !== null) {
@@ -73,10 +98,13 @@ function App() {
     if (
       action === "culvert_score" &&
       Object.values(characters).length !== 0 &&
-      Object.values(characterScores).length === 0
+      characterScores === null
     ) {
       console.log("action get character scores")
-      fetchCharacterScores(token).then((res) => {
+      fetchCharacterScores(
+        token,
+        selectedWeek !== null ? selectedWeek : "",
+      ).then((res) => {
         if (typeof res === "number") {
           setSuccessful(false)
           setStatusMessage("Failed with error " + res)
@@ -85,7 +113,7 @@ function App() {
         store.dispatch(setCharacterScores(res))
       })
     }
-  }, [action, characters, token, characterScores])
+  }, [action, characters, token, characterScores, selectedWeek])
   useEffect(() => {
     // claims expired
     if (
@@ -298,6 +326,19 @@ function App() {
         )}
         {action === "culvert_score" && (
           <div>
+            {editableWeeks !== null && (
+              <select
+                onChange={(e) => {
+                  setSelectedWeekFE(e.target.value)
+                }}
+              >
+                {editableWeeks.map((d) => (
+                  <option key={`editable-weeks-${d}`} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            )}
             <table>
               <thead>
                 <tr>
@@ -307,7 +348,7 @@ function App() {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(characterScores)
+                {Object.entries(characterScores || {})
                   .sort(([aKey], [bKey]) => {
                     if (
                       typeof characters[Number(aKey)] === "undefined" ||
@@ -370,8 +411,25 @@ function App() {
                 {Object.keys(characters)
                   .filter(
                     (charID) =>
-                      typeof characterScores[Number(charID)] === "undefined",
+                      typeof (characterScores || {})[Number(charID)] ===
+                      "undefined",
                   )
+                  .sort((aKey, bKey) => {
+                    if (
+                      typeof characters[Number(aKey)] === "undefined" ||
+                      typeof characters[Number(bKey)] === "undefined"
+                    )
+                      return 0
+                    if (
+                      characters[Number(aKey)].toLowerCase() ===
+                      characters[Number(bKey)].toLowerCase()
+                    )
+                      return 0
+                    return characters[Number(aKey)].toLowerCase() >
+                      characters[Number(bKey)].toLowerCase()
+                      ? 1
+                      : -1
+                  })
                   .map((charID) => (
                     <option value={charID} key={"addnewcharacter-" + charID}>
                       {characters[Number(charID)]}
