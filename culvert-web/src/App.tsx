@@ -78,6 +78,7 @@ function App() {
   useEffect(() => {
     if (updateCulvertScoresResult !== null) {
       updateCulvertScoresResult.then((res) => {
+        setDisabledLink(false)
         setSuccessful(res.status === 200)
         setStatusMessage(res.statusMessage)
         store.dispatch(resetCharacterScores())
@@ -446,8 +447,10 @@ function App() {
               </select>
             </div>
             <button
+              disabled={disabledLink}
               className="btn btn-primary"
               onClick={() => {
+                setDisabledLink(true)
                 console.log("apply changes for culvert scores")
                 store.dispatch(applyCulvertChanges(token))
               }}
