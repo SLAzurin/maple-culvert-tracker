@@ -14,6 +14,11 @@ import (
 
 type MapleController struct{}
 
+type postRenameBody struct {
+	NewName     string `json:"new_name"`
+	CharacterID int    `json:"character_id"`
+}
+
 type linkDiscordBody struct {
 	DiscordUserID string `json:"discord_user_id"`
 	CharacterName string `json:"character_name"`
@@ -220,6 +225,33 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 	}
 	if err != nil {
 		log.Println("DB ERROR LinkDiscord", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "DB failed.",
+		})
+		return
+	}
+	c.AbortWithStatusJSON(http.StatusOK, gin.H{})
+}
+
+func (m MapleController) POSTRename(c *gin.Context) {
+	body := postRenameBody{}
+	if err := c.BindJSON(&body); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+	var err error
+	var rows *sql.Rows
+	rows, err = db.DB.Query("SELECT maple_character_name FROM characters WHERE maple_character_name ILIKE $1", body.NewName)
+	if err != nil || rows.Next() {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "Duplicate name found...",
+		})
+		return
+	}
+	rows.Close()
+	_, err = db.DB.Exec("UPDATE characters SET maple_character_name = $1 WHERE id = $2", body.NewName, body.CharacterID)
+	if err != nil {
+		log.Println("DB ERROR POSTRename", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": "DB failed.",
 		})

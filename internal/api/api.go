@@ -33,6 +33,7 @@ func NewRouter() *gin.Engine {
 				mapleCharacters.GET("/culvert", maple.GETCulvert)
 				mapleCharacters.POST("/culvert", maple.POSTCulvert)
 				mapleCharacters.GET("/fetch", maple.GETCharacters)
+				mapleCharacters.POST("/rename", maple.POSTRename)
 			}
 
 		}
