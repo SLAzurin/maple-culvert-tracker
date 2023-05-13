@@ -43,13 +43,14 @@ func FetchMembers(discordServerID string, DiscordSession *discordgo.Session) ([]
 	}
 	for _, m := range allMembers {
 		for _, r := range m.Roles {
-			if r == os.Getenv("DISCORD_GUILD_ROLE_ID") {
+			if _, ok := roleIDsMap[r]; ok {
 				wm := data.WebGuildMember{
 					DiscordUsername: m.User.Username,
 					DiscordUserID:   m.User.ID,
 					DiscordNickname: m.Nick,
 				}
 				result = append(result, wm)
+				break
 			}
 		}
 	}
