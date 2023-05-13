@@ -7,3 +7,6 @@ Missing features:
 - search discord username/id
 - edit previous week's culvert scores
 - name changes
+
+Optional additional features
+- list member's characters
