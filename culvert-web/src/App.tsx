@@ -512,11 +512,14 @@ function App() {
             <br />
             <button
               className="btn btn-danger"
+              disabled={disabledLink}
               onClick={() => {
+                setDisabledLink(true)
                 renameCharacter(token, {
                   character_id: selectedCharacterID,
                   new_name: newCharacterName,
                 }).then((res) => {
+                  setDisabledLink(false)
                   if (res.status !== 200) {
                     setSuccessful(false)
                     setStatusMessage(res.payload)
