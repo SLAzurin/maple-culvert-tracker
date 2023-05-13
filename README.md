@@ -4,7 +4,7 @@ Track culvert score over a x year(s) progress
 
 
 Missing features:
-- search discord username/id
+- search discord username/id (done)
 - edit previous week's culvert scores
 - name changes
 

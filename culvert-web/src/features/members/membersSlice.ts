@@ -33,7 +33,7 @@ export const membersSlice = createSlice({
         [key: string]: string
       } = {}
       for (const v of action.payload) {
-        newMembersByID[v.discord_username] = v.discord_user_id
+        newMembersByID[v.discord_user_id] = v.discord_username
       }
       state.membersByID = newMembersByID
     },

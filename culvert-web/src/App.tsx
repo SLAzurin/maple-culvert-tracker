@@ -24,15 +24,19 @@ import {
 } from "./features/characters/charactersSlice"
 import fetchCharacters from "./helpers/fetchCharacters"
 import fetchCharacterScores from "./helpers/fetchCharacterScores"
+import { selectMembersByID } from "./features/members/membersSlice"
 
 function App() {
   const token = useSelector(selectToken)
   const claims = useSelector(selectClaims)
   const members = useSelector(selectMembers)
+  const membersByID = useSelector(selectMembersByID)
   const characters = useSelector(selectCharacters)
   const characterScores = useSelector(selectCharacterScores)
   const updateCulvertScoresResult = useSelector(selectUpdateCulvertScoresResult)
   const [action, setAction] = useState("")
+  const [searchDiscordID, setSearchDiscordID] = useState("")
+  const [searchMode, setSearchMode] = useState("text")
   const [disabledLink, setDisabledLink] = useState(false)
   const [linkCharacterName, setLinkCharacterName] = useState("")
   const [statusMessage, setStatusMessage] = useState("")
@@ -138,21 +142,94 @@ function App() {
         )}
         {action === "link_member" && members.length !== 0 && (
           <div>
-            <select
-              value={selectedDiscordID}
-              onChange={(e) => {
-                setSelectedDiscordID(e.target.value)
-              }}
-            >
-              {members.map((member) => (
-                <option
-                  key={member.discord_user_id}
-                  value={member.discord_user_id}
-                >
-                  {member.discord_username}
-                </option>
-              ))}
-            </select>
+            <div>
+              Search discord member by
+              <div>
+                <input
+                  id="search-mode-text"
+                  type="radio"
+                  name="search-mode"
+                  value="text"
+                  onChange={(e) => {
+                    setSearchMode(e.target.value)
+                  }}
+                  checked={"text" === searchMode}
+                />
+                <label htmlFor="search-mode-text">Discord username/ID</label>
+                <br />
+                <input
+                  id="search-mode-dropdown"
+                  type="radio"
+                  name="search-mode"
+                  value="dropdown"
+                  onChange={(e) => {
+                    setSearchMode(e.target.value)
+                  }}
+                  checked={"dropdown" === searchMode}
+                />
+                <label htmlFor="search-mode-dropdown">Dropdown</label>
+              </div>
+            </div>
+            {searchMode === "text" && (
+              <div>
+                {selectedDiscordID !== "" && (
+                  <div>Selected {membersByID[selectedDiscordID]}</div>
+                )}
+                <input
+                  type="text"
+                  placeholder="Discord username / ID"
+                  value={searchDiscordID}
+                  onChange={(e) => {
+                    setSearchDiscordID(e.target.value)
+                  }}
+                />
+                {searchDiscordID !== "" && (
+                  <div>
+                    {members
+                      .filter((m) => {
+                        return (
+                          (m.discord_nickname || "")
+                            .toLowerCase()
+                            .includes(searchDiscordID.toLowerCase()) ||
+                          m.discord_username
+                            .toLowerCase()
+                            .includes(searchDiscordID.toLowerCase()) ||
+                          m.discord_user_id
+                            .toLowerCase()
+                            .includes(searchDiscordID.toLowerCase())
+                        )
+                      })
+                      .map((m) => (
+                        <button
+                          className="btn btn-success"
+                          onClick={() => {
+                            setSelectedDiscordID(m.discord_user_id)
+                          }}
+                        >
+                          {m.discord_nickname || m.discord_username}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
+            {searchMode === "dropdown" && (
+              <select
+                value={selectedDiscordID}
+                onChange={(e) => {
+                  setSelectedDiscordID(e.target.value)
+                }}
+              >
+                {members.map((member) => (
+                  <option
+                    key={member.discord_user_id}
+                    value={member.discord_user_id}
+                  >
+                    {member.discord_username}
+                  </option>
+                ))}
+              </select>
+            )}
             <input
               type="text"
               placeholder="character name"

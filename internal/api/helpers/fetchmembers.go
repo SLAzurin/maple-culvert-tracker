@@ -47,9 +47,7 @@ func FetchMembers(discordServerID string, DiscordSession *discordgo.Session) ([]
 				wm := data.WebGuildMember{
 					DiscordUsername: m.User.Username,
 					DiscordUserID:   m.User.ID,
-				}
-				if m.Nick != "" {
-					wm.DiscordUsername = m.Nick
+					DiscordNickname: m.Nick,
 				}
 				result = append(result, wm)
 			}
