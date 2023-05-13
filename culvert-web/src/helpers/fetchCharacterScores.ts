@@ -2,7 +2,7 @@ const fetchCharacterScores = async (
   auth: string,
 ): Promise<
   | {
-      current: string
+      weeks: string[]
       data: { character_id: number; culvert_date: string; score: number }[]
     }
   | number

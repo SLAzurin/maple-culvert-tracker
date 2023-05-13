@@ -109,10 +109,12 @@ func (m MapleController) GETCulvert(c *gin.Context) {
 	thisWeek := time.Now()
 	sub := int(thisWeek.Weekday())
 	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(sub))
-	thisWeekStr := thisWeek.Format("2006-01-02")
-	lastWeek := thisWeek.Add(time.Hour * -24 * 7)
-	lastWeekStr := lastWeek.Format("2006-01-02")
-	rows, err := db.DB.Query("SELECT character_id, culvert_date, score FROM character_culvert_scores WHERE culvert_date = $1 or culvert_date = $2 ORDER BY score DESC;", thisWeekStr, lastWeekStr)
+	editableDays := []string{}
+	for i := 0; i < 3; i++ {
+		editableDays = append(editableDays, thisWeek.Format("2006-01-02"))
+		thisWeek = thisWeek.Add(time.Hour * -24 * 7)
+	}
+	rows, err := db.DB.Query("SELECT character_id, culvert_date, score FROM character_culvert_scores WHERE culvert_date = $1 or culvert_date = $2 ORDER BY score DESC;", editableDays[0], editableDays[1])
 	if err != nil {
 		log.Println("DB ERROR GETCulvert", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -134,8 +136,8 @@ func (m MapleController) GETCulvert(c *gin.Context) {
 		})
 	}
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{
-		"current": thisWeekStr,
-		"data":    result,
+		"weeks": editableDays,
+		"data":  result,
 	})
 }
 

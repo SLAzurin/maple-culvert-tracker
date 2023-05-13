@@ -51,7 +51,7 @@ export const membersSlice = createSlice({
     setCharacterScores: (
       state,
       action: PayloadAction<{
-        current: string
+        weeks: string[]
         data: { character_id: number; culvert_date: string; score: number }[]
       }>,
     ) => {
@@ -65,7 +65,7 @@ export const membersSlice = createSlice({
         if (typeof newScores[v.character_id] === "undefined") {
           newScores[v.character_id] = {}
         }
-        if (action.payload.current === v.culvert_date) {
+        if (action.payload.weeks[0] === v.culvert_date) {
           newScores[v.character_id].current = v.score
         } else {
           newScores[v.character_id].prev = v.score
