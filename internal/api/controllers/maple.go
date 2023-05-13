@@ -20,7 +20,8 @@ type linkDiscordBody struct {
 	Link          bool   `json:"link"`
 }
 type postCulvertBody struct {
-	IsNew   bool `json:"isNew"`
+	IsNew   bool   `json:"isNew"`
+	Week    string `json:"week"`
 	Payload []struct {
 		CharacterID int64 `json:"character_id"`
 		Score       int   `json:"score"`
@@ -59,10 +60,18 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 		return
 	}
 	thisWeek := time.Now()
-	sub := int(thisWeek.Weekday())
-	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(sub))
-	thisWeekStr := thisWeek.Format("2006-01-02")
 	var err error
+	if body.Week != "" {
+		thisWeek, err = time.Parse("2006-01-02", body.Week)
+		if err != nil || thisWeek.Weekday() != 0 {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+				"error": "Date incorrectly formatted or isn't sunday.",
+			})
+			return
+		}
+	}
+	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(int(thisWeek.Weekday())))
+	thisWeekStr := thisWeek.Format("2006-01-02")
 	if body.IsNew {
 		query := ""
 		args := []interface{}{}
