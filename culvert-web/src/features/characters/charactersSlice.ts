@@ -136,7 +136,10 @@ export const membersSlice = createSlice({
       }
 
       for (let [charID, { current }] of Object.entries(state.characterScores)) {
-        if (!state.characterScoresOriginal[Number(charID)]) {
+        if (
+          !state.characterScoresOriginal[Number(charID)] ||
+          !state.characterScoresOriginal[Number(charID)].current
+        ) {
           _new.payload.push({
             character_id: Number(charID),
             score: current || 0,
