@@ -137,8 +137,10 @@ export const membersSlice = createSlice({
 
       for (let [charID, { current }] of Object.entries(state.characterScores)) {
         if (
-          !state.characterScoresOriginal[Number(charID)] ||
-          !state.characterScoresOriginal[Number(charID)].current
+          typeof state.characterScoresOriginal[Number(charID)] ===
+            "undefined" ||
+          typeof state.characterScoresOriginal[Number(charID)].current ===
+            "undefined"
         ) {
           _new.payload.push({
             character_id: Number(charID),
@@ -160,18 +162,13 @@ export const membersSlice = createSlice({
           statusMessage: string
           date: Date
         } = { status: 200, date: new Date(), statusMessage: "" }
-        if (_new.payload.length !== 0) {
-          const res = await updateCulvertScores(action.payload, _new)
-          if (res.status !== 200) {
-            mainRes.status = res.status
-            mainRes.statusMessage = res.payload as string
-          }
-        }
-        if (edit.payload.length !== 0) {
-          const res = await updateCulvertScores(action.payload, edit)
-          if (res.status !== 200) {
-            mainRes.status = res.status
-            mainRes.statusMessage += " " + (res.payload as string)
+        for (let v of [_new, edit]) {
+          if (v.payload.length !== 0) {
+            const res = await updateCulvertScores(action.payload, v)
+            if (res.status !== 200) {
+              mainRes.status = res.status
+              mainRes.statusMessage += (res.payload as string) + " "
+            }
           }
         }
         if (mainRes.status === 200) {
