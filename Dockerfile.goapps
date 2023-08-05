@@ -1,11 +1,28 @@
-FROM golang:1.20-alpine AS builder
-COPY go.mod go.sum /root/src/
-RUN cd /root/src && go mod download
-COPY cmd /root/src/cmd/
-COPY internal /root/src/internal
-ARG APPNAME main
-RUN cd /root/src && go build -o /root/main cmd/$APPNAME/$APPNAME.go
-# TODO: Optimize accordint to this https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#use-multi-stage-builds
-FROM alpine AS runner
-COPY --from=builder /root/main /root/
-ENTRYPOINT [ "/root/main" ]
+# syntax=docker/dockerfile:1
+FROM golang:1.20-alpine
+RUN apk --no-cache add tzdata
+
+WORKDIR /src/
+
+COPY go.mod go.sum /src/
+
+RUN go mod download
+
+COPY pkg /src/pkg
+
+ARG APPNAME=main
+COPY cmd/${APPNAME} /src/cmd/${APPNAME}
+RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=linux go build -o /src/main .
+
+FROM scratch
+
+COPY --from=0 /src/main /
+
+WORKDIR /
+COPY --from=alpine:latest /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=0 /etc/passwd /etc/passwd
+COPY --from=0 /usr/share/zoneinfo /usr/share/zoneinfo
+ENV TZ=America/Vancouver
+USER nobody
+
+ENTRYPOINT [ "/main" ]
