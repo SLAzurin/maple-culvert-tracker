@@ -239,17 +239,23 @@ function App() {
                             .includes(searchDiscordID.toLowerCase()) ||
                           m.discord_user_id
                             .toLowerCase()
+                            .includes(searchDiscordID.toLowerCase()) ||
+                          m.discord_global_name
+                            .toLowerCase()
                             .includes(searchDiscordID.toLowerCase())
                         )
                       })
                       .map((m) => (
                         <button
+                          key={"link_member-search-" + m.discord_user_id}
                           className="btn btn-success"
                           onClick={() => {
                             setSelectedDiscordID(m.discord_user_id)
                           }}
                         >
-                          {m.discord_nickname || m.discord_username}
+                          {m.discord_nickname ||
+                            m.discord_global_name ||
+                            m.discord_username}
                         </button>
                       ))}
                   </div>
@@ -268,7 +274,9 @@ function App() {
                     key={member.discord_user_id}
                     value={member.discord_user_id}
                   >
-                    {member.discord_username}
+                    {member.discord_nickname ||
+                      member.discord_global_name ||
+                      member.discord_username}
                   </option>
                 ))}
               </select>
@@ -340,7 +348,7 @@ function App() {
                 Currently linked characters:
                 {membersCharacters[selectedDiscordID] &&
                   membersCharacters[selectedDiscordID].map((cid) => (
-                    <div>{characters[cid]}</div>
+                    <div key={"linked-char-display-" + cid}>{characters[cid]}</div>
                   ))}
               </div>
             )}
@@ -504,6 +512,7 @@ function App() {
                     })
                     .map((m) => (
                       <button
+                        key={"rename_character-select-character-" + m}
                         className="btn btn-success"
                         onClick={() => {
                           setSelectedCharacterID(Number(m))

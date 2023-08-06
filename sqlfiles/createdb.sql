@@ -13,3 +13,6 @@ CREATE TABLE IF NOT EXISTS character_culvert_scores (
 );
 ALTER TABLE character_culvert_scores
   ADD CONSTRAINT character_culvert_scores_culvert_date_character_id UNIQUE (culvert_date, character_id);
+
+-- Must have at least 1 character in the db for the frontend to work properly loles
+INSERT INTO characters (maple_character_name, discord_user_id) VALUES ('iMonoxian', '82981249026621440');
