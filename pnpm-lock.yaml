@@ -11,7 +11,7 @@ importers:
   chartmaker:
     dependencies:
       chart.js:
-        specifier: ^3.5.1
+        specifier: ^3.9.1
         version: 3.9.1
       chartjs-node-canvas:
         specifier: ^4.1.6
