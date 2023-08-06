@@ -9,7 +9,6 @@ services:
     build:
       dockerfile: Dockerfile.goapps
       context: .
-      target: runner
       args:
         APPNAME: main
     restart: unless-stopped
@@ -59,7 +58,6 @@ services:
     build:
       dockerfile: Dockerfile.goapps
       context: .
-      target: runner
       args:
         APPNAME: periodicredis
     restart: unless-stopped

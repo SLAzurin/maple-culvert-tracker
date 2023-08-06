@@ -8,7 +8,7 @@ COPY go.mod go.sum /src/
 
 RUN go mod download
 
-COPY pkg /src/pkg
+COPY internal /src/internal
 
 ARG APPNAME=main
 COPY cmd/${APPNAME} /src/cmd/${APPNAME}
