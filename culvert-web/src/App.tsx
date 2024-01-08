@@ -408,6 +408,17 @@ function App() {
           <div>
             {editableWeeks !== null && (
               <div style={{ display: "flex", flexDirection: "column" }}>
+                <button
+                  className="btn btn-link"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      JSON.stringify(Object.values(characters), null, 4),
+                    )
+                    alert("copied")
+                  }}
+                >
+                  Copy members to clipboard
+                </button>
                 <textarea
                   style={{ resize: "none" }}
                   value={importedData}
