@@ -348,7 +348,9 @@ function App() {
                 Currently linked characters:
                 {membersCharacters[selectedDiscordID] &&
                   membersCharacters[selectedDiscordID].map((cid) => (
-                    <div key={"linked-char-display-" + cid}>{characters[cid]}</div>
+                    <div key={"linked-char-display-" + cid}>
+                      {characters[cid]}
+                    </div>
                   ))}
               </div>
             )}
