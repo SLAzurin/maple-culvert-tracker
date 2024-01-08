@@ -31,6 +31,10 @@ import fetchCharacterScores from "./helpers/fetchCharacterScores"
 import { selectMembersByID } from "./features/members/membersSlice"
 import renameCharacter from "./helpers/renameCharacter"
 
+interface ImportedData {
+  [key: string]: number
+}
+
 function App() {
   const token = useSelector(selectToken)
   const claims = useSelector(selectClaims)
@@ -53,6 +57,8 @@ function App() {
   const [selectedCharacterID, setSelectedCharacterID] = useState(0)
   const [searchCharacter, setSearchCharacter] = useState("")
   const [newCharacterName, setNewCharacterName] = useState("")
+  const [importedData, setImportedData] = useState("")
+  const [importedDataStatus, setImportedDataStatus] = useState("")
 
   const [selectedDiscordID, setSelectedDiscordID] = useState(
     members.length !== 0 ? members[0].discord_user_id : "",
@@ -154,6 +160,48 @@ function App() {
       })()
     }
   }, [token, claims])
+
+  useEffect(() => {
+    // Handle importedData onChange
+    if (!importedData) {
+      return
+    }
+    setImportedDataStatus("")
+    let importedDataObj: ImportedData
+    try {
+      importedDataObj = JSON.parse(importedData)
+    } catch (e) {
+      setImportedDataStatus("Failed to import. Likely wrong syntax.")
+      return
+    }
+    let characterMap: { [key: string]: number } = {}
+    for (const [id, char] of Object.entries(characters)) {
+      characterMap[char] = Number(id)
+    }
+    let importedScores: { [key: number]: number } = {}
+    let scoreErrors: { [key: string]: number } = {}
+    for (const [charName, score] of Object.entries(importedDataObj)) {
+      if (characterMap[charName]) {
+        importedScores[characterMap[charName]] = score
+      } else {
+        scoreErrors[charName] = score
+      }
+    }
+    for (const [id, score] of Object.entries(importedScores)) {
+      store.dispatch(addNewCharacterScore(Number(id)))
+      store.dispatch(updateScoreValue({ character_id: Number(id), score }))
+    }
+    if (Object.keys(scoreErrors).length === 0) {
+      setImportedDataStatus("Successfully imported all characters")
+    } else {
+      setImportedDataStatus(
+        "Imported partially, errors with these chars/scores\n" +
+          JSON.stringify(scoreErrors, null, 2),
+      )
+    }
+    setImportedData("")
+  }, [importedData, characters])
+
   return (
     <div className="App">
       <header className="App-header">
@@ -359,17 +407,31 @@ function App() {
         {action === "culvert_score" && (
           <div>
             {editableWeeks !== null && (
-              <select
-                onChange={(e) => {
-                  setSelectedWeekFE(e.target.value)
-                }}
-              >
-                {editableWeeks.map((d) => (
-                  <option key={`editable-weeks-${d}`} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <textarea
+                  style={{ resize: "none" }}
+                  value={importedData}
+                  rows={3}
+                  placeholder="Select date first, then
+Paste data here to quickly set values.
+Don't forget to submit"
+                  onChange={(e) => {
+                    setImportedData(e.target.value)
+                  }}
+                ></textarea>
+                {importedDataStatus !== "" && <p>{importedDataStatus}</p>}
+                <select
+                  onChange={(e) => {
+                    setSelectedWeekFE(e.target.value)
+                  }}
+                >
+                  {editableWeeks.map((d) => (
+                    <option key={`editable-weeks-${d}`} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
             <table>
               <thead>
@@ -473,6 +535,7 @@ function App() {
               disabled={disabledLink}
               className="btn btn-primary"
               onClick={() => {
+                setImportedDataStatus("")
                 setDisabledLink(true)
                 console.log("apply changes for culvert scores")
                 store.dispatch(applyCulvertChanges(token))
