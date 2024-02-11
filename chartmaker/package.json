@@ -6,8 +6,7 @@
   "main": "dist/server.js",
   "private": true,
   "scripts": {
-    "build": "esbuild src/server.ts --platform=node --outdir=dist --bundle --external:sharp --external:chart.js",
-    "build:bin": "pnpm run build && cp $(command -v node) dist/server && node --experimental-sea-config sea-server.json && pnpx postject dist/server NODE_SEA_BLOB dist/sea-server.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2"
+    "build": "esbuild src/server.ts --platform=node --outfile=dist/server --bundle --external:sharp --external:chart.js"
   },
   "repository": {
     "type": "git",

@@ -13,7 +13,7 @@ COPY chartmaker/package.json chartmaker/sea-*.json chartmaker/tsconfig.json char
 RUN corepack enable && pnpm i --ignore-scripts
 COPY chartmaker/src chartmaker/src
 RUN cd chartmaker && \
-    pnpm run build:bin
+    pnpm run build
 
 FROM base AS runner
 WORKDIR /app/chartmaker
