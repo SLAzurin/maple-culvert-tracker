@@ -2,6 +2,10 @@ package main
 
 templ controlpanelindex() {
 	<div>
-		index
+		@basehtmx("MCT Control Panel") {
+			@controlpanelheader() {
+				<div>What would you like to do?</div>
+			}
+		}
 	</div>
 }

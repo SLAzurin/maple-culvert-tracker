@@ -1,12 +1,21 @@
 package main
 
 templ login() {
-	@basehtmx(BaseHtmxProps{Title: "Login to Maple Culvert Tracker"}) {
-		<div>
-			Login token: 
-			<input
-				type="text"
-			/>
+	@basehtmx("Login to Maple Culvert Tracker") {
+		<style>
+			.login-center {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+		</style>
+		<div class="login-center">
+			<div class="">
+				Login token: 
+				<input
+					type="text"
+				/>
+			</div>
 		</div>
 	}
 }
