@@ -19,8 +19,7 @@ services:
       dockerfile: chartmaker/Dockerfile
       target: runner
     restart: unless-stopped
-    environment:
-      - NODE_ENV=production
+    init: true
   redis:
     image: redis:7-alpine
     volumes:
@@ -49,6 +48,7 @@ services:
       context: .
       dockerfile: culvert-web/Dockerfile
       target: runner
+    init: true
     environment:
       - NODE_ENV=production
     restart: unless-stopped

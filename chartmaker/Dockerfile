@@ -1,5 +1,4 @@
-FROM node:18-slim AS base
-RUN npm i -g pnpm
+FROM node:20-slim AS base
 ARG BUILDARCH
 # TODO: Either include this code or fork the project, replace with @napi-rs/canvas to make it work on arm64
 RUN echo "$BUILDARCH" | grep -v "amd64" && apt-get update && \
@@ -10,24 +9,22 @@ RUN echo "$BUILDARCH" | grep -v "amd64" && apt-get update && \
 FROM base AS builder
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
-COPY chartmaker chartmaker/
-RUN pnpm i -w chartmaker && cd chartmaker && pnpm run build && rm -rf /app/node_modules /app/chartmaker/node_modules $(pnpm store path)
-
+COPY chartmaker/package.json chartmaker/sea-*.json chartmaker/tsconfig.json chartmaker/
+RUN corepack enable && pnpm i --ignore-scripts
+COPY chartmaker/src chartmaker/src
+RUN cd chartmaker && \
+    pnpm run build:bin
 
 FROM base AS runner
 WORKDIR /app/chartmaker
 ENV NODE_ENV production
 
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /app/
-COPY chartmaker/package.json /app/chartmaker/
-RUN cd /app && pnpm i -w chartmaker
-
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodeuser
 
-COPY --from=builder /app/chartmaker/dist ./dist
-
 RUN apt-get update && apt-get install -y -q libfontconfig1 && rm -rf /var/lib/apt/lists/*
+
+RUN npm i -g chart.js@^3.9.1 sharp@^0.33.2
 
 USER nodeuser
 
@@ -35,4 +32,8 @@ EXPOSE 3000
 
 ENV PORT 3000
 
-CMD ["node", "dist/server.js"]
+WORKDIR /home/nodeuser
+
+COPY --from=builder --chown=1001:1001 /app/chartmaker/dist/server /usr/local/bin/
+ENV NODE_PATH /usr/local/lib/node_modules
+CMD ["/usr/local/bin/server"]
