@@ -24,7 +24,7 @@ RUN adduser --system --uid 1001 nodeuser
 
 RUN apt-get update && apt-get install -y -q libfontconfig1 && rm -rf /var/lib/apt/lists/*
 
-RUN npm i -g chart.js@^3.9.1 sharp@^0.33.2
+RUN npm i -g chart.js@^3.9.1 sharp@^0.33.2 canvas@^2.11.2
 
 USER nodeuser
 
