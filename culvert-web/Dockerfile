@@ -1,14 +1,13 @@
 FROM node:20-slim AS base
-RUN npm i -g pnpm
 
 FROM base AS builder
 ENV NODE_ENV dev
 WORKDIR /app
-COPY pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY culvert-web/package.json culvert-web/
-RUN cd culvert-web && pnpm install
+RUN corepack enable && pnpm install
 COPY culvert-web culvert-web/
-RUN cd culvert-web && pnpm run build
+RUN corepack enable && cd culvert-web && pnpm run build
 
 
 FROM base AS runner

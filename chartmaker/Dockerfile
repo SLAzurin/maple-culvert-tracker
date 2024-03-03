@@ -1,5 +1,4 @@
-FROM node:18-slim AS base
-RUN npm i -g pnpm
+FROM node:20-slim AS base
 ARG BUILDARCH
 # TODO: Either include this code or fork the project, replace with @napi-rs/canvas to make it work on arm64
 RUN echo "$BUILDARCH" | grep -v "amd64" && apt-get update && \
@@ -11,7 +10,7 @@ FROM base AS builder
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
 COPY chartmaker chartmaker/
-RUN pnpm i -w chartmaker && cd chartmaker && pnpm run build && rm -rf /app/node_modules /app/chartmaker/node_modules $(pnpm store path)
+RUN corepack enable && pnpm i -w chartmaker && cd chartmaker && pnpm run build && rm -rf /app/node_modules /app/chartmaker/node_modules $(pnpm store path)
 
 
 FROM base AS runner
@@ -20,7 +19,7 @@ ENV NODE_ENV production
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /app/
 COPY chartmaker/package.json /app/chartmaker/
-RUN cd /app && pnpm i -w chartmaker
+RUN cd /app && corepack enable && pnpm i -w chartmaker
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodeuser
