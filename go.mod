@@ -1,6 +1,6 @@
 module github.com/slazurin/maple-culvert-tracker
 
-go 1.19
+go 1.21
 
 require (
 	github.com/bwmarrin/discordgo v0.27.2-0.20230922130345-1f0b57f11024

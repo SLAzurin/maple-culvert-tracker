@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -87,7 +88,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		// There is only 1 character, and at this point charID is correct too.
 
 		// query score
-		sql = `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM characters INNER JOIN character_culvert_scores ON character_culvert_scores.character_id = characters.id WHERE characters.id = $1 ORDER BY character_culvert_scores.culvert_date LIMIT 52`
+		sql = `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM characters INNER JOIN character_culvert_scores ON character_culvert_scores.character_id = characters.id WHERE characters.id = $1 ORDER BY character_culvert_scores.culvert_date DESC LIMIT 8`
 		stmt, err = db.DB.Prepare(sql)
 		if err != nil {
 			log.Println("Failed 1st prepare at culvert command", err)
@@ -118,6 +119,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			})
 			return
 		}
+		slices.Reverse(chartData)
 
 		jsonData, err := json.Marshal(chartData)
 		if err != nil {
@@ -215,7 +217,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		// There is only 1 character, and at this point charID is correct too.
 
 		// query score
-		sql = `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM characters INNER JOIN character_culvert_scores ON character_culvert_scores.character_id = characters.id WHERE characters.id = $1 ORDER BY character_culvert_scores.culvert_date LIMIT 52`
+		sql = `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM characters INNER JOIN character_culvert_scores ON character_culvert_scores.character_id = characters.id WHERE characters.id = $1 ORDER BY character_culvert_scores.culvert_date DESC LIMIT 8`
 		stmt, err = db.DB.Prepare(sql)
 		if err != nil {
 			log.Println("Failed 1st prepare at culvert command", err)
@@ -246,6 +248,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 			})
 			return
 		}
+		slices.Reverse(chartData)
 
 		jsonData, err := json.Marshal(chartData)
 		if err != nil {
@@ -275,7 +278,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 				Data: &discordgo.InteractionResponseData{
 					Content: lastSeenCharName,
 					Files:   []*discordgo.File{{Name: i.ID + ".png", Reader: r.Body}},
-					Flags: discordgo.MessageFlagsEphemeral,
+					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 		}
