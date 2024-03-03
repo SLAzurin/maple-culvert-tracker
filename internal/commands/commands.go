@@ -25,6 +25,20 @@ var Commands = []*discordgo.ApplicationCommand{
 		},
 	},
 	{
+		Name:        "culvert-anyone",
+		Description: "Shows the past 12 months culvert progression for a given character",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "character-name",
+				Description: "The character's name",
+			},
+		},
+		DefaultMemberPermissions: &dmPermissions,
+		DMPermission:             &dmPermission,
+	},
+	{
 		Name:                     "login",
 		Description:              "Gives you a temporary login code",
 		DefaultMemberPermissions: &dmPermissions,
