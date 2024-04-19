@@ -20,10 +20,29 @@ import (
 func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// Parse discord param character-name
 	charName := ""
+	date := ""
 	options := i.ApplicationCommandData().Options
 	for _, v := range options {
 		if v.Name == "character-name" {
 			charName = strings.ToLower(v.StringValue())
+		}
+		if v.Name == "date" {
+			date = v.StringValue()
+		}
+	}
+
+	// Validate date format
+	if date != "" {
+		_, err := time.Parse("2006-01-02", date) // YYYY-MM-DD
+		if err != nil {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Invalid date format, should be YYYY-MM-DD",
+					Flags:   discordgo.MessageFlagsEphemeral,
+				},
+			})
+			return
 		}
 	}
 
@@ -87,15 +106,23 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	// There is only 1 character, and at this point charID is correct too.
 
+	additionalWhere := ""
+	if date != "" {
+		additionalWhere += " AND character_culvert_scores.culvert_date <= $2"
+	}
 	// query score
-	sql = `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM characters INNER JOIN character_culvert_scores ON character_culvert_scores.character_id = characters.id WHERE characters.id = $1 ORDER BY character_culvert_scores.culvert_date DESC LIMIT 8`
+	sql = `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM characters INNER JOIN character_culvert_scores ON character_culvert_scores.character_id = characters.id WHERE characters.id = $1` + additionalWhere + ` ORDER BY character_culvert_scores.culvert_date DESC LIMIT 8`
 	stmt, err = db.DB.Prepare(sql)
 	if err != nil {
 		log.Println("Failed 1st prepare at culvert command", err)
 		return
 	}
 	defer stmt.Close()
-	rows, err = stmt.Query(lastSeenCharID)
+	args = []any{lastSeenCharID}
+	if date != "" {
+		args = append(args, date)
+	}
+	rows, err = stmt.Query(args...)
 	if err != nil {
 		log.Println("Query at culvert command", err)
 		return
@@ -146,10 +173,14 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		})
 	} else {
+		content := lastSeenCharName
+		if date != "" {
+			content += " on " + date
+		}
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: lastSeenCharName,
+				Content: content,
 				Files:   []*discordgo.File{{Name: i.ID + ".png", Reader: r.Body}},
 				// Flags: discordgo.MessageFlagsEphemeral,
 			},

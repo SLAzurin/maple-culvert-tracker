@@ -22,6 +22,12 @@ var Commands = []*discordgo.ApplicationCommand{
 				Name:        "character-name",
 				Description: "Your character's name",
 			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "Date in YYYY-MM-DD format to check historical data",
+			},
 		},
 	},
 	{
@@ -33,6 +39,12 @@ var Commands = []*discordgo.ApplicationCommand{
 				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "character-name",
 				Description: "The character's name",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "Date in YYYY-MM-DD format to check historical data",
 			},
 		},
 		DefaultMemberPermissions: &dmPermissions,
