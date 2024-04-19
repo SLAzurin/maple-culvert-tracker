@@ -1,12 +1,16 @@
 {
     "name": "maple-culvert-tracker",
-    "packageManager": "pnpm@8.15.4+sha256.cea6d0bdf2de3a0549582da3983c70c92ffc577ff4410cbf190817ddc35137c2",
+    "packageManager": "pnpm@9.0.4+sha256.caa915eaae9d9aefccf50ee8aeda25a2f8684d8f9d5c6e367eaf176d97c1f89e",
+    "scripts": {
+        "build": "pnpm -r run build"
+    },
     "devDependencies": {
-        "@swc/cli": "^0.3.10",
-        "@swc/core": "^1.4.2",
-        "@swc/helpers": "^0.5.6",
-        "npm-check-updates": "^16.14.15",
+        "@swc/cli": "^0.3.12",
+        "@swc/core": "^1.4.16",
+        "@swc/helpers": "^0.5.10",
+        "esbuild": "^0.20.2",
+        "npm-check-updates": "^16.14.18",
         "ts-node": "^10.9.2",
-        "typescript": "^5.3.3"
+        "typescript": "^5.4.5"
     }
 }

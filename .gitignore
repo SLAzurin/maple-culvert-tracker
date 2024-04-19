@@ -5,3 +5,4 @@ dist/**
 .next/**
 .vscode
 culvert-web2
+/*.sql
