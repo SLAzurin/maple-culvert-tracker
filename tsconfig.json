@@ -24,9 +24,9 @@
       ]
     },
   },
-  "swc": true,
+  "swc": false,
   "ts-node": {
-    "swc": true
+    "swc": false
   },
   "include": [
     "next-env.d.ts",

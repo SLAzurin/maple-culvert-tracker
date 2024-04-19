@@ -5,9 +5,6 @@
         "build": "pnpm -r run build"
     },
     "devDependencies": {
-        "@swc/cli": "^0.3.12",
-        "@swc/core": "^1.4.16",
-        "@swc/helpers": "^0.5.10",
         "esbuild": "^0.20.2",
         "npm-check-updates": "^16.14.18",
         "ts-node": "^10.9.2",
