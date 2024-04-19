@@ -17,6 +17,7 @@ services:
       dockerfile: chartmaker/Dockerfile
       target: runner
     restart: unless-stopped
+    init: true
     environment:
       - NODE_ENV=production
   redis:
@@ -39,7 +40,7 @@ services:
     image: nginx:1.23-alpine
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8081:8080"
     volumes:
       - ./nginx/conf.d/:/etc/nginx/conf.d/
   web:
@@ -50,6 +51,7 @@ services:
     environment:
       - NODE_ENV=production
     restart: unless-stopped
+    init: true
   periodicredis:
     depends_on:
       - redis
