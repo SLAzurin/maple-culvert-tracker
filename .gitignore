@@ -6,3 +6,4 @@ dist/**
 .vscode
 culvert-web2
 /*.sql
+/*.rdb
