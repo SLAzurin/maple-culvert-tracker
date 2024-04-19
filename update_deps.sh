@@ -1,2 +1,2 @@
 #!/bin/bash
-go get -u ./{cmd,internal}/...
+go get -u ./{cmd,internal}/... && go mod tidy

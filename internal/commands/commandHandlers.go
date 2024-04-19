@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,6 +22,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// Parse discord param character-name
 	charName := ""
 	date := ""
+	weeks := int64(8)
 	options := i.ApplicationCommandData().Options
 	for _, v := range options {
 		if v.Name == "character-name" {
@@ -28,6 +30,9 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 		if v.Name == "date" {
 			date = v.StringValue()
+		}
+		if v.Name == "weeks" {
+			weeks = v.IntValue()
 		}
 	}
 
@@ -111,7 +116,8 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		additionalWhere += " AND character_culvert_scores.culvert_date <= $2"
 	}
 	// query score
-	sql = `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM characters INNER JOIN character_culvert_scores ON character_culvert_scores.character_id = characters.id WHERE characters.id = $1` + additionalWhere + ` ORDER BY character_culvert_scores.culvert_date DESC LIMIT 8`
+	sql = `SELECT character_culvert_scores.culvert_date, character_culvert_scores.score FROM characters INNER JOIN character_culvert_scores ON character_culvert_scores.character_id = characters.id WHERE characters.id = $1` + additionalWhere + ` ORDER BY character_culvert_scores.culvert_date DESC LIMIT ` + strconv.FormatInt(weeks, 10)
+	// Concat here is not an sql injection because I trust discord sanitizing the `weeks` variable
 	stmt, err = db.DB.Prepare(sql)
 	if err != nil {
 		log.Println("Failed 1st prepare at culvert command", err)

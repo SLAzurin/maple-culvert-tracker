@@ -7,6 +7,8 @@ import (
 var dmPermission = false
 var dmPermissions int64 = discordgo.PermissionBanMembers
 
+var culvertMinWeeks = float64(8)
+
 var Commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "ping",
@@ -14,7 +16,7 @@ var Commands = []*discordgo.ApplicationCommand{
 	},
 	{
 		Name:        "culvert",
-		Description: "Shows your past 12 months culvert progression",
+		Description: "Shows your past culvert progression",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Required:    false,
@@ -28,11 +30,19 @@ var Commands = []*discordgo.ApplicationCommand{
 				Name:        "date",
 				Description: "Date in YYYY-MM-DD format to check historical data",
 			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				MinValue:    &culvertMinWeeks,
+				MaxValue:    52,
+				Name:        "weeks",
+				Description: "Number of weeks to display in the graph",
+			},
 		},
 	},
 	{
 		Name:        "culvert-anyone",
-		Description: "Shows the past 12 months culvert progression for a given character",
+		Description: "Shows the past culvert progression for a given character",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
 				Required:    false,
@@ -45,6 +55,14 @@ var Commands = []*discordgo.ApplicationCommand{
 				Type:        discordgo.ApplicationCommandOptionString,
 				Name:        "date",
 				Description: "Date in YYYY-MM-DD format to check historical data",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				MinValue:    &culvertMinWeeks,
+				MaxValue:    52,
+				Name:        "weeks",
+				Description: "Number of weeks to display in the graph",
 			},
 		},
 		DefaultMemberPermissions: &dmPermissions,
