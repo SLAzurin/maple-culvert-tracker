@@ -6,66 +6,61 @@ import ChartDataLabels from "chartjs-plugin-datalabels"
 
 Chart.register(ChartDataLabels)
 
-const data: { label: string; score: number }[] = JSON.parse(
-  process.env.DATA
-    ? process.env.DATA
-    : fs.readFileSync("sample.json").toString(),
-)
+export const chartmaker = (
+  data: { label: string; score: number }[],
+): Buffer => {
+  const width = data.length <= 8 ? 1000 : 125 * data.length
+  const height = 600
+  const backgroundColour = "rgba(27,27,27,255)"
+  const chartJSNodeCanvas = new ChartJSNodeCanvas({
+    width,
+    height,
+    backgroundColour,
+  })
 
-const width = data.length <= 8 ? 1000 : 125 * data.length
-const height = 600
-const backgroundColour = "rgba(27,27,27,255)"
-const chartJSNodeCanvas = new ChartJSNodeCanvas({
-  width,
-  height,
-  backgroundColour,
-})
+  const labels: string[] = []
+  const rawData: number[] = []
+  data.forEach(row => {
+    labels.push(row.label)
+    rawData.push(row.score)
+  })
 
-const labels: string[] = []
-const rawData: number[] = []
-data.forEach(row => {
-  labels.push(row.label)
-  rawData.push(row.score)
-})
-
-const lineChartConfig: ChartConfiguration<any> = {
-  plugins: [ChartDataLabels],
-  type: "line",
-  data: {
-    labels: labels,
-    datasets: [
-      {
-        label: "Culvert score by week",
-        data: rawData,
+  const lineChartConfig: ChartConfiguration<any> = {
+    plugins: [ChartDataLabels],
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Culvert score by week",
+          data: rawData,
+          datalabels: {
+            align: "end",
+            anchor: "end",
+          },
+          fill: false,
+          borderColor: "rgba(54, 162, 235, 1)",
+          tension: 0.1,
+          spanGaps: true,
+        },
+      ],
+    },
+    options: {
+      plugins: {
         datalabels: {
-          align: "end",
-          anchor: "end",
+          backgroundColor: function () {
+            return "rgba(54, 162, 235, 1)"
+          },
+          borderRadius: 4,
+          color: "white",
+          font: {
+            weight: "bold",
+          },
+          formatter: Math.round,
+          padding: 6,
         },
-        fill: false,
-        borderColor: "rgba(54, 162, 235, 1)",
-        tension: 0.1,
-        spanGaps: true,
-      },
-    ],
-  },
-  options: {
-    plugins: {
-      datalabels: {
-        backgroundColor: function () {
-          return "rgba(54, 162, 235, 1)"
-        },
-        borderRadius: 4,
-        color: "white",
-        font: {
-          weight: "bold",
-        },
-        formatter: Math.round,
-        padding: 6,
       },
     },
-  },
+  }
+  return chartJSNodeCanvas.renderToBufferSync(lineChartConfig)
 }
-
-console.log(
-  chartJSNodeCanvas.renderToBufferSync(lineChartConfig).toString("base64"),
-)

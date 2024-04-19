@@ -1,5 +1,6 @@
 import express from "express"
 import * as child_process from "child_process"
+import { chartmaker } from "./chartmaker"
 const app = express()
 const port = process.env.PORT || 3000
 
@@ -11,19 +12,10 @@ app.get("/", (req, res) => {
 })
 
 app.post("/chartmaker", (req, res) => {
+  const buffer = chartmaker(req.body)
   res.statusCode = 200
-  const buffer = child_process.spawnSync(
-    "/usr/local/bin/node", // absolute path in container
-    // process.env.HOME + "/.nvm/versions/node/v18.16.0/bin/node",
-    ["dist/chartmaker.js"],
-    {
-      env: {
-        DATA: JSON.stringify(req.body),
-      },
-    },
-  )
   res.type("png")
-  res.send(Buffer.from(buffer.stdout.toString(), "base64"))
+  res.send(buffer)
 })
 
 app.listen(port, () => {
