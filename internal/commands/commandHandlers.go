@@ -54,7 +54,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// Command name = culvert
 	sql := `SELECT id, maple_character_name FROM characters WHERE characters.discord_user_id = $1 ORDER BY id`
 	if i.ApplicationCommandData().Name == "culvert-anyone" {
-		sql = `SELECT id, maple_character_name FROM characters WHERE characters.discord_user_id != '1' ORDER BY id`
+		sql = `SELECT id, maple_character_name FROM characters WHERE characters.discord_user_id != '1' ORDER BY UPPER(maple_character_name)`
 	}
 
 	// Count # of chars
