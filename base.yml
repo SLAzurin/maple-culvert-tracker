@@ -40,7 +40,7 @@ services:
     image: nginx:1.23-alpine
     restart: unless-stopped
     ports:
-      - "8081:8080"
+      - "8080:8080"
     volumes:
       - ./nginx/conf.d/:/etc/nginx/conf.d/
   web:
