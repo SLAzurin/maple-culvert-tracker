@@ -1,16 +1,16 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"log"
-	"net/http"
 	"os"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
+
+var s *discordgo.Session
 
 func main() {
 	// run this at UTC time +1
@@ -36,15 +36,43 @@ func main() {
 		rows.Scan(&count)
 	}
 
-	if count == 0 {
-		log.Println("reminding...")
-		postBody, _ := json.Marshal(map[string]string{
-			"content": "Reminder to input culvert scores " + date + " :meow:",
-		})
-		responseBody := bytes.NewBuffer(postBody)
-		_, err := http.Post(os.Getenv("DISCORD_REMINDER_WEBHOOK"), "application/json", responseBody)
-		if err != nil {
-			panic(err)
-		}
+	if count > 0 {
+		return
 	}
+
+	log.Println("reminding...")
+
+	s, err = discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
+	if err != nil {
+		log.Printf("Invalid bot parameters: %v", err)
+		return
+	}
+	sendMsgCh := make(chan struct{})
+	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
+
+		content := "Reminder to input culvert scores " + date + " <a:meow:1104725456130940990>"
+		s.ChannelMessageSend(os.Getenv("DISCORD_REMINDER_CHANNEL_ID"), content)
+		sendMsgCh <- struct{}{}
+	})
+	err = s.Open()
+	if err != nil {
+		log.Printf("Cannot open the session: %v", err)
+		return
+	}
+	defer s.Close()
+	ticker := time.NewTicker(5 * time.Second)
+	done := make(chan struct{})
+
+	// Either ticker done or send Message done for return statement
+	select {
+	case <-done:
+		return
+	case <-sendMsgCh:
+		ticker.Stop()
+		return
+	case <-ticker.C:
+		done <- struct{}{}
+	}
+
 }
