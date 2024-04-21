@@ -3,7 +3,7 @@ services:
     depends_on:
       - db16
       - chartmaker
-      - dragonfly
+      - valkey
     build:
       dockerfile: Dockerfile.goapps
       context: .
@@ -20,12 +20,10 @@ services:
     init: true
     environment:
       - NODE_ENV=production
-  dragonfly:
-    image: ghcr.io/dragonflydb/dragonfly:v1.17.1-ubuntu
-    ulimits:
-      memlock: -1
+  valkey:
+    image: valkey/valkey:7.2-alpine
     volumes:
-      - mapleculverttracker_dragonfly_data:/data
+      - mapleculverttracker_valkey_data:/data
   db16:
     image: postgres:16-alpine
     volumes:
@@ -55,7 +53,7 @@ services:
     init: true
   periodicredis:
     depends_on:
-      - dragonfly
+      - valkey
     build:
       dockerfile: Dockerfile.goapps
       context: .
@@ -71,8 +69,7 @@ services:
       context: .
       args:
         APPNAME: culvert_score_update_reminder
-    restart: unless-stopped
     env_file: .env
 volumes:
   mapleculverttracker_pg16_data:
-  mapleculverttracker_dragonfly_data:
+  mapleculverttracker_valkey_data:

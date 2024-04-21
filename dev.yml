@@ -5,6 +5,6 @@ services:
   db16:
     ports:
       - 5433:5432
-  dragonfly:
+  valkey:
     ports:
       - 6380:6379
