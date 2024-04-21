@@ -1,9 +1,9 @@
 services:
   bot:
     depends_on:
-      - db
+      - db16
       - chartmaker
-      - redis
+      - dragonfly
     build:
       dockerfile: Dockerfile.goapps
       context: .
@@ -20,15 +20,16 @@ services:
     init: true
     environment:
       - NODE_ENV=production
-  redis:
-    image: redis:7-alpine
+  dragonfly:
+    image: ghcr.io/dragonflydb/dragonfly:v1.17.1-ubuntu
+    ulimits:
+      memlock: -1
     volumes:
-      - mapleculverttracker_redis_data:/data
-    restart: unless-stopped
-  db:
-    image: postgres:15-alpine
+      - mapleculverttracker_dragonfly_data:/data
+  db16:
+    image: postgres:16-alpine
     volumes:
-      - mapleculverttracker_pg_data:/var/lib/postgresql/data
+      - mapleculverttracker_pg16_data:/var/lib/postgresql/data
       - ./sqlfiles:/root/sqlfiles
     restart: unless-stopped
     env_file:
@@ -54,7 +55,7 @@ services:
     init: true
   periodicredis:
     depends_on:
-      - redis
+      - dragonfly
     build:
       dockerfile: Dockerfile.goapps
       context: .
@@ -64,7 +65,7 @@ services:
     env_file: .env
   culvert_reminder:
     depends_on:
-      - db
+      - db16
     build:
       dockerfile: Dockerfile.goapps
       context: .
@@ -73,5 +74,5 @@ services:
     restart: unless-stopped
     env_file: .env
 volumes:
-  mapleculverttracker_pg_data:
-  mapleculverttracker_redis_data:
+  mapleculverttracker_pg16_data:
+  mapleculverttracker_dragonfly_data:

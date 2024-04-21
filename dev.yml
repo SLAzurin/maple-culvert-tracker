@@ -2,9 +2,9 @@ services:
   chartmaker:
     ports:
       - 3001:3000
-  db:
+  db16:
     ports:
       - 5433:5432
-  redis:
+  dragonfly:
     ports:
       - 6380:6379
