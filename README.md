@@ -1,20 +1,13 @@
 # maple-culvert-tracker
 
-Track culvert score over a x year(s) progress
+Track culvert score over a x amount of time progress
 
-
-Missing features:
-- search discord username/id (done)
-- edit previous week's culvert scores (done)
-- name changes (done)
-
-Optional additional features
-- list member's characters
+This software is best used in conjunction with my https://github.com/SLAzurin/gpq-image-ocr-gui
 
 # Pre-requisites
-Install Docker Engine (Linux) or Docker Desktop (Linux/Windows/Mac)  
-Install Golang 1.22.x or newer versions.  
-Install Nodejs 20.x or newer even number versions. (Using nvmsh is recommended)  
+Install Docker Engine (Linux) or Docker Desktop (Linux/Windows/Mac) for development.  
+Install Golang 1.22.x or newer versions when developing.  
+Install Nodejs 20.x or newer even number LTS versions. (Using [nvm.sh](https://github.com/nvm-sh/nvm) is recommended)  
 Enable `pnpm` with this command:  
     - Command: `corepack enable && corepack prepare --activate`
 
