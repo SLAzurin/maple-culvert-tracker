@@ -3,12 +3,15 @@ package controllers
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
@@ -34,7 +37,32 @@ type postCulvertBody struct {
 }
 
 func (m MapleController) GETCharacters(c *gin.Context) {
-	rows, err := db.DB.Query("SELECT id, maple_character_name, discord_user_id FROM characters;")
+	discordIDs, err := apiredis.RedisDB.Get(c, "discord_members_"+c.GetString("discord_server_id")).Result()
+	if err != nil {
+		log.Println("Valkey ERROR GETCharacters", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "Valkey failed.",
+		})
+		return
+	}
+
+	var discordIDsSlice []data.WebGuildMember
+	err = json.Unmarshal([]byte(discordIDs), &discordIDsSlice)
+	if err != nil {
+		log.Println("JSON ERROR GETCharacters", err)
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": "JSON failed.",
+		})
+		return
+	}
+
+	// map discordIDsSlice to map based on discord id as key
+	discordIDMap := make(map[string]struct{})
+	for _, v := range discordIDsSlice {
+		discordIDMap[v.DiscordUserID] = struct{}{}
+	}
+
+	rows, err := db.DB.Query("SELECT id, maple_character_name, discord_user_id FROM characters WHERE discord_user_id != '1';")
 	if err != nil {
 		log.Println("DB ERROR GETCharacters", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -55,7 +83,9 @@ func (m MapleController) GETCharacters(c *gin.Context) {
 			DiscordUserID string `json:"discord_user_id"`
 		}{}
 		rows.Scan(&r.CharacterID, &r.CharacterName, &r.DiscordUserID)
-		result = append(result, r)
+		if _, ok := discordIDMap[r.DiscordUserID]; ok {
+			result = append(result, r)
+		}
 	}
 	c.AbortWithStatusJSON(http.StatusOK, result)
 }
