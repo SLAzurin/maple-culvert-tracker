@@ -24,6 +24,7 @@ services:
     image: valkey/valkey:7.2-alpine
     volumes:
       - mapleculverttracker_valkey_data:/data
+    restart: unless-stopped
   db16:
     image: postgres:16-alpine
     volumes:
