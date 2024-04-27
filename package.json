@@ -1,6 +1,6 @@
 {
     "name": "maple-culvert-tracker",
-    "packageManager": "pnpm@9.0.4+sha256.caa915eaae9d9aefccf50ee8aeda25a2f8684d8f9d5c6e367eaf176d97c1f89e",
+    "packageManager": "pnpm@9.0.6+sha256.0624e30eff866cdeb363b15061bdb7fd9425b17bc1bb42c22f5f4efdea21f6b3",
     "scripts": {
         "build": "pnpm -r run build"
     },
