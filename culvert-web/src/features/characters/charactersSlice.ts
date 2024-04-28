@@ -183,6 +183,11 @@ export const membersSlice = createSlice({
     setSelectedWeek: (state, action: PayloadAction<string>) => {
       state.selectedWeek = action.payload
     },
+    resetInitialStateCharacters: (state) => {
+      Object.keys(state).forEach((key) => {
+        ;(state as any)[key] = (initialState as any)[key]
+      })
+    },
   },
 })
 export default membersSlice.reducer
@@ -208,4 +213,5 @@ export const {
   applyCulvertChanges,
   resetCharacterScores,
   setSelectedWeek,
+  resetInitialStateCharacters,
 } = membersSlice.actions

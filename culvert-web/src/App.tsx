@@ -33,6 +33,8 @@ import fetchCharacterScores from "./helpers/fetchCharacterScores"
 import { selectMembersByID } from "./features/members/membersSlice"
 import renameCharacter from "./helpers/renameCharacter"
 import { useNavigate } from "react-router-dom"
+import linkDiscordMaple from "./helpers/linkDiscordMaple"
+import GuildMember from "./types/GuildMember"
 interface ImportedData {
   [key: string]: number
 }
@@ -52,10 +54,7 @@ function App() {
   const [action, setAction] = useState("")
   const [toggleDiscordLink, setToggleDiscordLink] = useState(false)
   const [toggleRenameCharacter, setToggleRenameCharacter] = useState(false)
-  const [searchDiscordID, setSearchDiscordID] = useState("")
-  const [searchMode, setSearchMode] = useState("text")
   const [disabledLink, setDisabledLink] = useState(false)
-  const [linkCharacterName, setLinkCharacterName] = useState("")
   const [statusMessage, setStatusMessage] = useState("")
   const [successful, setSuccessful] = useState(true)
   const [selectedWeekFE, setSelectedWeekFE] = useState("")
@@ -64,10 +63,6 @@ function App() {
   const [newCharacterName, setNewCharacterName] = useState("")
   const [importedData, setImportedData] = useState("")
   const [importedDataStatus, setImportedDataStatus] = useState("")
-
-  const [selectedDiscordID, setSelectedDiscordID] = useState(
-    members.length !== 0 ? members[0].discord_user_id : "",
-  )
 
   useEffect(() => {
     if (selectedWeekFE !== "") {
@@ -148,7 +143,7 @@ function App() {
       return
     }
     // if new token was entered
-    if (token !== "") {
+    if (token !== "" && members.length === 0) {
       ;(async () => {
         console.log("fetching members")
         const res = await fetchMembers(token)
@@ -161,10 +156,11 @@ function App() {
           return
         }
         store.dispatch(setMembers(res))
+        setAction("")
         setAction("culvert_score")
       })()
     }
-  }, [token, claims])
+  }, [token, claims, members])
 
   useEffect(() => {
     // Handle importedData onChange
@@ -207,6 +203,33 @@ function App() {
     setImportedData("")
   }, [importedData, characters])
 
+  const untrackCharacter = (member: GuildMember, charID: string) => {
+    const res = linkDiscordMaple(
+      token,
+      member.discord_user_id,
+      characters[Number(charID)],
+      false,
+    )
+    res
+      .then((res) => {
+        if (res.status === 200) {
+          setSuccessful(true)
+          setStatusMessage
+          store.dispatch(setCharacters([]))
+        } else {
+          setStatusMessage(
+            "Error unlinking discord server: " + res.status + " " + res.payload,
+          )
+          setSuccessful(false)
+        }
+      })
+      .catch((err) => {
+        console.error(err)
+        setStatusMessage("Error unlinking discord client: " + err.toString())
+        setSuccessful(false)
+      })
+  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -216,199 +239,6 @@ function App() {
             {statusMessage}
           </div>
         )}
-        {/* {claims.exp !== "0" && (
-          <div className="m-5">
-            What would you like to do?
-            <select
-              onChange={(e) => {
-                setAction(e.target.value)
-              }}
-              value={action}
-            >
-              <option value={""}></option>
-              <option value={"link_member"}>
-                Link discord user with maple character
-              </option>
-              <option value={"culvert_score"}>Add culvert score</option>
-              <option value={"rename_character"}>Rename character</option>
-            </select>
-          </div>
-        )} */}
-        {/* {action === "link_member" && members.length !== 0 && (
-          <div>
-            <div>
-              Search discord member by
-              <div>
-                <input
-                  id="search-mode-text"
-                  type="radio"
-                  name="search-mode"
-                  value="text"
-                  onChange={(e) => {
-                    setSearchMode(e.target.value)
-                  }}
-                  checked={"text" === searchMode}
-                />
-                <label htmlFor="search-mode-text">Discord username/ID</label>
-                <br />
-                <input
-                  id="search-mode-dropdown"
-                  type="radio"
-                  name="search-mode"
-                  value="dropdown"
-                  onChange={(e) => {
-                    setSearchMode(e.target.value)
-                  }}
-                  checked={"dropdown" === searchMode}
-                />
-                <label htmlFor="search-mode-dropdown">
-                  Dropdown of all members
-                </label>
-              </div>
-            </div>
-            {searchMode === "text" && (
-              <div>
-                {selectedDiscordID !== "" && (
-                  <div>Selected {membersByID[selectedDiscordID]}</div>
-                )}
-                <input
-                  type="text"
-                  placeholder="Discord username / ID"
-                  value={searchDiscordID}
-                  onChange={(e) => {
-                    setSearchDiscordID(e.target.value)
-                  }}
-                />
-                {searchDiscordID !== "" && (
-                  <div>
-                    {members
-                      .filter((m) => {
-                        return (
-                          (m.discord_nickname || "")
-                            .toLowerCase()
-                            .includes(searchDiscordID.toLowerCase()) ||
-                          m.discord_username
-                            .toLowerCase()
-                            .includes(searchDiscordID.toLowerCase()) ||
-                          m.discord_user_id
-                            .toLowerCase()
-                            .includes(searchDiscordID.toLowerCase()) ||
-                          m.discord_global_name
-                            .toLowerCase()
-                            .includes(searchDiscordID.toLowerCase())
-                        )
-                      })
-                      .map((m) => (
-                        <button
-                          key={"link_member-search-" + m.discord_user_id}
-                          className="btn btn-success"
-                          onClick={() => {
-                            setSelectedDiscordID(m.discord_user_id)
-                          }}
-                        >
-                          {m.discord_nickname ||
-                            m.discord_global_name ||
-                            m.discord_username}
-                        </button>
-                      ))}
-                  </div>
-                )}
-              </div>
-            )}
-            {searchMode === "dropdown" && (
-              <select
-                value={selectedDiscordID}
-                onChange={(e) => {
-                  setSelectedDiscordID(e.target.value)
-                }}
-              >
-                {members.map((member) => (
-                  <option
-                    key={member.discord_user_id}
-                    value={member.discord_user_id}
-                  >
-                    {member.discord_nickname ||
-                      member.discord_global_name ||
-                      member.discord_username}
-                  </option>
-                ))}
-              </select>
-            )}
-            <input
-              type="text"
-              placeholder="character name"
-              value={linkCharacterName}
-              onChange={(e) => {
-                setLinkCharacterName(e.target.value)
-              }}
-            ></input>
-            <button
-              className="btn btn-primary"
-              onClick={() => {
-                setDisabledLink(true)
-                linkDiscordMaple(
-                  token,
-                  selectedDiscordID,
-                  linkCharacterName,
-                  true,
-                ).then((res) => {
-                  setDisabledLink(false)
-                  if (res.status !== 200) {
-                    setSuccessful(false)
-                    setStatusMessage(res.payload)
-                  } else {
-                    setSuccessful(true)
-                    setStatusMessage("Successfully linked " + linkCharacterName)
-                    store.dispatch(setCharacters([]))
-                  }
-                })
-              }}
-              disabled={disabledLink}
-            >
-              link
-            </button>
-            <div className="mt-5">
-              <button
-                className="btn btn-danger"
-                onClick={() => {
-                  console.log("unlinking character")
-                  linkDiscordMaple(
-                    token,
-                    selectedDiscordID,
-                    linkCharacterName,
-                    false,
-                  ).then((res) => {
-                    setDisabledLink(false)
-                    if (res.status !== 200) {
-                      setStatusMessage(res.payload)
-                      setSuccessful(false)
-                    } else {
-                      setStatusMessage(
-                        "Successfully unlinked " + linkCharacterName,
-                      )
-                      setSuccessful(true)
-                      store.dispatch(setCharacters([]))
-                    }
-                  })
-                }}
-                disabled={disabledLink}
-              >
-                unlink
-              </button>
-            </div>
-            {selectedDiscordID !== "" && (
-              <div>
-                Currently linked characters:
-                {membersCharacters[selectedDiscordID] &&
-                  membersCharacters[selectedDiscordID].map((cid) => (
-                    <div key={"linked-char-display-" + cid}>
-                      {characters[cid]}
-                    </div>
-                  ))}
-              </div>
-            )}
-          </div>
-        )} */}
         {action === "culvert_score" && (
           <div>
             {editableWeeks !== null && (
@@ -494,6 +324,7 @@ Don't forget to submit"
                   <th>Character name</th>
                   <th>Last week</th>
                   <th>This week</th>
+                  <th>Addition actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -601,6 +432,37 @@ Don't forget to submit"
                             }}
                             value={scores.current || ""}
                           />
+                        </td>
+                        <td>
+                          {membersCharacters &&
+                            Object.entries(membersCharacters)
+                              .filter(([discordID, characters]) => {
+                                return (
+                                  characters.includes(Number(charID)) &&
+                                  discordID === "2"
+                                )
+                              })
+                              .map(([discordID]) => {
+                                return (
+                                  <button
+                                    key={"untrack-character-" + charID}
+                                    className="btn btn-danger"
+                                    onClick={() => {
+                                      untrackCharacter(
+                                        {
+                                          discord_user_id: discordID,
+                                          discord_global_name: "",
+                                          discord_nickname: "",
+                                          discord_username: "",
+                                        },
+                                        charID,
+                                      )
+                                    }}
+                                  >
+                                    Untrack character from bot
+                                  </button>
+                                )
+                              })}
                         </td>
                       </tr>
                     )
