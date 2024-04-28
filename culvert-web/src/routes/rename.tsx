@@ -26,6 +26,7 @@ const Rename = () => {
     }
     if (Number.isNaN(Number(id))) return navigate(-1)
     if (!characters[Number(id)]) return navigate(-1)
+    setNewName(characters[Number(id)])
     return setCharID(id)
   }, [])
   return (
