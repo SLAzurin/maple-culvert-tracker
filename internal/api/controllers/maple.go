@@ -61,6 +61,7 @@ func (m MapleController) GETCharacters(c *gin.Context) {
 	for _, v := range discordIDsSlice {
 		discordIDMap[v.DiscordUserID] = struct{}{}
 	}
+	discordIDMap["2"] = struct{}{}
 
 	rows, err := db.DB.Query("SELECT id, maple_character_name, discord_user_id FROM characters WHERE discord_user_id != '1';")
 	if err != nil {
@@ -249,7 +250,25 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 			// body.CharacterName = realCharName
 			_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2, maple_character_name = $1 WHERE maple_character_name = $3", body.CharacterName, body.DiscordUserID, realCharName)
 		} else {
-			_, err = db.DB.Exec("INSERT INTO characters (maple_character_name, discord_user_id) VALUES ($1, $2) ON CONFLICT (maple_character_name) DO UPDATE SET discord_user_id = $2", body.CharacterName, body.DiscordUserID)
+			rows, err := db.DB.Query("INSERT INTO characters (maple_character_name, discord_user_id) VALUES ($1, $2) ON CONFLICT (maple_character_name) DO UPDATE SET discord_user_id = $2 RETURNING id", body.CharacterName, body.DiscordUserID)
+			if err != nil {
+				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+					"error": "Failed to create new character in the database...",
+				})
+				return
+			}
+			defer rows.Close()
+			id := 0
+			if rows.Next() {
+				rows.Scan(&id)
+			}
+			now := time.Now()
+			for now.Weekday() != time.Sunday {
+				now = now.Add(time.Hour * -24)
+			}
+			date := now.Format("2006-01-02")
+			db.DB.Exec("INSERT INTO character_culvert_scores (character_id, culvert_date, score) VALUES ($1, $2, 0)", id, date)
+			// I should probably check errors here, but its finicky with double query with this one not mattering for the end goal error
 		}
 	} else {
 		body.DiscordUserID = "1"
