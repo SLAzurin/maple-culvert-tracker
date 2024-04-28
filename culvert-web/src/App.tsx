@@ -150,13 +150,13 @@ function App() {
         if (typeof res === "number") {
           console.log("failed to get members", res)
           if (res === 401) {
-            alert("Expired login token")
             // Using store's dispatch to go around react hook exhaustive deps
             store.dispatch(resetToken())
           }
           return
         }
         store.dispatch(setMembers(res))
+        setAction("culvert_score")
       })()
     }
   }, [token, claims])
@@ -211,7 +211,7 @@ function App() {
             {statusMessage}
           </div>
         )}
-        {claims.exp !== "0" && (
+        {/* {claims.exp !== "0" && (
           <div className="m-5">
             What would you like to do?
             <select
@@ -228,8 +228,8 @@ function App() {
               <option value={"rename_character"}>Rename character</option>
             </select>
           </div>
-        )}
-        {action === "link_member" && members.length !== 0 && (
+        )} */}
+        {/* {action === "link_member" && members.length !== 0 && (
           <div>
             <div>
               Search discord member by
@@ -403,7 +403,7 @@ function App() {
               </div>
             )}
           </div>
-        )}
+        )} */}
         {action === "culvert_score" && (
           <div>
             {editableWeeks !== null && (
