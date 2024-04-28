@@ -143,7 +143,7 @@ function App() {
       return
     }
     // if new token was entered
-    if (token !== "" && members.length === 0) {
+    if (token !== "") {
       ;(async () => {
         console.log("fetching members")
         const res = await fetchMembers(token)
@@ -156,11 +156,10 @@ function App() {
           return
         }
         store.dispatch(setMembers(res))
-        setAction("")
         setAction("culvert_score")
       })()
     }
-  }, [token, claims, members])
+  }, [token, claims])
 
   useEffect(() => {
     // Handle importedData onChange
