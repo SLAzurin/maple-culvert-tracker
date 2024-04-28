@@ -32,13 +32,13 @@ import fetchCharacters from "./helpers/fetchCharacters"
 import fetchCharacterScores from "./helpers/fetchCharacterScores"
 import { selectMembersByID } from "./features/members/membersSlice"
 import renameCharacter from "./helpers/renameCharacter"
-import { Link } from "react-router-dom"
-
+import { useNavigate } from "react-router-dom"
 interface ImportedData {
   [key: string]: number
 }
 
 function App() {
+  const navigate = useNavigate()
   const token = useSelector(selectToken)
   const claims = useSelector(selectClaims)
   const members = useSelector(selectMembers)
@@ -51,6 +51,7 @@ function App() {
   const selectedWeek = useSelector(selectSelectedWeek)
   const [action, setAction] = useState("")
   const [toggleDiscordLink, setToggleDiscordLink] = useState(false)
+  const [toggleRenameCharacter, setToggleRenameCharacter] = useState(false)
   const [searchDiscordID, setSearchDiscordID] = useState("")
   const [searchMode, setSearchMode] = useState("text")
   const [disabledLink, setDisabledLink] = useState(false)
@@ -461,7 +462,7 @@ Don't forget to submit"
                     <button
                       className="btn btn-success"
                       onClick={() => {
-                        console.log("clicked home")
+                        navigate("/newchar")
                       }}
                     >
                       + new character
@@ -477,10 +478,10 @@ Don't forget to submit"
                     <button
                       className="btn btn-link"
                       onClick={() => {
-                        console.log("clicked rename char")
+                        setToggleRenameCharacter(!toggleRenameCharacter)
                       }}
                     >
-                      Rename character
+                      Toggle rename character
                     </button>
                   </Nav>
                 </Navbar.Collapse>
@@ -524,11 +525,9 @@ Don't forget to submit"
                                     return toggleDiscordLink ? (
                                       <button
                                         key={"discord_name-button-" + i}
-                                        className="btn btn-link"
+                                        className="btn btn-warning"
                                         onClick={() => {
-                                          console.log(
-                                            "Button clicked for discord_name",
-                                          )
+                                          navigate(`/linkdiscord?id=${charID}`)
                                         }}
                                       >
                                         {member?.discord_nickname ||
@@ -537,7 +536,7 @@ Don't forget to submit"
                                           membersByID[discordID]}
                                       </button>
                                     ) : (
-                                      <span>
+                                      <span key={"discord_name-button-" + i}>
                                         {member?.discord_nickname ||
                                           member?.discord_global_name ||
                                           member?.discord_username ||
@@ -551,7 +550,28 @@ Don't forget to submit"
                           </span>
                         </td>
                         <td>
-                          {(i + 1) % 17 === 0 && i !== 0 ? (
+                          {toggleRenameCharacter ? (
+                            (i + 1) % 17 === 0 && i !== 0 ? (
+                              <button
+                                className="btn btn-warning"
+                                style={{ textDecoration: "underline" }}
+                                onClick={() => {
+                                  navigate(`/rename?id=${charID}`)
+                                }}
+                              >
+                                {characters[Number(charID)] || charID}
+                              </button>
+                            ) : (
+                              <button
+                                className="btn btn-warning"
+                                onClick={() => {
+                                  navigate(`/rename?id=${charID}`)
+                                }}
+                              >
+                                {characters[Number(charID)] || charID}
+                              </button>
+                            )
+                          ) : (i + 1) % 17 === 0 && i !== 0 ? (
                             <span style={{ textDecoration: "underline" }}>
                               {characters[Number(charID)] || charID}
                             </span>
