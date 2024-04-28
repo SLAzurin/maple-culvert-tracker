@@ -55,6 +55,14 @@ func FetchMembers(discordServerID string, DiscordSession *discordgo.Session) ([]
 			}
 		}
 	}
+	// '1' means unlinked and not in guild anymore
+	// '2' means unlinked and in guild
+	result = append(result, data.WebGuildMember{
+		DiscordUsername:   "NOT LINKED TO DISCORD YET",
+		DiscordUserID:     "2",
+		DiscordGlobalName: "NOT LINKED TO DISCORD YET",
+		DiscordNickname:   "NOT LINKED TO DISCORD YET",
+	})
 
 	return result, nil
 }
