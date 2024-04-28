@@ -417,7 +417,7 @@ function App() {
                     alert("copied")
                   }}
                 >
-                  Copy members to clipboard
+                  Copy maple character names to clipboard
                 </button>
                 <textarea
                   style={{ resize: "none" }}
