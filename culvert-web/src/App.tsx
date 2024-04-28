@@ -10,7 +10,9 @@ import {
 import { selectMembers, setMembers } from "./features/members/membersSlice"
 import { store } from "./app/store"
 import { useSelector } from "react-redux"
-import linkDiscordMaple from "./helpers/linkDiscordMaple"
+import Container from "react-bootstrap/Container"
+import Nav from "react-bootstrap/Nav"
+import Navbar from "react-bootstrap/Navbar"
 import {
   addNewCharacterScore,
   applyCulvertChanges,
@@ -30,6 +32,7 @@ import fetchCharacters from "./helpers/fetchCharacters"
 import fetchCharacterScores from "./helpers/fetchCharacterScores"
 import { selectMembersByID } from "./features/members/membersSlice"
 import renameCharacter from "./helpers/renameCharacter"
+import { Link } from "react-router-dom"
 
 interface ImportedData {
   [key: string]: number
@@ -47,6 +50,7 @@ function App() {
   const editableWeeks = useSelector(selectEditableWeeks)
   const selectedWeek = useSelector(selectSelectedWeek)
   const [action, setAction] = useState("")
+  const [toggleDiscordLink, setToggleDiscordLink] = useState(false)
   const [searchDiscordID, setSearchDiscordID] = useState("")
   const [searchMode, setSearchMode] = useState("text")
   const [disabledLink, setDisabledLink] = useState(false)
@@ -444,6 +448,44 @@ Don't forget to submit"
                 </select>
               </div>
             )}
+            <br />
+            <Navbar
+              expand="lg"
+              sticky="top"
+              className="bg-body-tertiary"
+              variant="light"
+            >
+              <Container>
+                <Navbar.Collapse id="basic-navbar-nav">
+                  <Nav className="me-auto">
+                    <button
+                      className="btn btn-success"
+                      onClick={() => {
+                        console.log("clicked home")
+                      }}
+                    >
+                      + new character
+                    </button>
+                    <button
+                      className="btn btn-link"
+                      onClick={() => {
+                        setToggleDiscordLink(!toggleDiscordLink)
+                      }}
+                    >
+                      Toggle edit discord link
+                    </button>
+                    <button
+                      className="btn btn-link"
+                      onClick={() => {
+                        console.log("clicked rename char")
+                      }}
+                    >
+                      Rename character
+                    </button>
+                  </Nav>
+                </Navbar.Collapse>
+              </Container>
+            </Navbar>
             <table>
               <thead>
                 <tr>
@@ -462,9 +504,9 @@ Don't forget to submit"
                       : -1
                   })
                   .map(([charID, scores], i) => {
-                    if (!characters[Number(charID)]) return null
+                    // if (!characters[Number(charID)]) return null
                     return (
-                      <tr className="" key={"scores-" + i}>
+                      <tr key={"scores-" + i}>
                         <td>
                           <span>
                             {membersCharacters &&
@@ -479,7 +521,7 @@ Don't forget to submit"
                                         member.discord_user_id === discordID
                                       )
                                     })
-                                    return (
+                                    return toggleDiscordLink ? (
                                       <button
                                         key={"discord_name-button-" + i}
                                         className="btn btn-link"
@@ -494,6 +536,13 @@ Don't forget to submit"
                                           member?.discord_username ||
                                           membersByID[discordID]}
                                       </button>
+                                    ) : (
+                                      <span>
+                                        {member?.discord_nickname ||
+                                          member?.discord_global_name ||
+                                          member?.discord_username ||
+                                          membersByID[discordID]}
+                                      </span>
                                     )
                                   }
                                   return null
@@ -502,7 +551,13 @@ Don't forget to submit"
                           </span>
                         </td>
                         <td>
-                          <span>{characters[Number(charID)] || charID}</span>
+                          {(i + 1) % 17 === 0 && i !== 0 ? (
+                            <span style={{ textDecoration: "underline" }}>
+                              {characters[Number(charID)] || charID}
+                            </span>
+                          ) : (
+                            <span>{characters[Number(charID)] || charID}</span>
+                          )}
                         </td>
                         <td>
                           <input
