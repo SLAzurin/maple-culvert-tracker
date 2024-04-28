@@ -85,6 +85,9 @@ export const membersSlice = createSlice({
         state.selectedWeek = action.payload.weeks[0]
       }
       for (let v of action.payload.data) {
+        if (typeof state.characters[v.character_id] === "undefined") {
+          continue
+        }
         if (typeof newScores[v.character_id] === "undefined") {
           newScores[v.character_id] = {}
         }

@@ -454,19 +454,9 @@ Don't forget to submit"
               </thead>
               <tbody>
                 {Object.entries(characterScores || {})
-                  .sort(([aKey], [bKey]) => {
-                    if (
-                      typeof characters[Number(aKey)] === "undefined" ||
-                      typeof characters[Number(bKey)] === "undefined"
-                    )
-                      return 0
-                    if (
-                      characters[Number(aKey)].toLowerCase() ===
-                      characters[Number(bKey)].toLowerCase()
-                    )
-                      return 0
-                    return characters[Number(aKey)].toLowerCase() >
-                      characters[Number(bKey)].toLowerCase()
+                  .sort(([charID1], [charID2]) => {
+                    return characters[Number(charID1)] >=
+                      characters[Number(charID2)]
                       ? 1
                       : -1
                   })
@@ -520,18 +510,7 @@ Don't forget to submit"
                       "undefined",
                   )
                   .sort((aKey, bKey) => {
-                    if (
-                      typeof characters[Number(aKey)] === "undefined" ||
-                      typeof characters[Number(bKey)] === "undefined"
-                    )
-                      return 0
-                    if (
-                      characters[Number(aKey)].toLowerCase() ===
-                      characters[Number(bKey)].toLowerCase()
-                    )
-                      return 0
-                    return characters[Number(aKey)].toLowerCase() >
-                      characters[Number(bKey)].toLowerCase()
+                    return characters[Number(aKey)] > characters[Number(bKey)]
                       ? 1
                       : -1
                   })
