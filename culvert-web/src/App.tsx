@@ -522,7 +522,8 @@ Don't forget to submit"
                                         member.discord_user_id === discordID
                                       )
                                     })
-                                    return toggleDiscordLink ? (
+                                    return toggleDiscordLink ||
+                                      discordID === "2" ? (
                                       <button
                                         key={"discord_name-button-" + i}
                                         className="btn btn-warning"
