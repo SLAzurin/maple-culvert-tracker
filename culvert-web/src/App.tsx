@@ -447,6 +447,7 @@ Don't forget to submit"
             <table>
               <thead>
                 <tr>
+                  <th>Discord user</th>
                   <th>Character name</th>
                   <th>Last week</th>
                   <th>This week</th>
@@ -464,6 +465,42 @@ Don't forget to submit"
                     if (!characters[Number(charID)]) return null
                     return (
                       <tr className="" key={"scores-" + i}>
+                        <td>
+                          <span>
+                            {membersCharacters &&
+                              Object.entries(membersCharacters).map(
+                                ([discordID, charIDs], i) => {
+                                  if (
+                                    charIDs.includes(Number(charID)) &&
+                                    membersByID[discordID]
+                                  ) {
+                                    const member = members.find((member) => {
+                                      return (
+                                        member.discord_user_id === discordID
+                                      )
+                                    })
+                                    return (
+                                      <button
+                                        key={"discord_name-button-" + i}
+                                        className="btn btn-link"
+                                        onClick={() => {
+                                          console.log(
+                                            "Button clicked for discord_name",
+                                          )
+                                        }}
+                                      >
+                                        {member?.discord_nickname ||
+                                          member?.discord_global_name ||
+                                          member?.discord_username ||
+                                          membersByID[discordID]}
+                                      </button>
+                                    )
+                                  }
+                                  return null
+                                },
+                              )}
+                          </span>
+                        </td>
                         <td>
                           <span>{characters[Number(charID)] || charID}</span>
                         </td>
