@@ -43,6 +43,10 @@ const Rename = () => {
       <button
         className="btn btn-primary"
         onClick={async () => {
+          if (newName.length <= 2) {
+            setStatus("Error: Character Name is too short")
+            return
+          }
           const res = await renameCharacter(token, {
             character_id: Number(charID),
             new_name: newName,

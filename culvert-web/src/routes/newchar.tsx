@@ -26,6 +26,10 @@ const NewChar = () => {
       <button
         className="btn btn-primary"
         onClick={async () => {
+          if (characterName.length <= 2) {
+            setStatus("Error: Character Name is too short")
+            return
+          }
           linkDiscordMaple(token, "2", characterName, true).then((res) => {
             if (res.status !== 200) {
               setStatus(`Error: ${res.status} ${res.payload}`)
