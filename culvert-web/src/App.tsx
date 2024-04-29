@@ -242,17 +242,6 @@ function App() {
           <div>
             {editableWeeks !== null && (
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <button
-                  className="btn btn-link"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      JSON.stringify(Object.values(characters), null, 4),
-                    )
-                    alert("copied")
-                  }}
-                >
-                  Copy maple character names to clipboard
-                </button>
                 <textarea
                   style={{ resize: "none" }}
                   value={importedData}
@@ -311,6 +300,17 @@ Don't forget to submit"
                       }}
                     >
                       Toggle rename character
+                    </button>
+                    <button
+                      className="btn btn-link"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          JSON.stringify(Object.values(characters), null, 4),
+                        )
+                        alert("copied")
+                      }}
+                    >
+                      Copy maple character names to clipboard
                     </button>
                   </Nav>
                 </Navbar.Collapse>
