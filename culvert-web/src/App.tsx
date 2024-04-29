@@ -435,7 +435,8 @@ Don't forget to submit"
                           />
                         </td>
                         <td>
-                          {membersCharacters &&
+                          {(scores.current || 0) <= 0 &&
+                            membersCharacters &&
                             Object.entries(membersCharacters)
                               .filter(([discordID, characters]) => {
                                 return (
