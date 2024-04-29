@@ -327,15 +327,17 @@ Don't forget to submit"
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(characterScores || {})
+                {Object.entries(characters)
                   .sort(([charID1], [charID2]) => {
                     return characters[Number(charID1)] >=
                       characters[Number(charID2)]
                       ? 1
                       : -1
                   })
-                  .map(([charID, scores], i) => {
-                    // if (!characters[Number(charID)]) return null
+                  .map(([charID], i) => {
+                    const scores = characterScores
+                      ? characterScores[Number(charID)] || {}
+                      : {}
                     return (
                       <tr key={"scores-" + i}>
                         <td>
