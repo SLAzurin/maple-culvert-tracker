@@ -226,7 +226,7 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 	var err error
 	if body.Link {
 		var rows *sql.Rows
-		rows, err = db.DB.Query("SELECT discord_user_id, maple_character_name FROM characters WHERE maple_character_name ILIKE $1;", body.CharacterName)
+		rows, err = db.DB.Query("SELECT discord_user_id, maple_character_name FROM characters WHERE maple_character_name = $1;", body.CharacterName)
 		if err != nil {
 			log.Println("DB ERROR LinkDiscord check dupe name", err)
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -260,7 +260,7 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 		}
 	} else {
 		body.DiscordUserID = "1"
-		_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2 WHERE maple_character_name ILIKE $1", body.CharacterName, body.DiscordUserID)
+		_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2 WHERE maple_character_name = $1", body.CharacterName, body.DiscordUserID)
 	}
 	if err != nil {
 		log.Println("DB ERROR LinkDiscord", err)
@@ -280,7 +280,7 @@ func (m MapleController) POSTRename(c *gin.Context) {
 	}
 	var err error
 	var rows *sql.Rows
-	rows, err = db.DB.Query("SELECT maple_character_name FROM characters WHERE maple_character_name ILIKE $1", body.NewName)
+	rows, err = db.DB.Query("SELECT maple_character_name FROM characters WHERE maple_character_name = $1", body.NewName)
 	if err != nil || rows.Next() {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": "Duplicate name found...",
