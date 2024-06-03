@@ -56,6 +56,6 @@ Enable `pnpm` with this command:
    - Run: `docker compose cp ./dump.sql db16:/`
    - Run: `docker compose exec db16 sh`
    - Run: `psql -U $POSTGRES_USER -d postgres`
-   - Drop and re-reate $POSTGRES_DB: `drop database mapleculverttrackerdb; create database mapleculverttrackerdb;` then exit the db connection
+   - Drop and re-create $POSTGRES_DB: `drop database mapleculverttrackerdb; create database mapleculverttrackerdb;` then exit the db connection
    - Run the sql backup: `psql -U $POSTGRES_USER -d $POSTGRES_DB <dump.sql`
    - You are done restoring the backup.
