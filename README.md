@@ -27,5 +27,12 @@ Enable `pnpm` with this command:
     - Command: `cd culvert-web ; pnpm run dev`
 
 # production deployment
-1. Use docker engine, and run the following command:
+1. Setup the discord bot and their permissions and make it join your server.
+2. Setup the `.env` file according to `.env.template`.
+3. Build and run the update_commands entrypoint once
+    - Command: `go build -o update_commands ./cmd/update_commands/*.go `
+    - Copy it to the production server, next to the docker-compose.yml file
+    - Run: `./update_commands`
+4. Use docker compose, and run the following command:
     - Command: `docker compose up -d`
+
