@@ -15,6 +15,7 @@ const Rename = () => {
   const token = useSelector(selectToken)
   const [status, setStatus] = useState("")
   const [newName, setNewName] = useState("")
+  const [bypassNameCheck, setBypassNameCheck] = useState(false)
 
   const [charID, setCharID] = useState("0")
   useEffect(() => {
@@ -50,6 +51,7 @@ const Rename = () => {
           const res = await renameCharacter(token, {
             character_id: Number(charID),
             new_name: newName,
+            bypass_name_check: bypassNameCheck,
           })
           if (res.status !== 200) {
             return setStatus(`Error: ${res.status} ${res.payload}`)
@@ -60,6 +62,18 @@ const Rename = () => {
       >
         Submit
       </button>
+      <form>
+        <input
+          id="bypass"
+          type="checkbox"
+          checked={bypassNameCheck}
+          onChange={(e) => setBypassNameCheck(e.target.checked)}
+          className="m-2"
+        ></input>
+        <label htmlFor="bypass">
+          Skip name verification with official rankings
+        </label>
+      </form>
     </div>
   )
 }

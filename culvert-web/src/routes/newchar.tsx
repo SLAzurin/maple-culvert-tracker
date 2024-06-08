@@ -11,6 +11,7 @@ const NewChar = () => {
   const token = useSelector(selectToken)
   const [status, setStatus] = useState("")
   const [characterName, setCharacterName] = useState("")
+  const [bypassNameCheck, setBypassNameCheck] = useState(false)
 
   return (
     <div>
@@ -30,7 +31,13 @@ const NewChar = () => {
             setStatus("Error: Character Name is too short")
             return
           }
-          linkDiscordMaple(token, "2", characterName, true).then((res) => {
+          linkDiscordMaple(
+            token,
+            "2",
+            characterName,
+            true,
+            bypassNameCheck,
+          ).then((res) => {
             if (res.status !== 200) {
               setStatus(`Error: ${res.status} ${res.payload}`)
               return
@@ -42,6 +49,18 @@ const NewChar = () => {
       >
         Submit
       </button>
+      <form>
+        <input
+          id="bypass"
+          type="checkbox"
+          checked={bypassNameCheck}
+          onChange={(e) => setBypassNameCheck(e.target.checked)}
+          className="m-2"
+        ></input>
+        <label htmlFor="bypass">
+          Skip name verification with official rankings
+        </label>
+      </form>
     </div>
   )
 }

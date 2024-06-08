@@ -20,14 +20,16 @@ import (
 type MapleController struct{}
 
 type postRenameBody struct {
-	NewName     string `json:"new_name"`
-	CharacterID int    `json:"character_id"`
+	NewName         string `json:"new_name"`
+	CharacterID     int    `json:"character_id"`
+	BypassNameCheck bool   `json:"bypass_name_check"`
 }
 
 type linkDiscordBody struct {
-	DiscordUserID string `json:"discord_user_id"`
-	CharacterName string `json:"character_name"`
-	Link          bool   `json:"link"`
+	DiscordUserID   string `json:"discord_user_id"`
+	CharacterName   string `json:"character_name"`
+	Link            bool   `json:"link"`
+	BypassNameCheck bool   `json:"bypass_name_check"`
 }
 type postCulvertBody struct {
 	IsNew   bool   `json:"isNew"`
@@ -227,18 +229,24 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 	}
 
 	charData, err := helpers.FetchCharacterData(body.CharacterName, os.Getenv("MAPLE_REGION"))
-	if err != nil {
+	if err != nil && !body.BypassNameCheck {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	if charData == nil {
+	if charData == nil && !body.BypassNameCheck {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"error": "Character not found on official rankings",
 		})
 		return
+	}
+
+	if body.BypassNameCheck {
+		charData = &data.PlayerRank{
+			CharacterName: body.CharacterName,
+		}
 	}
 
 	if body.Link {
@@ -307,18 +315,24 @@ func (m MapleController) POSTRename(c *gin.Context) {
 	rows.Close()
 
 	charData, err := helpers.FetchCharacterData(body.NewName, os.Getenv("MAPLE_REGION"))
-	if err != nil {
+	if err != nil && !body.BypassNameCheck {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	if charData == nil {
+	if charData == nil && !body.BypassNameCheck {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"error": "Character not found on official rankings",
 		})
 		return
+	}
+
+	if body.BypassNameCheck {
+		charData = &data.PlayerRank{
+			CharacterName: body.NewName,
+		}
 	}
 
 	_, err = db.DB.Exec("UPDATE characters SET maple_character_name = $1 WHERE id = $2", charData.CharacterName, body.CharacterID)

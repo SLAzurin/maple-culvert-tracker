@@ -5,6 +5,7 @@ const linkDiscordMaple = async (
   discordUserID: string,
   characterName: string,
   link: boolean,
+  bypass_name_check: boolean = false,
 ): Promise<FetchResult> => {
   const res = await fetch("/api/maple/link", {
     method: "POST",
@@ -16,6 +17,7 @@ const linkDiscordMaple = async (
       discord_user_id: discordUserID,
       character_name: characterName,
       link,
+      bypass_name_check,
     }),
   })
 
