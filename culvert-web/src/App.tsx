@@ -208,6 +208,7 @@ function App() {
       member.discord_user_id,
       characters[Number(charID)],
       false,
+      true,
     )
     res
       .then((res) => {
@@ -512,7 +513,7 @@ Don't forget to submit"
             </button>
           </div>
         )}
-        {action === "rename_character" && (
+        {action === "rename_character" && ( // We no longer change the action variable's value
           <div>
             <div>
               {selectedCharacterID !== 0 && (
@@ -572,6 +573,7 @@ Don't forget to submit"
                 renameCharacter(token, {
                   character_id: selectedCharacterID,
                   new_name: newCharacterName,
+                  bypass_name_check: false, // literally dead old code.
                 }).then((res) => {
                   setDisabledLink(false)
                   if (res.status !== 200) {

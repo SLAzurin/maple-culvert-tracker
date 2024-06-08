@@ -5,6 +5,7 @@ const renameCharacter = async (
   data: {
     character_id: number
     new_name: string
+    bypass_name_check: boolean
   },
 ): Promise<FetchResult> => {
   const res = await fetch("/api/maple/characters/rename", {
