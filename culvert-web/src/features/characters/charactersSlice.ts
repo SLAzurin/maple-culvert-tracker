@@ -105,6 +105,9 @@ export const membersSlice = createSlice({
       action: PayloadAction<{ character_id: number; score: number }>,
     ) => {
       const newScores = { ...state.characterScores }
+      if (typeof newScores[action.payload.character_id] === "undefined") {
+        newScores[action.payload.character_id] = {}
+      }
       newScores[action.payload.character_id].current = action.payload.score
       state.characterScores = newScores
     },
