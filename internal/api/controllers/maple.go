@@ -230,7 +230,7 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 
 	charData, err := helpers.FetchCharacterData(body.CharacterName, os.Getenv("MAPLE_REGION"))
 	if err != nil && !body.BypassNameCheck {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+		c.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
 			"error": err.Error(),
 		})
 		return
@@ -316,7 +316,7 @@ func (m MapleController) POSTRename(c *gin.Context) {
 
 	charData, err := helpers.FetchCharacterData(body.NewName, os.Getenv("MAPLE_REGION"))
 	if err != nil && !body.BypassNameCheck {
-		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+		c.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
 			"error": err.Error(),
 		})
 		return
