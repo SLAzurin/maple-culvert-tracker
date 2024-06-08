@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
@@ -223,10 +225,25 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return
 	}
-	var err error
+
+	charData, err := helpers.FetchCharacterData(body.CharacterName, os.Getenv("MAPLE_REGION"))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if charData == nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"error": "Character not found on official rankings",
+		})
+		return
+	}
+
 	if body.Link {
 		var rows *sql.Rows
-		rows, err = db.DB.Query("SELECT discord_user_id, maple_character_name FROM characters WHERE maple_character_name = $1;", body.CharacterName)
+		rows, err = db.DB.Query("SELECT discord_user_id, maple_character_name FROM characters WHERE maple_character_name = $1;", charData.CharacterName)
 		if err != nil {
 			log.Println("DB ERROR LinkDiscord check dupe name", err)
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -246,11 +263,11 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 				return
 			}
 		}
-		if realCharName != "" && realCharName != body.CharacterName {
-			// body.CharacterName = realCharName
-			_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2, maple_character_name = $1 WHERE maple_character_name = $3", body.CharacterName, body.DiscordUserID, realCharName)
+		if realCharName != "" && realCharName != charData.CharacterName {
+			// charData.CharacterName = realCharName
+			_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2, maple_character_name = $1 WHERE maple_character_name = $3", charData.CharacterName, body.DiscordUserID, realCharName)
 		} else {
-			_, err := db.DB.Exec("INSERT INTO characters (maple_character_name, discord_user_id) VALUES ($1, $2) ON CONFLICT (maple_character_name) DO UPDATE SET discord_user_id = $2", body.CharacterName, body.DiscordUserID)
+			_, err := db.DB.Exec("INSERT INTO characters (maple_character_name, discord_user_id) VALUES ($1, $2) ON CONFLICT (maple_character_name) DO UPDATE SET discord_user_id = $2", charData.CharacterName, body.DiscordUserID)
 			if err != nil {
 				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 					"error": "Failed to create new character in the database...",
@@ -260,7 +277,7 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 		}
 	} else {
 		body.DiscordUserID = "1"
-		_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2 WHERE maple_character_name = $1", body.CharacterName, body.DiscordUserID)
+		_, err = db.DB.Exec("UPDATE characters SET discord_user_id = $2 WHERE maple_character_name = $1", charData.CharacterName, body.DiscordUserID)
 	}
 	if err != nil {
 		log.Println("DB ERROR LinkDiscord", err)
@@ -288,7 +305,23 @@ func (m MapleController) POSTRename(c *gin.Context) {
 		return
 	}
 	rows.Close()
-	_, err = db.DB.Exec("UPDATE characters SET maple_character_name = $1 WHERE id = $2", body.NewName, body.CharacterID)
+
+	charData, err := helpers.FetchCharacterData(body.NewName, os.Getenv("MAPLE_REGION"))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if charData == nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"error": "Character not found on official rankings",
+		})
+		return
+	}
+
+	_, err = db.DB.Exec("UPDATE characters SET maple_character_name = $1 WHERE id = $2", charData.CharacterName, body.CharacterID)
 	if err != nil {
 		log.Println("DB ERROR POSTRename", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
