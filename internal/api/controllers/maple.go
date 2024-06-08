@@ -236,7 +236,7 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 
 	if charData == nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"error": "Character not found",
+			"error": "Character not found on official rankings",
 		})
 		return
 	}
@@ -316,7 +316,7 @@ func (m MapleController) POSTRename(c *gin.Context) {
 
 	if charData == nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"error": "Character not found",
+			"error": "Character not found on official rankings",
 		})
 		return
 	}

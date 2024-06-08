@@ -41,7 +41,7 @@ func FetchCharacterData(name string, region string) (*data.PlayerRank, error) {
 	}
 
 	if body.TotalCount != 1 {
-		return nil, errors.New("character not found")
+		return nil, errors.New("character not found on official rankings")
 	}
 
 	return &body.Ranks[0], nil
