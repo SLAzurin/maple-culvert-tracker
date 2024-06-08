@@ -54,7 +54,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// Command name = culvert
 	sql := `SELECT id, maple_character_name FROM characters WHERE characters.discord_user_id = $1 ORDER BY id`
 	if i.ApplicationCommandData().Name == "culvert-anyone" {
-		sql = `SELECT id, maple_character_name FROM characters WHERE characters.discord_user_id != '1' ORDER BY UPPER(maple_character_name)`
+		sql = `SELECT id, maple_character_name FROM characters WHERE characters.discord_user_id != '1' ORDER BY maple_character_name`
 	}
 
 	// Count # of chars
@@ -96,11 +96,16 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	rows.Close()
 	stmt.Close()
 
+	choicesMsg := "Available characters:" + choices
+	if len(choicesMsg) > 2000 {
+		choicesMsg = choicesMsg[:1999] + "…"
+	}
+
 	if _, ok := characters[charName]; count == 0 || (count > 1 && charName == "") || (!ok && charName != "") {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "Available characters: " + choices,
+				Content: choicesMsg,
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
