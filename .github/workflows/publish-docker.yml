@@ -23,6 +23,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: |
+          cp .env.template .env
           docker compose build --pull
 
           docker image tag maple-culvert-tracker-bot ghcr.io/slazurin/maple-culvert-tracker/bot:$(git rev-parse HEAD)
