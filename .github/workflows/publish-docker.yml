@@ -50,3 +50,8 @@ jobs:
           docker image tag maple-culvert-tracker-culvert_reminder ghcr.io/slazurin/maple-culvert-tracker/culvert_reminder:latest
           docker image rm maple-culvert-tracker-culvert_reminder
           docker push -a ghcr.io/slazurin/maple-culvert-tracker/culvert_reminder
+
+          docker image tag maple-culvert-tracker-autofill_characters ghcr.io/slazurin/maple-culvert-tracker/autofill_characters:$(git rev-parse HEAD)
+          docker image tag maple-culvert-tracker-autofill_characters ghcr.io/slazurin/maple-culvert-tracker/autofill_characters:latest
+          docker image rm maple-culvert-tracker-autofill_characters
+          docker push -a ghcr.io/slazurin/maple-culvert-tracker/autofill_characters

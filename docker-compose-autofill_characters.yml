@@ -1,0 +1,8 @@
+services:
+  autofill_characters:
+    build:
+      dockerfile: Dockerfile.goapps
+      context: .
+      args:
+        APPNAME: autofill_characters
+    env_file: .env
