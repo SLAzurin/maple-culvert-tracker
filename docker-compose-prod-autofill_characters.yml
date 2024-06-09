@@ -1,0 +1,4 @@
+services:
+  autofill_characters:
+    image: ghcr.io/slazurin/maple-culvert-tracker/autofill_characters
+    env_file: .env
