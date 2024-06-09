@@ -9,7 +9,6 @@ import { selectMembers, setMembers } from "../features/members/membersSlice"
 import { selectToken } from "../features/login/loginSlice"
 import linkDiscordMaple from "../helpers/linkDiscordMaple"
 import { store } from "../app/store"
-import { setCharacters } from "../features/characters/charactersSlice"
 import GuildMember from "../types/GuildMember"
 
 const LinkDiscord = () => {
@@ -27,6 +26,7 @@ const LinkDiscord = () => {
       member.discord_user_id,
       characters[Number(charID)],
       false,
+      true,
     )
     res
       .then((res) => {
@@ -35,6 +35,7 @@ const LinkDiscord = () => {
             token,
             member.discord_user_id,
             characters[Number(charID)],
+            true,
             true,
           )
           res2
