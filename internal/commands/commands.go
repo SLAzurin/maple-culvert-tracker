@@ -4,9 +4,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var dmPermission = false
-var dmPermissions int64 = discordgo.PermissionBanMembers
-
 var culvertMinWeeks = float64(8)
 
 var Commands = []*discordgo.ApplicationCommand{
@@ -65,13 +62,9 @@ var Commands = []*discordgo.ApplicationCommand{
 				Description: "Number of weeks to display in the graph",
 			},
 		},
-		DefaultMemberPermissions: &dmPermissions,
-		DMPermission:             &dmPermission,
 	},
 	{
-		Name:                     "login",
-		Description:              "Gives you a temporary login code",
-		DefaultMemberPermissions: &dmPermissions,
-		DMPermission:             &dmPermission,
+		Name:        "login",
+		Description: "Gives you a temporary login code for the Admin Console",
 	},
 }
