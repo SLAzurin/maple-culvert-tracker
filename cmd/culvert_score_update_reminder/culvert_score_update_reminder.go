@@ -51,7 +51,7 @@ func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 
-		content := "Reminder to input culvert scores " + date + " <a:meow:1104725456130940990>"
+		content := "Reminder to input culvert scores " + date + " " + os.Getenv("DISCORD_REMINDER_SUFFIX")
 		s.ChannelMessageSend(os.Getenv("DISCORD_REMINDER_CHANNEL_ID"), content)
 		sendMsgCh <- struct{}{}
 	})
