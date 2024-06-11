@@ -275,7 +275,7 @@ Don't forget to submit"
               className="bg-body-tertiary"
               variant="light"
             >
-              <Container style={{ justifyContent: "space-between" }}>
+              <Container style={{ justifyContent: "space-between", maxWidth: "95%" }}>
                 <Navbar.Collapse id="basic-navbar-nav">
                   <Nav className="me-auto">
                     <button

@@ -37,3 +37,13 @@
     transform: translateY(0px);
   }
 }
+
+.btn {
+  font-size: calc(2vmin) !important;
+}
+
+#basic-navbar-nav > div > button,
+#basic-navbar-nav-submit > div > button {
+  margin-right: 3rem;
+  margin-left: 3rem;
+}
