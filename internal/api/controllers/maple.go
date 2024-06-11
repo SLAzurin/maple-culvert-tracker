@@ -117,9 +117,10 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 	thisWeekStr := thisWeek.Format("2006-01-02")
 	shouldNotifyScoreUpdated := false
 	if body.IsNew {
-		if thisSunday.Equal(thisWeek) {
+		// Check if we should notify the involved channels if the insert is successful
+		if thisSunday.Format("2006-01-02") == thisWeek.Format("2006-01-02") {
 			shouldNotifyScoreUpdated = true
-			rows, err := db.DB.Query("SELECT id FROM character_culvert_scores WHERE culvert_date = $1 LIMIT 1", thisSunday.Format("2006-01-02"))
+			rows, err := db.DB.Query("SELECT id FROM character_culvert_scores WHERE culvert_date = $1 AND score > 0 ORDER BY score DESC LIMIT 1", thisSunday.Format("2006-01-02"))
 			if err != nil {
 				log.Println("DB ERROR ShouldNotifyScoreUpdated", err)
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -172,9 +173,15 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 		return
 	}
 
-	if shouldNotifyScoreUpdated && DiscordSession != nil {
-		for _, envName := range []string{"DISCORD_GUILD_ID","DISCORD_REMINDER_CHANNEL_ID"} {
-			DiscordSession.ChannelMessageSend(os.Getenv(envName), "Culvert scores updated! ANY GAINS SINCE LAST WEEK?")
+	if shouldNotifyScoreUpdated {
+		if DiscordSession != nil {
+			for _, envName := range []string{"DISCORD_MEMBERS_MAIN_CHANNEL_ID", "DISCORD_REMINDER_CHANNEL_ID"} {
+				if os.Getenv(envName) != "" {
+					DiscordSession.ChannelMessageSend(os.Getenv(envName), "Culvert scores updated! ANY GAINS SINCE LAST WEEK?")
+				}
+			}
+		} else {
+			log.Fatalln("DiscordSession is nil when trying to notify score update completed!")
 		}
 	}
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{})
