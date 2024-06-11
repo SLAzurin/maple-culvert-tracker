@@ -102,6 +102,7 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 		return
 	}
 	thisWeek := time.Now()
+	thisSunday := thisWeek.Add(time.Hour * -24 * time.Duration(int(thisWeek.Weekday())))
 	var err error
 	if body.Week != "" {
 		thisWeek, err = time.Parse("2006-01-02", body.Week)
@@ -114,7 +115,24 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 	}
 	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(int(thisWeek.Weekday())))
 	thisWeekStr := thisWeek.Format("2006-01-02")
+	shouldNotifyScoreUpdated := false
 	if body.IsNew {
+		// Check if we should notify the involved channels if the insert is successful
+		if thisSunday.Format("2006-01-02") == thisWeek.Format("2006-01-02") {
+			shouldNotifyScoreUpdated = true
+			rows, err := db.DB.Query("SELECT id FROM character_culvert_scores WHERE culvert_date = $1 AND score > 0 ORDER BY score DESC LIMIT 1", thisSunday.Format("2006-01-02"))
+			if err != nil {
+				log.Println("DB ERROR ShouldNotifyScoreUpdated", err)
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+					"error": "DB failed.",
+				})
+				return
+			}
+			if rows.Next() {
+				shouldNotifyScoreUpdated = false
+			}
+			rows.Close()
+		}
 		query := ""
 		args := []interface{}{}
 		d := 1
@@ -153,6 +171,18 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 			"error": "DB failed.",
 		})
 		return
+	}
+
+	if shouldNotifyScoreUpdated {
+		if DiscordSession != nil {
+			for _, envName := range []string{"DISCORD_MEMBERS_MAIN_CHANNEL_ID", "DISCORD_REMINDER_CHANNEL_ID"} {
+				if os.Getenv(envName) != "" {
+					DiscordSession.ChannelMessageSend(os.Getenv(envName), "Culvert scores updated! ANY GAINS SINCE LAST WEEK?")
+				}
+			}
+		} else {
+			log.Fatalln("DiscordSession is nil when trying to notify score update completed!")
+		}
 	}
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{})
 }

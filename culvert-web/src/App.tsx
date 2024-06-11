@@ -275,7 +275,7 @@ Don't forget to submit"
               className="bg-body-tertiary"
               variant="light"
             >
-              <Container>
+              <Container style={{ justifyContent: "space-between" }}>
                 <Navbar.Collapse id="basic-navbar-nav">
                   <Nav className="me-auto">
                     <button
@@ -312,6 +312,28 @@ Don't forget to submit"
                       }}
                     >
                       Copy maple character names to clipboard
+                    </button>
+                  </Nav>
+                </Navbar.Collapse>
+                <Navbar.Collapse
+                  id="basic-navbar-nav-submit"
+                  style={{ flexGrow: "0" }}
+                >
+                  <Nav
+                    className="me-auto"
+                    style={{ marginRight: "0px !important" }}
+                  >
+                    <button
+                      disabled={disabledLink}
+                      className="btn btn-primary"
+                      onClick={() => {
+                        setImportedDataStatus("")
+                        setDisabledLink(true)
+                        console.log("apply changes for culvert scores")
+                        store.dispatch(applyCulvertChanges(token))
+                      }}
+                    >
+                      Submit
                     </button>
                   </Nav>
                 </Navbar.Collapse>
@@ -472,45 +494,6 @@ Don't forget to submit"
                   })}
               </tbody>
             </table>
-            <div>
-              Add character score
-              <select
-                value=""
-                onChange={(e) => {
-                  store.dispatch(addNewCharacterScore(Number(e.target.value)))
-                }}
-              >
-                <option value={""}></option>
-                {Object.keys(characters)
-                  .filter(
-                    (charID) =>
-                      typeof (characterScores || {})[Number(charID)] ===
-                      "undefined",
-                  )
-                  .sort((aKey, bKey) => {
-                    return characters[Number(aKey)] > characters[Number(bKey)]
-                      ? 1
-                      : -1
-                  })
-                  .map((charID) => (
-                    <option value={charID} key={"addnewcharacter-" + charID}>
-                      {characters[Number(charID)]}
-                    </option>
-                  ))}
-              </select>
-            </div>
-            <button
-              disabled={disabledLink}
-              className="btn btn-primary"
-              onClick={() => {
-                setImportedDataStatus("")
-                setDisabledLink(true)
-                console.log("apply changes for culvert scores")
-                store.dispatch(applyCulvertChanges(token))
-              }}
-            >
-              Submit
-            </button>
           </div>
         )}
         {action === "rename_character" && ( // We no longer change the action variable's value

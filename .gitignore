@@ -3,7 +3,9 @@ node_modules
 build/**
 dist/**
 .next/**
-.vscode
+.vscode/settings.json
 culvert-web2
 /*.sql
 /*.rdb
+.vscode/launch.json
+__debug_bin*
