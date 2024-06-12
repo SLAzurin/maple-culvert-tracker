@@ -4,6 +4,8 @@ Track culvert score over a x amount of time progress
 
 This software is best used in conjunction with my https://github.com/SLAzurin/gpq-image-ocr-gui
 
+Join the Discord server for update notifications! Here: Server under construction.
+
 # Pre-requisites
 
 Install Docker Engine (Linux) or Docker Desktop (Linux/Windows/Mac) for development.  
