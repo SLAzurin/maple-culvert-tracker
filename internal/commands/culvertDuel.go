@@ -219,7 +219,7 @@ var randomFluffDuelText = []string{
 func getRandomFluffDuelText(yourWin bool, yourChar string, theirChar string) string {
 	randomNum := rand.IntN(len(randomFluffDuelText) - 1)
 	if yourWin {
-		return randomFluffDuelText[randomNum] + theirChar
+		return randomFluffDuelText[randomNum] + " " + theirChar
 	}
-	return randomFluffDuelText[randomNum] + yourChar
+	return randomFluffDuelText[randomNum] + " " + yourChar
 }
