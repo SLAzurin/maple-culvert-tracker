@@ -68,7 +68,10 @@ func culvertDuel(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	// query theirs
-	sql = `SELECT id, maple_character_name FROM characters WHERE LOWER(characters.maple_character_name) = $1 ORDER BY id`
+	//This query can possibly find unlinked characters anyway.
+	// I'm pretty sure the frontend filters out the characters linked to discord users who have left the server
+	// So in theory, even if I exclude the manually unlinked, there can be orphan character rows
+	sql = `SELECT id, maple_character_name FROM characters WHERE LOWER(characters.maple_character_name) = $1 AND id != '0' ORDER BY id`
 
 	// Count # of chars
 	stmt2, err := db.DB.Prepare(sql)
