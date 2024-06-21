@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
+	"math/rand/v2"
 	"net/http"
 	"os"
 	"slices"
@@ -204,6 +205,21 @@ func culvertDuel(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 }
 
+var randomFluffDuelText = []string{
+	"It's just a hands diff",
+	"Are you sure you popped everything?",
+	"Skill issue",
+	"🤏 Close",
+	"Gears in #flex but scores at #fails",
+	"Too much grass touching will do that to your score",
+	"This your bossing mule?",
+	"How long does your party wait for you to blue dot",
+}
+
 func getRandomFluffDuelText(yourWin bool, yourChar string, theirChar string) string {
-	return "getRandomFluffDuelText UNDER CONSTRUCTION"
+	randomNum := rand.IntN(len(randomFluffDuelText) - 1)
+	if yourWin {
+		return randomFluffDuelText[randomNum] + theirChar
+	}
+	return randomFluffDuelText[randomNum] + yourChar
 }
