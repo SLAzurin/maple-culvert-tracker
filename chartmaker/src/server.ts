@@ -1,6 +1,6 @@
 import express from "express"
-import * as child_process from "child_process"
 import { chartmaker } from "./chartmaker"
+import { chartmakerMultiple } from "./chartmaker-multiple"
 const app = express()
 const port = process.env.PORT || 3000
 
@@ -11,11 +11,16 @@ app.get("/", (req, res) => {
   res.send("Alive!")
 })
 
-app.post("/chartmaker", (req, res) => {
-  const buffer = chartmaker(req.body)
+app.post("/chartmaker-multiple", (req, res) => {
   res.statusCode = 200
   res.type("png")
-  res.send(buffer)
+  res.send(chartmakerMultiple(req.body))
+})
+
+app.post("/chartmaker", (req, res) => {
+  res.statusCode = 200
+  res.type("png")
+  res.send(chartmaker(req.body))
 })
 
 app.listen(port, () => {
