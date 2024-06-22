@@ -67,4 +67,22 @@ var Commands = []*discordgo.ApplicationCommand{
 		Name:        "login",
 		Description: "Gives you a temporary login code for the Admin Console",
 	},
+	{
+		Name:        "culvert-duel",
+		Description: "Flex your culvert score against your Guildmate",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "your-character",
+				Description: "Your character's name",
+			},
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "their-character",
+				Description: "Their character's name",
+			},
+		},
+	},
 }

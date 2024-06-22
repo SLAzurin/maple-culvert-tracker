@@ -1,14 +1,26 @@
 import { ChartJSNodeCanvas } from "chartjs-node-canvas"
-import { ChartConfiguration } from "chart.js"
+import { ChartConfiguration, ScriptableContext } from "chart.js"
 import Chart from "chart.js/auto"
 import ChartDataLabels from "chartjs-plugin-datalabels"
 
 Chart.register(ChartDataLabels)
+const dataColors = [
+  "#ea5545",
+  "#f46a9b",
+  "#ef9b20",
+  "#edbf33",
+  "#ede15b",
+  "#bdcf32",
+  "#87bc45",
+  "#27aeef",
+  "#b33dc6",
+] as const
 
-export const chartmaker = (
-  data: { label: string; score: number }[],
-): Buffer => {
-  const width = data.length <= 8 ? 1000 : 125 * data.length
+export const chartmakerMultiple = (data: {
+  labels: string[]
+  dataPlots: { characterName: string; scores: number[] }[]
+}): Buffer => {
+  const width = data.labels.length <= 8 ? 1000 : 125 * data.labels.length
   const height = 600
   const backgroundColour = "rgba(27,27,27,255)"
   const chartJSNodeCanvas = new ChartJSNodeCanvas({
@@ -17,38 +29,32 @@ export const chartmaker = (
     backgroundColour,
   })
 
-  const labels: string[] = []
-  const rawData: number[] = []
-  data.forEach(row => {
-    labels.push(row.label)
-    rawData.push(row.score)
-  })
-
   const lineChartConfig: ChartConfiguration<any> = {
     plugins: [ChartDataLabels],
     type: "line",
     data: {
-      labels: labels,
-      datasets: [
-        {
-          label: "Culvert score by week",
-          data: rawData,
+      labels: data.labels,
+      datasets: data.dataPlots.map((lineData, i) => {
+        return {
+          label: lineData.characterName,
+          data: lineData.scores,
           datalabels: {
             align: "end",
             anchor: "end",
           },
-          fill: false,
-          borderColor: "rgba(54, 162, 235, 1)",
+          fill: true,
+          borderColor: dataColors[i % dataColors.length],
           tension: 0.1,
           spanGaps: true,
-        },
-      ],
+        }
+      }),
     },
     options: {
       plugins: {
         datalabels: {
-          backgroundColor: function () {
-            return "rgba(54, 162, 235, 1)"
+          backgroundColor: function (context: any) {
+            // https://chartjs-plugin-datalabels.netlify.app/guide/options.html#option-context
+            return dataColors[context.datasetIndex % dataColors.length]
           },
           borderRadius: 4,
           color: "white",

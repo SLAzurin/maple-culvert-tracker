@@ -5,9 +5,9 @@
         "build": "pnpm -r run build"
     },
     "devDependencies": {
-        "esbuild": "^0.20.2",
-        "npm-check-updates": "^16.14.18",
+        "esbuild": "^0.21.5",
+        "npm-check-updates": "^16.14.20",
         "ts-node": "^10.9.2",
-        "typescript": "^5.4.5"
+        "typescript": "^5.5.2"
     }
 }
