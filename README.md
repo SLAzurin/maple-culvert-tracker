@@ -48,16 +48,16 @@ Enable `pnpm` with this command:
 # backing up the postgres db
 
 1. Connect to the db container with a shell and run a pg_dump
-   - Run: `docker compose exec db16 sh`
-   - Run: `pg_dump -U $POSTGRES_USER -d $POSTGRES_DB >/dump.sql` and exit the container shell
-   - Copy the dump to host machine: `docker compose cp db16:/dump.sql .` (This is the database dump file)
+   - Run: `docker compose exec db16 sh -c "pg_dump -U \$POSTGRES_USER -d \$POSTGRES_DB >/root/sqlfiles/dump.sql"`
+   - The `dump.sql` is the database dump file (inside the `./sqlfiles/` path)
+   - Backup that file "somewhere".
 
 # restoring a db backup
 
 1. Copy the dump inside the container then connect into it and run the sql file.
-   - Run: `docker compose cp ./dump.sql db16:/`
+   - Copy the `dump.sql` inside the `./sqlfiles/` path.
    - Run: `docker compose exec db16 sh`
    - Run: `psql -U $POSTGRES_USER -d postgres`
-   - Drop and re-create $POSTGRES_DB: `drop database mapleculverttrackerdb; create database mapleculverttrackerdb;` then exit the db connection
-   - Run the sql backup: `psql -U $POSTGRES_USER -d $POSTGRES_DB <dump.sql`
+   - Drop and re-create $POSTGRES_DB: `drop database mapleculverttrackerdb; create database mapleculverttrackerdb;` then `exit` the db connection
+   - Run the sql backup: `psql -U $POSTGRES_USER -d $POSTGRES_DB </root/sqlfiles/dump.sql`
    - You are done restoring the backup.
