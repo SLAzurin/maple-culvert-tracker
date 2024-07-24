@@ -40,7 +40,11 @@ func main() {
 	go func() {
 		api.DiscordSession = s
 		r := api.NewRouter()
-		r.Run("0.0.0.0:8080")
+		port := os.Getenv("BACKEND_HTTP_PORT")
+		if port == "" {
+			port = "8080"
+		}
+		r.Run("0.0.0.0:" + port)
 	}()
 
 	stop := make(chan os.Signal, 1)

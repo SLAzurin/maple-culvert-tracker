@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
@@ -182,17 +183,9 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		})
 	} else {
-		content := lastSeenCharName
-		if date != "" {
-			content += " on " + date
-		}
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: content,
-				Files:   []*discordgo.File{{Name: i.ID + ".png", Reader: r.Body}},
-				// Flags: discordgo.MessageFlagsEphemeral,
-			},
+			Data: helpers.GenerateDiscordCulvertOutput(r.Body, lastSeenCharName, date, nil),
 		})
 	}
 }

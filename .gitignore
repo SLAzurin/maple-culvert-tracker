@@ -6,6 +6,7 @@ dist/**
 .vscode/settings.json
 culvert-web2
 /*.sql
+/sqlfiles/dump*.sql
 /*.rdb
 .vscode/launch.json
 __debug_bin*
