@@ -61,7 +61,7 @@ func culvertDuel(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "Your character not found. Make sure the accents are correct if there are any.",
+				Content: "Your character was not found. Make sure the accents are correct if there are any.",
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
@@ -184,7 +184,7 @@ func culvertDuel(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	r, err := http.Post("http://"+os.Getenv("CHARTMAKER_HOST")+"/chartmaker-multiple", "application/json", bytes.NewBuffer(jsonData))
-	if err != nil {
+	if err != nil || r.StatusCode != http.StatusOK {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
@@ -198,7 +198,7 @@ func culvertDuel(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: content,
-				Files:   []*discordgo.File{{Name: i.ID + ".png", Reader: r.Body}},
+				Files:   []*discordgo.File{{Name: "image.png", Reader: r.Body}},
 				// Flags: discordgo.MessageFlagsEphemeral,
 			},
 		})
