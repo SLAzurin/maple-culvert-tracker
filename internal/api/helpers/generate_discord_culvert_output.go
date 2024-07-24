@@ -21,7 +21,7 @@ func GenerateDiscordCulvertOutput(chartImageBinData io.ReadCloser, charName stri
 		// https://www.rapidtables.com/convert/number/hex-to-decimal.html?x=36A2EB
 		Color: 3580651,
 		Image: &discordgo.MessageEmbedImage{
-			URL: "attachment://" + content + ".png",
+			URL: "attachment://image.png",
 		},
 	}
 
@@ -36,6 +36,6 @@ func GenerateDiscordCulvertOutput(chartImageBinData io.ReadCloser, charName stri
 
 	return &discordgo.InteractionResponseData{
 		Embeds: []*discordgo.MessageEmbed{embeddedData},
-		Files:  []*discordgo.File{{Name: content + ".png", Reader: chartImageBinData}},
+		Files:  []*discordgo.File{{Name: "image.png", Reader: chartImageBinData}},
 	}
 }
