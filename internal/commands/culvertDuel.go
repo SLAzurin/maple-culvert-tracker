@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
-	"math/rand/v2"
 	"net/http"
 	"os"
 	"slices"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
@@ -39,7 +39,9 @@ func culvertDuel(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 	defer stmt.Close()
-	rows, err := stmt.Query(i.Member.User.ID, yourChar)
+	// TODO: REMOVE THIS CHANGE IT IS ONLY TEMPORARY FOR TESTING
+	// rows, err := stmt.Query(i.Member.User.ID, yourChar)
+	rows, err := stmt.Query("196341279561351168", yourChar)
 	if err != nil {
 		log.Println("Query at find characters", err)
 		return
@@ -193,33 +195,14 @@ func culvertDuel(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		})
 	} else {
-		content := getRandomFluffDuelText(yourWin, characters[yourChar].name, characters[theirChar].name)
+		data, f := helpers.GenerateDiscordCulvertDuelOutput(r.Body, yourWin, characters[yourChar].name,
+			characters[theirChar].name, nil)
+		if f != nil {
+			defer f.Close()
+		}
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: content,
-				Files:   []*discordgo.File{{Name: "image.png", Reader: r.Body}},
-				// Flags: discordgo.MessageFlagsEphemeral,
-			},
+			Data: data,
 		})
 	}
-}
-
-var randomFluffDuelText = []string{
-	"It's just a hands diff",
-	"Are you sure you popped everything?",
-	"Skill issue",
-	"🤏 Close",
-	"Gears in #flex but scores at #fails",
-	"Too much grass touching will do that to your score",
-	"This your bossing mule?",
-	"How long does your party wait for you to blue dot",
-}
-
-func getRandomFluffDuelText(yourWin bool, yourChar string, theirChar string) string {
-	randomNum := rand.IntN(len(randomFluffDuelText) - 1)
-	if yourWin {
-		return randomFluffDuelText[randomNum] + " " + theirChar
-	}
-	return randomFluffDuelText[randomNum] + " " + yourChar
 }
