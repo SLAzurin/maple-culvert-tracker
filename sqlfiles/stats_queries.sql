@@ -50,4 +50,6 @@ participation ratio /12 in %
 
 also, sandbagged scores are scores that fall below 70% of the previous week's score
 
+likely will need to do an initial query for scoped characters, then loop the query for each characters, and programatically check week by week.
+
 */
