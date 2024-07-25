@@ -62,7 +62,7 @@ func main() {
 				CharacterCulvertScores.CharacterID.EQ(Int64(v.CharacterID)).AND(CharacterCulvertScores.CulvertDate.IN(inClauseDates...)),
 			).
 			ORDER_BY(
-				CharacterCulvertScores.CulvertDate.DESC(),
+				CharacterCulvertScores.CulvertDate.ASC(),
 			)
 
 		dest := []struct {
@@ -88,14 +88,30 @@ func main() {
 			ParticipationRatio:  "",
 		}
 
-		// sandbag algo: sandbagged scores are scores that fall below 70% of the previous week's score
-		for i, v := range dest {
-			if i+1 >= len(dest) {
+		lastKnownGoodScore := 0
+		for _, v := range dest {
+			if v.Score == 0 {
 				continue
 			}
-			if v.Score == 0 || v.Score < int32(float64(dest[i+1].Score)*.7) {
+			lastKnownGoodScore = int(v.Score)
+			break
+		}
+
+		// sandbag algo: sandbagged scores are scores that fall below 70% of the lastKnownGoodScore
+		for i, v := range dest {
+			if i == 0 {
+				if v.Score == 0 {
+					sandbaggedRuns.SandbaggedRunsCount += 1
+					sandbaggedRuns.SandbaggedRunsDates = append(sandbaggedRuns.SandbaggedRunsDates, v.CulvertDate.Format("2006-01-02"))
+				}
+				continue
+			}
+			if v.Score < int32(float64(lastKnownGoodScore)*.7) {
 				sandbaggedRuns.SandbaggedRunsCount += 1
 				sandbaggedRuns.SandbaggedRunsDates = append(sandbaggedRuns.SandbaggedRunsDates, v.CulvertDate.Format("2006-01-02"))
+			}
+			if v.Score > int32(lastKnownGoodScore) {
+				lastKnownGoodScore = int(v.Score)
 			}
 		}
 
