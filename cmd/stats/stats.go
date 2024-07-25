@@ -3,7 +3,9 @@ package main
 //lint:file-ignore ST1001 Dot imports by jet
 
 import (
-	"log"
+	"fmt"
+	"slices"
+	"strconv"
 	"time"
 
 	. "github.com/go-jet/jet/v2/postgres"
@@ -38,6 +40,14 @@ func main() {
 
 	stmt.Query(db.DB, &chars)
 
+	allSandbaggedRuns := []struct {
+		Name                string
+		SandbaggedRunsDates []string
+		SandbaggedRunsCount int
+		TotalRuns           int
+		ParticipationRatio  string
+	}{}
+
 	for _, v := range chars {
 		inClauseDates := []Expression{}
 		for _, date := range last12WeeksCulvertRaw {
@@ -61,11 +71,58 @@ func main() {
 		}{}
 		stmt.Query(db.DB, &dest)
 
-		log.Println(dest)
+		if len(dest) < 1 {
+			continue
+		}
+		sandbaggedRuns := struct {
+			Name                string
+			SandbaggedRunsDates []string
+			SandbaggedRunsCount int
+			TotalRuns           int
+			ParticipationRatio  string
+		}{
+			Name:                v.MapleCharacterName,
+			SandbaggedRunsDates: []string{},
+			SandbaggedRunsCount: 0,
+			TotalRuns:           len(dest),
+			ParticipationRatio:  "",
+		}
+
+		// sandbag algo: sandbagged scores are scores that fall below 70% of the previous week's score
+		for i, v := range dest {
+			if i+1 >= len(dest) {
+				continue
+			}
+			if v.Score == 0 || v.Score < int32(float64(dest[i+1].Score)*.7) {
+				sandbaggedRuns.SandbaggedRunsCount += 1
+				sandbaggedRuns.SandbaggedRunsDates = append(sandbaggedRuns.SandbaggedRunsDates, v.CulvertDate.Format("2006-01-02"))
+			}
+		}
+
+		sandbaggedRuns.ParticipationRatio = strconv.Itoa(sandbaggedRuns.SandbaggedRunsCount) + "/" + strconv.Itoa(sandbaggedRuns.TotalRuns)
+		if sandbaggedRuns.SandbaggedRunsCount > 0 {
+			allSandbaggedRuns = append(allSandbaggedRuns, sandbaggedRuns)
+		}
 	}
 
-	// sandbaggers for the last 12 weeks
+	slices.SortStableFunc(allSandbaggedRuns, func(a struct {
+		Name                string
+		SandbaggedRunsDates []string
+		SandbaggedRunsCount int
+		TotalRuns           int
+		ParticipationRatio  string
+	}, b struct {
+		Name                string
+		SandbaggedRunsDates []string
+		SandbaggedRunsCount int
+		TotalRuns           int
+		ParticipationRatio  string
+	}) int {
+		return a.SandbaggedRunsCount - b.SandbaggedRunsCount
+	})
+	slices.Reverse(allSandbaggedRuns)
 
-	// sandbaggers this week
-	// select maple_character_name from character_culvert_scores inner join characters on characters.id = character_culvert_scores.character_id where culvert_date = '2024-07-21' and score = 0;
+	for _, v := range allSandbaggedRuns {
+		fmt.Println(v.Name, v.ParticipationRatio, v.SandbaggedRunsDates)
+	}
 }
