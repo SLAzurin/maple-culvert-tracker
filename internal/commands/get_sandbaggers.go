@@ -23,10 +23,26 @@ import (
 )
 
 func getSandbaggers() *discordgo.InteractionResponse {
-	discordIDsFullRaw, _ := apiredis.RedisDB.Get(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID")).Result()
+	discordIDsFullRaw, err := apiredis.RedisDB.Get(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID")).Result()
+	if err != nil {
+		return &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Sandbaggers command failed, redis generic error wtf?",
+			},
+		}
+	}
 
 	discordIDsFull := []data.WebGuildMember{}
-	json.Unmarshal([]byte(discordIDsFullRaw), &discordIDsFull)
+	err = json.Unmarshal([]byte(discordIDsFullRaw), &discordIDsFull)
+	if err != nil {
+		return &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Sandbaggers command failed, redis data corrupted (json failed) wtf?",
+			},
+		}
+	}
 
 	discordIDs := []Expression{}
 	for _, v := range discordIDsFull {
@@ -42,7 +58,15 @@ func getSandbaggers() *discordgo.InteractionResponse {
 		MapleCharacterName string
 	}{}
 
-	stmt.Query(db.DB, &chars)
+	err = stmt.Query(db.DB, &chars)
+	if err != nil {
+		return &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Sandbaggers command failed, database error while getting all active characters wtf?",
+			},
+		}
+	}
 
 	allSandbaggedRuns := []struct {
 		Name                string
@@ -83,14 +107,30 @@ func getSandbaggers() *discordgo.InteractionResponse {
 			CulvertDate time.Time
 			Score       int32
 		}{}
-		stmt.Query(db.DB, &dest)
+		err = stmt.Query(db.DB, &dest)
+		if err != nil {
+			return &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Sandbaggers command failed, database error while getting a character's recent scores wtf?",
+				},
+			}
+		}
 
 		stmt = SELECT(MIN(CharacterCulvertScores.CulvertDate).AS("start_date")).FROM(CharacterCulvertScores).WHERE(CharacterCulvertScores.CharacterID.EQ(Int64(v.CharacterID))).GROUP_BY(CharacterCulvertScores.CulvertDate).ORDER_BY(CharacterCulvertScores.CulvertDate.ASC())
 
 		var initial struct {
 			StartDate time.Time
 		}
-		stmt.Query(db.DB, &initial)
+		err = stmt.Query(db.DB, &initial)
+		if err != nil {
+			return &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Sandbaggers command failed, database error while getting a character's first score date wtf?",
+				},
+			}
+		}
 
 		dest = helpers.FilterSlice(dest, func(v struct {
 			CulvertDate time.Time
