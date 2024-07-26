@@ -40,19 +40,6 @@ func main() {
 		discordIDs = append(discordIDs, String(v.DiscordUserID))
 	}
 
-	// stmt := SELECT(MAX(CharacterCulvertScores.CulvertDate).AS("culvert_date")).FROM(CharacterCulvertScores)
-	// dest := struct {
-	// 	CulvertDate time.Time
-	// }{}
-	// stmt.Query(db.DB, &dest)
-	// sunday := dest.CulvertDate
-
-	// last12WeeksCulvertRaw := []time.Time{}
-	// for i := 0; i < 12; i++ {
-	// 	last12WeeksCulvertRaw = append(last12WeeksCulvertRaw, sunday)
-	// 	sunday = sunday.Add(time.Hour * -24 * 7)
-	// }
-
 	stmt := SELECT(Characters.ID.AS("character_id"), Characters.MapleCharacterName.AS("maple_character_name")).FROM(
 		Characters,
 	).WHERE(Characters.DiscordUserID.IN(discordIDs...))
@@ -73,12 +60,6 @@ func main() {
 	}{}
 
 	for _, v := range chars {
-		// inClauseDates := []Expression{}
-		// for _, date := range last12WeeksCulvertRaw {
-		// 	inClauseDates = append(inClauseDates, DateT(date))
-		// }
-
-		// select character_culvert_scores.culvert_date, t.score from character_culvert_scores left join (select culvert_date, score from character_culvert_scores where character_id = 111) as t on t.culvert_date = character_culvert_scores.culvert_date group by character_culvert_scores.culvert_date, t.score order by character_culvert_scores.culvert_date desc limit 12;
 
 		t := SELECT(
 			CharacterCulvertScores.CulvertDate,
@@ -89,18 +70,21 @@ func main() {
 			).AsTable("t")
 		tCulvertDate := CharacterCulvertScores.CulvertDate.From(t)
 		tScore := CharacterCulvertScores.Score.From(t)
+		// t is all character's scores
 
-		stmt := SELECT(
-			CharacterCulvertScores.CulvertDate.AS("culvert_date"),
-			COALESCE(tScore, Int(0)).AS("score"),
+		cd := SELECT(
+			CharacterCulvertScores.CulvertDate,
 		).FROM(
-			CharacterCulvertScores.LEFT_JOIN(t, tCulvertDate.EQ(CharacterCulvertScores.CulvertDate)),
+			CharacterCulvertScores,
 		).GROUP_BY(
 			CharacterCulvertScores.CulvertDate,
-			tScore,
 		).ORDER_BY(
-			CharacterCulvertScores.CulvertDate.ASC(),
-		).LIMIT(12)
+			CharacterCulvertScores.CulvertDate.DESC(),
+		).LIMIT(12).AsTable("cd")
+
+		cdCulvertDate := CharacterCulvertScores.CulvertDate.From(cd)
+
+		stmt = SELECT(cdCulvertDate.AS("culvert_date"), COALESCE(tScore, Int(0)).AS("score")).FROM(cd.LEFT_JOIN(t, tCulvertDate.EQ(cdCulvertDate))).ORDER_BY(cdCulvertDate.ASC())
 
 		dest := []struct {
 			CulvertDate time.Time
