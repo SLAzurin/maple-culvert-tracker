@@ -471,7 +471,7 @@ Don't forget to submit"
                                 },
                               ),
                             ].map((entry) => {
-                              if (entry === undefined || scores.prev !== 0)
+                              if (entry === undefined || (scores.prev || 0) !== 0)
                                 return null
                               const [discordID] = entry
                               return (
