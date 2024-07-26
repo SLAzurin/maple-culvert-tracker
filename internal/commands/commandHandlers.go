@@ -47,5 +47,8 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		})
 		s.ChannelMessageSend(i.ChannelID, "<@"+i.Member.User.ID+"> is logging in. Please try to not double edit and mess something up :)")
 	},
+	"sandbaggers": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		s.InteractionRespond(i.Interaction, getSandbaggers())
+	},
 	"culvert-duel": culvertDuel,
 }

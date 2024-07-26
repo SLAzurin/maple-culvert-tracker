@@ -1,0 +1,8 @@
+services:
+  update_commands:
+    build:
+      dockerfile: Dockerfile.goapps
+      context: .
+      args:
+        APPNAME: update_commands
+    env_file: .env

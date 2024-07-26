@@ -275,7 +275,9 @@ Don't forget to submit"
               className="bg-body-tertiary"
               variant="light"
             >
-              <Container style={{ justifyContent: "space-between", maxWidth: "95%" }}>
+              <Container
+                style={{ justifyContent: "space-between", maxWidth: "95%" }}
+              >
                 <Navbar.Collapse id="basic-navbar-nav">
                   <Nav className="me-auto">
                     <button
@@ -284,7 +286,7 @@ Don't forget to submit"
                         navigate("/newchar")
                       }}
                     >
-                      + new character
+                      + track character
                     </button>
                     <button
                       className="btn btn-link"
@@ -460,34 +462,41 @@ Don't forget to submit"
                         <td>
                           {(scores.current || 0) <= 0 &&
                             membersCharacters &&
-                            Object.entries(membersCharacters)
-                              .filter(([discordID, characters]) => {
-                                return (
-                                  characters.includes(Number(charID)) &&
-                                  discordID === "2"
-                                )
-                              })
-                              .map(([discordID]) => {
-                                return (
-                                  <button
-                                    key={"untrack-character-" + charID}
-                                    className="btn btn-danger"
-                                    onClick={() => {
-                                      untrackCharacter(
-                                        {
-                                          discord_user_id: discordID,
-                                          discord_global_name: "",
-                                          discord_nickname: "",
-                                          discord_username: "",
-                                        },
-                                        charID,
-                                      )
-                                    }}
-                                  >
-                                    Untrack character from bot
-                                  </button>
-                                )
-                              })}
+                            [
+                              Object.entries(membersCharacters).find(
+                                ([, linkedCharacters]) => {
+                                  return linkedCharacters.includes(
+                                    Number(charID),
+                                  )
+                                },
+                              ),
+                            ].map((entry) => {
+                              if (
+                                entry === undefined ||
+                                (scores.prev || 0) !== 0
+                              )
+                                return null
+                              const [discordID] = entry
+                              return (
+                                <button
+                                  key={"untrack-character-" + charID}
+                                  className="btn btn-danger"
+                                  onClick={() => {
+                                    untrackCharacter(
+                                      {
+                                        discord_user_id: discordID,
+                                        discord_global_name: "",
+                                        discord_nickname: "",
+                                        discord_username: "",
+                                      },
+                                      charID,
+                                    )
+                                  }}
+                                >
+                                  Untrack {characters[Number(charID)]} from bot
+                                </button>
+                              )
+                            })}
                         </td>
                       </tr>
                     )

@@ -85,4 +85,8 @@ var Commands = []*discordgo.ApplicationCommand{
 			},
 		},
 	},
+	{
+		Name:        "sandbaggers",
+		Description: "Shows players with most sandbagged runs over the past 12 weeks",
+	},
 }
