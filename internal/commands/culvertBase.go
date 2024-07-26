@@ -84,7 +84,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		var c string
 		var i int64
 		rows.Scan(&i, &c)
-		choices += c + " "
+		choices += c + "\n"
 		characters[strings.ToLower(c)] = struct {
 			name string
 			id   int64
@@ -95,16 +95,14 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	rows.Close()
 	stmt.Close()
 
-	choicesMsg := "Available characters:" + choices
-	if len(choicesMsg) > 2000 {
-		choicesMsg = choicesMsg[:1999] + "…"
-	}
+	choicesMsg := "Available characters:"
 
 	if _, ok := characters[charName]; count == 0 || (count > 1 && charName == "") || (!ok && charName != "") {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Content: choicesMsg,
+				Files:   []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(choices)}},
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
