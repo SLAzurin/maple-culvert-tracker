@@ -206,6 +206,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 	s := ""
 
 	for _, v := range allSandbaggedRuns {
+		slices.Reverse(v.SandbaggedRunsDates)
 		ds, _ := json.Marshal(v.SandbaggedRunsDates)
 		s += v.Name + " " + v.ParticipationRatio + " " + string(ds) + "\n"
 	}
