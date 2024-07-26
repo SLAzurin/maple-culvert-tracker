@@ -67,4 +67,8 @@ var Commands = []*discordgo.ApplicationCommand{
 		Name:        "login",
 		Description: "Gives you a temporary login code for the Admin Console",
 	},
+	{
+		Name:        "sandbaggers",
+		Description: "Shows players with most sandbagged runs over the past 12 weeks",
+	},
 }

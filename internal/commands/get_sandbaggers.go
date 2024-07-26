@@ -1,35 +1,28 @@
-package main
+package commands
 
 //lint:file-ignore ST1001 Dot imports by jet
 
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"os"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
-func filter[T any](ss []T, test func(T) bool) (ret []T) {
-	for _, s := range ss {
-		if test(s) {
-			ret = append(ret, s)
-		}
-	}
-	return
-}
-
-func main() {
+func getSandbaggers() *discordgo.InteractionResponse {
 	discordIDsFullRaw, _ := apiredis.RedisDB.Get(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID")).Result()
 
 	discordIDsFull := []data.WebGuildMember{}
@@ -99,7 +92,7 @@ func main() {
 		}
 		stmt.Query(db.DB, &initial)
 
-		dest = filter(dest, func(v struct {
+		dest = helpers.FilterSlice(dest, func(v struct {
 			CulvertDate time.Time
 			Score       int32
 		}) bool {
@@ -170,7 +163,18 @@ func main() {
 	})
 	slices.Reverse(allSandbaggedRuns)
 
+	s := ""
+
 	for _, v := range allSandbaggedRuns {
-		fmt.Println(v.Name, v.ParticipationRatio, v.SandbaggedRunsDates)
+		ds, _ := json.Marshal(v.SandbaggedRunsDates)
+		s += v.Name + " " + v.ParticipationRatio + " " + string(ds) + "\n"
+	}
+
+	return &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: "Sandbaggers of the week as follows:",
+			Files:   []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(s)}},
+		},
 	}
 }
