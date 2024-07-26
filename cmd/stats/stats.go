@@ -92,13 +92,14 @@ func main() {
 
 		stmt := SELECT(
 			CharacterCulvertScores.CulvertDate.AS("culvert_date"),
-			COALESCE(tScore, Int(-1)).AS("score"),
+			COALESCE(tScore, Int(0)).AS("score"),
 		).FROM(
 			CharacterCulvertScores.LEFT_JOIN(t, tCulvertDate.EQ(CharacterCulvertScores.CulvertDate)),
 		).GROUP_BY(
-			CharacterCulvertScores.CulvertDate, tScore,
+			CharacterCulvertScores.CulvertDate,
+			tScore,
 		).ORDER_BY(
-			CharacterCulvertScores.CulvertDate.DESC(),
+			CharacterCulvertScores.CulvertDate.ASC(),
 		).LIMIT(12)
 
 		dest := []struct {
