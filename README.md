@@ -1,10 +1,14 @@
-# maple-culvert-tracker
+# Maple Culvert Tracker
 
-Track culvert score over a x amount of time progress
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G0WUCP2)
+
+This software helps track Maplestory culvert scores over time!
 
 This software is best used in conjunction with my https://github.com/SLAzurin/gpq-image-ocr-gui
 
 Join the Discord server for update notifications! Here: Server under construction.
+
+A lot of work still needs to be done to be considered a well established Open Source software, so it is like Public Source instead.
 
 # Pre-requisites
 
@@ -14,6 +18,17 @@ Install Nodejs 20.x or newer even number LTS versions. (Using [nvm.sh](https://g
 Enable `pnpm` with this command:
 
 - Command: `corepack enable && corepack prepare --activate`
+
+## Small note
+
+Hosting this on the Cloud is recommended to keep stable uptime.
+
+I suggest the following providers for competitive pricing:
+
+- [OVH Cloud](https://www.ovhcloud.com/en/vps/)
+- [Hetzner](https://www.hetzner.com/cloud/)
+
+You can pick any cpu size, but I'd suggest a minimum of 1gb of ram and 40gb of storage.
 
 # developer notes
 
