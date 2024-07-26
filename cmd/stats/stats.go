@@ -3,7 +3,10 @@ package main
 //lint:file-ignore ST1001 Dot imports by jet
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"os"
 	"slices"
 	"strconv"
 	"time"
@@ -12,26 +15,47 @@ import (
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
-func main() {
-	stmt := SELECT(MAX(CharacterCulvertScores.CulvertDate).AS("culvert_date")).FROM(CharacterCulvertScores)
-	dest := struct {
-		CulvertDate time.Time
-	}{}
-	stmt.Query(db.DB, &dest)
-	sunday := dest.CulvertDate
+func filter[T any](ss []T, test func(T) bool) (ret []T) {
+	for _, s := range ss {
+		if test(s) {
+			ret = append(ret, s)
+		}
+	}
+	return
+}
 
-	last12WeeksCulvertRaw := []time.Time{}
-	for i := 0; i < 12; i++ {
-		last12WeeksCulvertRaw = append(last12WeeksCulvertRaw, sunday)
-		sunday = sunday.Add(time.Hour * -24 * 7)
+func main() {
+	discordIDsFullRaw, _ := apiredis.RedisDB.Get(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID")).Result()
+
+	discordIDsFull := []data.WebGuildMember{}
+	json.Unmarshal([]byte(discordIDsFullRaw), &discordIDsFull)
+
+	discordIDs := []Expression{}
+	for _, v := range discordIDsFull {
+		discordIDs = append(discordIDs, String(v.DiscordUserID))
 	}
 
-	stmt = SELECT(CharacterCulvertScores.CharacterID.AS("character_id"), Characters.MapleCharacterName.AS("maple_character_name")).FROM(
-		CharacterCulvertScores.INNER_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID)),
-	).WHERE(CharacterCulvertScores.CulvertDate.EQ(DateT(last12WeeksCulvertRaw[0])))
+	// stmt := SELECT(MAX(CharacterCulvertScores.CulvertDate).AS("culvert_date")).FROM(CharacterCulvertScores)
+	// dest := struct {
+	// 	CulvertDate time.Time
+	// }{}
+	// stmt.Query(db.DB, &dest)
+	// sunday := dest.CulvertDate
+
+	// last12WeeksCulvertRaw := []time.Time{}
+	// for i := 0; i < 12; i++ {
+	// 	last12WeeksCulvertRaw = append(last12WeeksCulvertRaw, sunday)
+	// 	sunday = sunday.Add(time.Hour * -24 * 7)
+	// }
+
+	stmt := SELECT(Characters.ID.AS("character_id"), Characters.MapleCharacterName.AS("maple_character_name")).FROM(
+		Characters,
+	).WHERE(Characters.DiscordUserID.IN(discordIDs...))
 
 	chars := []struct {
 		CharacterID        int64
@@ -49,21 +73,33 @@ func main() {
 	}{}
 
 	for _, v := range chars {
-		inClauseDates := []Expression{}
-		for _, date := range last12WeeksCulvertRaw {
-			inClauseDates = append(inClauseDates, DateT(date))
-		}
+		// inClauseDates := []Expression{}
+		// for _, date := range last12WeeksCulvertRaw {
+		// 	inClauseDates = append(inClauseDates, DateT(date))
+		// }
+
+		// select character_culvert_scores.culvert_date, t.score from character_culvert_scores left join (select culvert_date, score from character_culvert_scores where character_id = 111) as t on t.culvert_date = character_culvert_scores.culvert_date group by character_culvert_scores.culvert_date, t.score order by character_culvert_scores.culvert_date desc limit 12;
+
+		t := SELECT(
+			CharacterCulvertScores.CulvertDate,
+			CharacterCulvertScores.Score).
+			FROM(CharacterCulvertScores).
+			WHERE(
+				CharacterCulvertScores.CharacterID.EQ(Int64(v.CharacterID)),
+			).AsTable("t")
+		tCulvertDate := CharacterCulvertScores.CulvertDate.From(t)
+		tScore := CharacterCulvertScores.Score.From(t)
 
 		stmt := SELECT(
 			CharacterCulvertScores.CulvertDate.AS("culvert_date"),
-			CharacterCulvertScores.Score.AS("score")).
-			FROM(CharacterCulvertScores).
-			WHERE(
-				CharacterCulvertScores.CharacterID.EQ(Int64(v.CharacterID)).AND(CharacterCulvertScores.CulvertDate.IN(inClauseDates...)),
-			).
-			ORDER_BY(
-				CharacterCulvertScores.CulvertDate.ASC(),
-			)
+			COALESCE(tScore, Int(-1)).AS("score"),
+		).FROM(
+			CharacterCulvertScores.LEFT_JOIN(t, tCulvertDate.EQ(CharacterCulvertScores.CulvertDate)),
+		).GROUP_BY(
+			CharacterCulvertScores.CulvertDate, tScore,
+		).ORDER_BY(
+			CharacterCulvertScores.CulvertDate.DESC(),
+		).LIMIT(12)
 
 		dest := []struct {
 			CulvertDate time.Time
@@ -71,9 +107,20 @@ func main() {
 		}{}
 		stmt.Query(db.DB, &dest)
 
-		if len(dest) < 1 {
-			continue
+		stmt = SELECT(MIN(CharacterCulvertScores.CulvertDate).AS("start_date")).FROM(CharacterCulvertScores).WHERE(CharacterCulvertScores.CharacterID.EQ(Int64(v.CharacterID))).GROUP_BY(CharacterCulvertScores.CulvertDate).ORDER_BY(CharacterCulvertScores.CulvertDate.ASC())
+
+		var initial struct {
+			StartDate time.Time
 		}
+		stmt.Query(db.DB, &initial)
+
+		dest = filter(dest, func(v struct {
+			CulvertDate time.Time
+			Score       int32
+		}) bool {
+			return v.CulvertDate.After(initial.StartDate)
+		})
+
 		sandbaggedRuns := struct {
 			Name                string
 			SandbaggedRunsDates []string
