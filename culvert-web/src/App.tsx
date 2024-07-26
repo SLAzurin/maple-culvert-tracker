@@ -286,7 +286,7 @@ Don't forget to submit"
                         navigate("/newchar")
                       }}
                     >
-                      + new character
+                      + track character
                     </button>
                     <button
                       className="btn btn-link"
@@ -471,7 +471,10 @@ Don't forget to submit"
                                 },
                               ),
                             ].map((entry) => {
-                              if (entry === undefined || scores.prev !== 0)
+                              if (
+                                entry === undefined ||
+                                (scores.prev || 0) !== 0
+                              )
                                 return null
                               const [discordID] = entry
                               return (
