@@ -3,9 +3,7 @@ package commands
 //lint:file-ignore ST1001 Dot imports by jet
 
 import (
-	"context"
 	"encoding/json"
-	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -15,50 +13,14 @@ import (
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 
-	_ "github.com/joho/godotenv/autoload"
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
-	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
 func getSandbaggers() *discordgo.InteractionResponse {
-	discordIDsFullRaw, err := apiredis.RedisDB.Get(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID")).Result()
-	if err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Sandbaggers command failed, redis generic error wtf?",
-			},
-		}
-	}
-
-	discordIDsFull := []data.WebGuildMember{}
-	err = json.Unmarshal([]byte(discordIDsFullRaw), &discordIDsFull)
-	if err != nil {
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Sandbaggers command failed, redis data corrupted (json failed) wtf?",
-			},
-		}
-	}
-
-	discordIDs := []Expression{}
-	for _, v := range discordIDsFull {
-		discordIDs = append(discordIDs, String(v.DiscordUserID))
-	}
-
-	stmt := SELECT(Characters.ID.AS("character_id"), Characters.MapleCharacterName.AS("maple_character_name")).FROM(
-		Characters,
-	).WHERE(Characters.DiscordUserID.IN(discordIDs...))
-
-	chars := []struct {
-		CharacterID        int64
-		MapleCharacterName string
-	}{}
-
-	err = stmt.Query(db.DB, &chars)
+	chars, err := cmdhelpers.GetAcviveCharacters(apiredis.RedisDB, db.DB)
 	if err != nil {
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -76,14 +38,14 @@ func getSandbaggers() *discordgo.InteractionResponse {
 		ParticipationRatio  string
 	}{}
 
-	for _, v := range chars {
+	for _, v := range *chars {
 
 		t := SELECT(
 			CharacterCulvertScores.CulvertDate,
 			CharacterCulvertScores.Score).
 			FROM(CharacterCulvertScores).
 			WHERE(
-				CharacterCulvertScores.CharacterID.EQ(Int64(v.CharacterID)),
+				CharacterCulvertScores.CharacterID.EQ(Int64(v.ID)),
 			).AsTable("t")
 		tCulvertDate := CharacterCulvertScores.CulvertDate.From(t)
 		tScore := CharacterCulvertScores.Score.From(t)
@@ -101,7 +63,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 
 		cdCulvertDate := CharacterCulvertScores.CulvertDate.From(cd)
 
-		stmt = SELECT(cdCulvertDate.AS("culvert_date"), COALESCE(tScore, Int(0)).AS("score")).FROM(cd.LEFT_JOIN(t, tCulvertDate.EQ(cdCulvertDate))).ORDER_BY(cdCulvertDate.ASC())
+		stmt := SELECT(cdCulvertDate.AS("culvert_date"), COALESCE(tScore, Int(0)).AS("score")).FROM(cd.LEFT_JOIN(t, tCulvertDate.EQ(cdCulvertDate))).ORDER_BY(cdCulvertDate.ASC())
 
 		dest := []struct {
 			CulvertDate time.Time
@@ -117,7 +79,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 			}
 		}
 
-		stmt = SELECT(MIN(CharacterCulvertScores.CulvertDate).AS("start_date")).FROM(CharacterCulvertScores).WHERE(CharacterCulvertScores.CharacterID.EQ(Int64(v.CharacterID))).GROUP_BY(CharacterCulvertScores.CulvertDate).ORDER_BY(CharacterCulvertScores.CulvertDate.ASC())
+		stmt = SELECT(MIN(CharacterCulvertScores.CulvertDate).AS("start_date")).FROM(CharacterCulvertScores).WHERE(CharacterCulvertScores.CharacterID.EQ(Int64(v.ID))).GROUP_BY(CharacterCulvertScores.CulvertDate).ORDER_BY(CharacterCulvertScores.CulvertDate.ASC())
 
 		var initial struct {
 			StartDate time.Time
