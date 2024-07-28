@@ -13,8 +13,8 @@ import (
 var s *discordgo.Session
 
 func main() {
-	// run this at UTC time +1
-	now := time.Now()
+	// run this everyday UTC time 23:00
+	now := time.Now().Add(time.Hour).Add(time.Minute)
 	for now.Weekday() != time.Sunday {
 		now = now.Add(time.Hour * -24)
 	}
