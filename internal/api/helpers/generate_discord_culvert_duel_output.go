@@ -17,6 +17,7 @@ var randomFluffDuelText = []string{
 	"Too much grass touching will do that to your score",
 	"This your bossing mule?",
 	"How long does your party wait for you to blue dot",
+	"Too much janus. Should've sent it on 2nd mastery",
 }
 
 func getRandomFluffDuelText(yourWin bool, yourChar string, theirChar string) string {
