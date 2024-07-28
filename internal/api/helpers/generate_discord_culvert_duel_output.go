@@ -31,7 +31,8 @@ func GenerateDiscordCulvertDuelOutput(chartImageBinData io.ReadCloser, yourWin b
 	// date is possibly empty
 	// otherStatsStruct to be implemented when we get more stats
 	title := yourCharName + " wins against " + theirCharName
-	thumbnail := "attachment://outcome.webp"
+	// thumbnail := "attachment://outcome.webp"
+	thumbnail := os.Getenv("CULVERT_DUEL_THUMBNAIL_URL")
 	// filename := "./backend_static/victory.webp"
 	if !yourWin {
 		// filename = "./backend_static/defeat.webp"
@@ -41,15 +42,18 @@ func GenerateDiscordCulvertDuelOutput(chartImageBinData io.ReadCloser, yourWin b
 	embeddedData := &discordgo.MessageEmbed{
 		Title:       title,
 		Description: getRandomFluffDuelText(yourWin, yourCharName, theirCharName),
-		Thumbnail: &discordgo.MessageEmbedThumbnail{
-			URL: thumbnail,
-		},
 		// Convert hex to int here
 		// https://www.rapidtables.com/convert/number/hex-to-decimal.html?x=36A2EB
 		Color: 3580651,
 		Image: &discordgo.MessageEmbedImage{
 			URL: "attachment://image.png",
 		},
+	}
+
+	if thumbnail != "" {
+		embeddedData.Thumbnail = &discordgo.MessageEmbedThumbnail{
+			URL: thumbnail,
+		}
 	}
 
 	// charData, err := FetchCharacterData(charName, os.Getenv("MAPLE_REGION"))
