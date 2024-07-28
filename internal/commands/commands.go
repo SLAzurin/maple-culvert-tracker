@@ -68,6 +68,42 @@ var Commands = []*discordgo.ApplicationCommand{
 		Description: "Gives you a temporary login code for the Admin Console",
 	},
 	{
+		Name:        "culvert-duel",
+		Description: "Flex your culvert score against your Guildmate",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "your-character",
+				Description: "Your character's name",
+			},
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "their-character",
+				Description: "Their character's name",
+			},
+		},
+	},
+	{
+		Name:        "culvert-duel-anyone",
+		Description: "MODS ONLY: Select 2 guild members to duel their culvert scores",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "your-character",
+				Description: "Your character's name",
+			},
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "their-character",
+				Description: "Their character's name",
+			},
+		},
+	},
+	{
 		Name:        "sandbaggers",
 		Description: "Shows players with most sandbagged runs over the past 12 weeks",
 	},
