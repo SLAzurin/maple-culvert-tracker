@@ -50,5 +50,6 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	"sandbaggers": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		s.InteractionRespond(i.Interaction, getSandbaggers())
 	},
-	"culvert-duel": culvertDuel,
+	"culvert-duel":        culvertDuel(false),
+	"culvert-duel-anyone": culvertDuel(true),
 }

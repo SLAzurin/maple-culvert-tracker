@@ -32,7 +32,7 @@ func GetAcviveCharacters(r *redis.Client, db *sql.DB) (*[]model.Characters, erro
 	}
 	stmt := SELECT(Characters.AllColumns).FROM(
 		Characters,
-	).WHERE(Characters.DiscordUserID.IN(discordIDs...))
+	).WHERE(Characters.DiscordUserID.IN(discordIDs...)).ORDER_BY(Characters.MapleCharacterName)
 	chars := []model.Characters{}
 
 	err = stmt.Query(db, &chars)

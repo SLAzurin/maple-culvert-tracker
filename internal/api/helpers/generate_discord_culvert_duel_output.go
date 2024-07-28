@@ -68,8 +68,8 @@ func GenerateDiscordCulvertDuelOutput(chartImageBinData io.ReadCloser, yourWin b
 
 	// f, err := os.Open(filename)
 	// if err == nil {
-		// outcomeFile := &discordgo.File{Name: "outcome.webp", Reader: f, ContentType: "image/webp"}
-		// response.Files = append(response.Files, outcomeFile)
+	// outcomeFile := &discordgo.File{Name: "outcome.webp", Reader: f, ContentType: "image/webp"}
+	// response.Files = append(response.Files, outcomeFile)
 	// }
 
 	return response, nil
