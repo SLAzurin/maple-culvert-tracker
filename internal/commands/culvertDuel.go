@@ -39,7 +39,7 @@ func culvertDuel(anyone bool) func(*discordgo.Session, *discordgo.InteractionCre
 		// sql := `SELECT id, maple_character_name FROM characters WHERE characters.discord_user_id = $1 AND LOWER(characters.maple_character_name) = $2 ORDER BY maple_character_name ASC`
 		jetsql := postgres.SELECT(table.Characters.ID, table.Characters.MapleCharacterName).
 			FROM(table.Characters).
-			WHERE(table.Characters.DiscordUserID.EQ( /* TODO: REMOVE THIS CHANGE IT IS ONLY TEMPORARY FOR TESTING */ /*postgres.String(i.Member.User.ID)*/ postgres.String("196341279561351168")).AND(postgres.LOWER(table.Characters.MapleCharacterName).EQ(postgres.String(yourChar))))
+			WHERE(table.Characters.DiscordUserID.EQ(postgres.String(i.Member.User.ID)).AND(postgres.LOWER(table.Characters.MapleCharacterName).EQ(postgres.String(yourChar))))
 		if anyone {
 			jetsql = postgres.SELECT(table.Characters.ID, table.Characters.MapleCharacterName).
 				FROM(table.Characters).
@@ -78,7 +78,7 @@ func culvertDuel(anyone bool) func(*discordgo.Session, *discordgo.InteractionCre
 				},
 			}
 			// TODO: Use i.interaction thingy member id
-			yourChars, err := helpers.GetCharactersByDiscordID(db.DB, "196341279561351168")
+			yourChars, err := helpers.GetCharactersByDiscordID(db.DB, i.Member.User.ID)
 			if err == nil {
 				resp.Data.Flags = discordgo.MessageFlagsEphemeral
 
