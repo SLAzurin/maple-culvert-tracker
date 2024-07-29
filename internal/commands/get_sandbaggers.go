@@ -4,6 +4,7 @@ package commands
 
 import (
 	"encoding/json"
+	"errors"
 	"slices"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	. "github.com/go-jet/jet/v2/postgres"
+	"github.com/go-jet/jet/v2/qrm"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
@@ -37,6 +39,8 @@ func getSandbaggers() *discordgo.InteractionResponse {
 		TotalRuns           int
 		ParticipationRatio  string
 	}{}
+
+	neverRanCulvert := ""
 
 	for _, v := range *chars {
 
@@ -86,6 +90,11 @@ func getSandbaggers() *discordgo.InteractionResponse {
 		}
 		err = stmt.Query(db.DB, &initial)
 		if err != nil {
+			if errors.Is(err, qrm.ErrNoRows) {
+				// This guy is beyond sandbag
+				neverRanCulvert += v.MapleCharacterName + " 0/0 []\n"
+				continue
+			}
 			return &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -172,6 +181,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 		ds, _ := json.Marshal(v.SandbaggedRunsDates)
 		s += v.Name + " " + v.ParticipationRatio + " " + string(ds) + "\n"
 	}
+	s = neverRanCulvert + s
 
 	return &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,

@@ -34,8 +34,8 @@ You can pick any cpu size, but I'd suggest a minimum of 1gb of ram and 40gb of s
 
 1. Setup the discord bot and their permissions and make it join your test server.
 2. Setup the `.env` file according to `.env.template`.
-3. Run the `chartmaker`, `db16`, `redis` containers.
-   - Command: `docker compose -f base.yml -f dev.yml up -d chartmaker db16 redis`
+3. Run the `chartmaker`, `db16`, `valkey` containers.
+   - Command: `docker compose -f base.yml -f dev.yml up -d chartmaker db16 valkey`
    - Connect inside the db16 container: `docker compose exec db16 sh`
    - Run the sql files: `psql -U $POSTGRES_USER -d $POSTGRES_DB </root/sqlfiles/createdb.sql`
 4. Run the `update_commands` Go app once only.
