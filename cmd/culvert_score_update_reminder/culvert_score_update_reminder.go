@@ -15,16 +15,16 @@ var s *discordgo.Session
 func main() {
 	// run this everyday UTC time 23:00
 	now := time.Now()
-	for now.Weekday() != time.Saturday {
+	for now.Weekday() != time.Sunday {
 		now = now.Add(time.Hour * -24)
 	}
 	// Saturday 23:00
-	now = now.Add(time.Hour).Add(time.Minute)
+	// now = now.Add(time.Hour).Add(time.Minute)
 	// Sunday 00:01
 
-	if now.Weekday() != time.Sunday {
-		panic("Not Sunday. Make sure to run this at UTC 23:00")
-	}
+	// if now.Weekday() != time.Sunday {
+	// 	panic("Not Sunday. Make sure to run this at UTC 23:00")
+	// }
 
 	date := now.Format("2006-01-02")
 	stmt, err := db.DB.Prepare("SELECT COUNT(*) as count FROM character_culvert_scores WHERE culvert_date = $1")
