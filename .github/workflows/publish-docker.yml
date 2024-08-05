@@ -59,3 +59,7 @@ jobs:
           docker image tag maple-culvert-tracker-update_commands ghcr.io/slazurin/maple-culvert-tracker/update_commands:$(git rev-parse HEAD)
           docker image tag maple-culvert-tracker-update_commands ghcr.io/slazurin/maple-culvert-tracker/update_commands:latest
           docker push -a ghcr.io/slazurin/maple-culvert-tracker/update_commands
+
+          docker image tag maple-culvert-tracker-cron ghcr.io/slazurin/maple-culvert-tracker/cron:$(git rev-parse HEAD)
+          docker image tag maple-culvert-tracker-cron ghcr.io/slazurin/maple-culvert-tracker/cron:latest
+          docker push -a ghcr.io/slazurin/maple-culvert-tracker/cron

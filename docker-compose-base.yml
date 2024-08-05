@@ -77,7 +77,6 @@ services:
     init: true
     entrypoint: sh
     command: ['-c', '/usr/sbin/crond -f -c /etc/cron']
-    # TODO: BACKFILL CRON IMAGE AND REMOVE REMINDER IMAGE FROM PROD
 volumes:
   mapleculverttracker_pg16_data:
   mapleculverttracker_valkey_data:
