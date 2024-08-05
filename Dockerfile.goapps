@@ -15,7 +15,7 @@ ARG APPNAME=main
 COPY cmd/${APPNAME} /src/cmd/${APPNAME}
 RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=linux go build -o /src/main .
 
-FROM scratch
+FROM scratch AS final
 
 COPY --from=0 /src/main /
 
@@ -27,3 +27,10 @@ ENV TZ=America/Vancouver
 USER nobody
 
 ENTRYPOINT [ "/main" ]
+
+
+FROM postgres:16-alpine AS cron
+COPY --from=0 /src/main /
+COPY ./cron.d/root /etc/cron/
+ENTRYPOINT sh
+CMD ['-c', 'crond -f -c /etc/cron']

@@ -8,3 +8,6 @@ services:
   valkey:
     ports:
       - 6380:6379
+  cron:
+    volumes:
+      - ./cron.d:/etc/cron
