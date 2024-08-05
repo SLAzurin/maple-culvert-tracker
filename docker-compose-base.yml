@@ -64,16 +64,6 @@ services:
         APPNAME: periodicredis
     restart: unless-stopped
     env_file: .env
-  culvert_reminder:
-    depends_on:
-      - db16
-    build:
-      dockerfile: Dockerfile.goapps
-      target: final
-      context: .
-      args:
-        APPNAME: culvert_score_update_reminder
-    env_file: .env
   cron:
     build:
       context: .

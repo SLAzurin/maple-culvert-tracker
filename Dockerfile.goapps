@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.22-alpine
+FROM golang:1.22-alpine AS build
 RUN apk --no-cache add tzdata
 
 WORKDIR /src/
@@ -17,20 +17,23 @@ RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=linux go build -o /src/main .
 
 FROM scratch AS final
 
-COPY --from=0 /src/main /
+COPY --from=build /src/main /
 
 WORKDIR /
 COPY --from=alpine:latest /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=0 /etc/passwd /etc/passwd
-COPY --from=0 /usr/share/zoneinfo /usr/share/zoneinfo
+COPY --from=build /etc/passwd /etc/passwd
+COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 ENV TZ=America/Vancouver
 USER nobody
 
 ENTRYPOINT [ "/main" ]
 
+FROM build AS cron-specific-build
+# main arg already built auto_backup
+COPY cmd/culvert_score_update_reminder /src/cmd/culvert_score_update_reminder
+RUN cd /src/cmd/culvert_score_update_reminder && CGO_ENABLED=0 GOOS=linux go build -o /src/culvert_score_update_reminder .
 
 FROM postgres:16-alpine AS cron
-COPY --from=0 /src/main /
+COPY --from=build /src/main /usr/local/bin/auto_backup
+COPY --from=cron-specific-build /src/culvert_score_update_reminder /usr/local/bin/
 COPY ./cron.d/root /etc/cron/
-ENTRYPOINT sh
-CMD ['-c', 'crond -f -c /etc/cron']
