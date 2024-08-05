@@ -6,6 +6,7 @@ services:
       - valkey
     build:
       dockerfile: Dockerfile.goapps
+      target: final
       context: .
       args:
         APPNAME: main
@@ -57,20 +58,25 @@ services:
       - valkey
     build:
       dockerfile: Dockerfile.goapps
+      target: final
       context: .
       args:
         APPNAME: periodicredis
     restart: unless-stopped
     env_file: .env
-  culvert_reminder:
-    depends_on:
-      - db16
+  cron:
     build:
-      dockerfile: Dockerfile.goapps
       context: .
+      dockerfile: Dockerfile.goapps
+      target: cron
       args:
-        APPNAME: culvert_score_update_reminder
-    env_file: .env
+        APPNAME: auto_backup
+    restart: unless-stopped
+    env_file:
+      - .env
+    init: true
+    entrypoint: sh
+    command: ['-c', '/usr/sbin/crond -f -c /etc/cron']
 volumes:
   mapleculverttracker_pg16_data:
   mapleculverttracker_valkey_data:
