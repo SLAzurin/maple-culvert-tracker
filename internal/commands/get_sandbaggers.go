@@ -33,8 +33,11 @@ func getSandbaggers() *discordgo.InteractionResponse {
 	}
 
 	allSandbaggedRuns := []struct {
-		Name                string
-		SandbaggedRunsDates []string
+		Name           string
+		SandbaggedRuns []struct {
+			S int32  `json:"s"`
+			D string `json:"d"`
+		}
 		SandbaggedRunsCount int
 		TotalRuns           int
 		ParticipationRatio  string
@@ -111,14 +114,20 @@ func getSandbaggers() *discordgo.InteractionResponse {
 		})
 
 		sandbaggedRuns := struct {
-			Name                string
-			SandbaggedRunsDates []string
+			Name           string
+			SandbaggedRuns []struct {
+				S int32  `json:"s"`
+				D string `json:"d"`
+			}
 			SandbaggedRunsCount int
 			TotalRuns           int
 			ParticipationRatio  string
 		}{
-			Name:                v.MapleCharacterName,
-			SandbaggedRunsDates: []string{},
+			Name: v.MapleCharacterName,
+			SandbaggedRuns: []struct {
+				S int32  `json:"s"`
+				D string `json:"d"`
+			}{},
 			SandbaggedRunsCount: 0,
 			TotalRuns:           len(dest),
 			ParticipationRatio:  "",
@@ -138,13 +147,19 @@ func getSandbaggers() *discordgo.InteractionResponse {
 			if i == 0 {
 				if v.Score == 0 {
 					sandbaggedRuns.SandbaggedRunsCount += 1
-					sandbaggedRuns.SandbaggedRunsDates = append(sandbaggedRuns.SandbaggedRunsDates, v.CulvertDate.Format("2006-01-02"))
+					sandbaggedRuns.SandbaggedRuns = append(sandbaggedRuns.SandbaggedRuns, struct {
+						S int32  "json:\"s\""
+						D string "json:\"d\""
+					}{D: v.CulvertDate.Format("2006-01-02"), S: v.Score})
 				}
 				continue
 			}
 			if v.Score < int32(float64(lastKnownGoodScore)*.7) {
 				sandbaggedRuns.SandbaggedRunsCount += 1
-				sandbaggedRuns.SandbaggedRunsDates = append(sandbaggedRuns.SandbaggedRunsDates, v.CulvertDate.Format("2006-01-02"))
+				sandbaggedRuns.SandbaggedRuns = append(sandbaggedRuns.SandbaggedRuns, struct {
+					S int32  "json:\"s\""
+					D string "json:\"d\""
+				}{D: v.CulvertDate.Format("2006-01-02"), S: v.Score})
 			}
 			if v.Score > int32(lastKnownGoodScore) {
 				lastKnownGoodScore = int(v.Score)
@@ -158,14 +173,20 @@ func getSandbaggers() *discordgo.InteractionResponse {
 	}
 
 	slices.SortStableFunc(allSandbaggedRuns, func(a struct {
-		Name                string
-		SandbaggedRunsDates []string
+		Name           string
+		SandbaggedRuns []struct {
+			S int32  "json:\"s\""
+			D string "json:\"d\""
+		}
 		SandbaggedRunsCount int
 		TotalRuns           int
 		ParticipationRatio  string
 	}, b struct {
-		Name                string
-		SandbaggedRunsDates []string
+		Name           string
+		SandbaggedRuns []struct {
+			S int32  "json:\"s\""
+			D string "json:\"d\""
+		}
 		SandbaggedRunsCount int
 		TotalRuns           int
 		ParticipationRatio  string
@@ -177,8 +198,8 @@ func getSandbaggers() *discordgo.InteractionResponse {
 	s := ""
 
 	for _, v := range allSandbaggedRuns {
-		slices.Reverse(v.SandbaggedRunsDates)
-		ds, _ := json.Marshal(v.SandbaggedRunsDates)
+		slices.Reverse(v.SandbaggedRuns)
+		ds, _ := json.Marshal(v.SandbaggedRuns)
 		s += v.Name + " " + v.ParticipationRatio + " " + string(ds) + "\n"
 	}
 	s = neverRanCulvert + s
