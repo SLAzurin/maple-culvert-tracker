@@ -5,6 +5,8 @@ type PlayerRank struct {
 	CharacterImgURL string `json:"characterImgURL"`
 	JobName         string `json:"jobName"`
 	Level           int    `json:"level"`
+	JobID           int    `json:"jobID"`
+	JobDetail       int    `json:"jobDetail"`
 }
 
 type PlayerRankingResponse struct {
