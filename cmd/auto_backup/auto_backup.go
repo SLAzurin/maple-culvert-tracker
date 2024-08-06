@@ -37,10 +37,13 @@ func startBackup(s *discordgo.Session, stopChan chan struct{}) {
 		panic(err)
 	}
 
-	s.ChannelMessageSendComplex(os.Getenv("DISCORD_REMINDER_CHANNEL_ID"), &discordgo.MessageSend{
+	_, err = s.ChannelMessageSendComplex(os.Getenv("DISCORD_REMINDER_CHANNEL_ID"), &discordgo.MessageSend{
 		Content: "Automatic Database backup " + time.Now().Format("2006-01-02"),
 		Files:   []*discordgo.File{{Name: "dump_" + time.Now().Format("2006-01-02") + ".sql", Reader: strings.NewReader(stdout.String())}},
 	})
+	if err != nil {
+		panic(err)
+	}
 	stopChan <- struct{}{}
 }
 
