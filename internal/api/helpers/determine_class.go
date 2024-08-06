@@ -51,7 +51,7 @@ func DetermineClass(jobName string, jobDetail int) string {
 			case 12:
 				return "Bowmaster"
 			case 22:
-				return "Marksman"
+				return "Markman" // Fight me. It's Markman not Marksman.
 			default:
 				return "Unknown Bowman"
 			}
