@@ -70,43 +70,76 @@ func DetermineClass(jobName string, jobDetail int) string {
 			}
 		}
 	case "Pathfinder":
+		fallthrough
 	case "Dawn Warrior":
+		fallthrough
 	case "Blaze Wizard":
+		fallthrough
 	case "Wind Archer":
+		fallthrough
 	case "Night Walker":
+		fallthrough
 	case "Thunder Breaker":
+		fallthrough
 	case "Mihile":
+		fallthrough
 	case "Demon Slayer":
+		fallthrough
 	case "Battle Mage":
+		fallthrough
 	case "Wild Hunter":
+		fallthrough
 	case "Mechanic":
+		fallthrough
 	case "Xenon":
+		fallthrough
 	case "Demon Avenger":
+		fallthrough
 	case "Blaster":
+		fallthrough
 	case "Aran":
+		fallthrough
 	case "Evan":
+		fallthrough
 	case "Mercedes":
+		fallthrough
 	case "Phantom":
+		fallthrough
 	case "Luminous":
+		fallthrough
 	case "Shade":
+		fallthrough
 	case "Kaiser":
+		fallthrough
 	case "Angelic Buster":
+		fallthrough
 	case "Cadena":
+		fallthrough
 	case "Kain":
+		fallthrough
 	case "Illium":
+		fallthrough
 	case "Ark":
+		fallthrough
 	case "Adele":
+		fallthrough
 	case "Khali":
+		fallthrough
 	case "Hayato":
+		fallthrough
 	case "Kanna":
+		fallthrough
 	case "Lara":
+		fallthrough
 	case "Hoyoung":
+		fallthrough
 	case "Zero":
+		fallthrough
 	case "Kinesis":
+		fallthrough
 	case "Lynn":
 		return jobName
 	default:
 		return "Unknown " + jobName
 	}
-	return "What the fricc are you"
 }
