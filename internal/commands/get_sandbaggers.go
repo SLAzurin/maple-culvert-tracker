@@ -18,6 +18,7 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
@@ -133,16 +134,16 @@ func getSandbaggers() *discordgo.InteractionResponse {
 			ParticipationRatio:  "",
 		}
 
-		lastKnownGoodScore := 0
+		lastKnownGoodScore := int64(0)
 		for _, v := range dest {
 			if v.Score == 0 {
 				continue
 			}
-			lastKnownGoodScore = int(v.Score)
+			lastKnownGoodScore = int64(v.Score)
 			break
 		}
 
-		// sandbag algo: sandbagged scores are scores that fall below 70% of the lastKnownGoodScore
+		// sandbag algo: sandbagged scores are scores that fall below 70% of the lastKnownGoodScore or 10k difference as the threshold
 		for i, v := range dest {
 			if i == 0 {
 				if v.Score == 0 {
@@ -154,7 +155,11 @@ func getSandbaggers() *discordgo.InteractionResponse {
 				}
 				continue
 			}
-			if v.Score < int32(float64(lastKnownGoodScore)*.7) {
+			threshold := int64(float64(lastKnownGoodScore) * .7)
+			if int64(lastKnownGoodScore)-threshold > data.MaxCulvertScoreThreshold {
+				threshold = lastKnownGoodScore - data.MaxCulvertScoreThreshold
+			}
+			if int64(v.Score) < threshold {
 				sandbaggedRuns.SandbaggedRunsCount += 1
 				sandbaggedRuns.SandbaggedRuns = append(sandbaggedRuns.SandbaggedRuns, struct {
 					S int32  "json:\"s\""
@@ -162,7 +167,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 				}{D: v.CulvertDate.Format("2006-01-02"), S: v.Score})
 			}
 			if v.Score > int32(lastKnownGoodScore) {
-				lastKnownGoodScore = int(v.Score)
+				lastKnownGoodScore = int64(v.Score)
 			}
 		}
 
