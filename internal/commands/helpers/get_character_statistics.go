@@ -22,12 +22,11 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	}
 	var dateRaw time.Time
 	var err error
-	if date == "" {
-		dateRaw, err = time.Parse("2006-01-02", date)
-		if err != nil {
-			dateRaw = time.Now()
-		}
+	dateRaw, err = time.Parse("2006-01-02", date)
+	if err != nil {
+		dateRaw = time.Now()
 	}
+
 	for dateRaw.Weekday() != time.Sunday {
 		dateRaw = dateRaw.Add(time.Hour * -24)
 	}
@@ -39,6 +38,16 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	}{}
 
 	err = stmt.Query(db, &pb)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	stmt = SELECT(COUNT(CharacterCulvertScores.Score).AS("placement")).FROM(CharacterCulvertScores.INNER_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.Score.GT_EQ(Int32(int32(chartData[len(chartData)-1].Score))).AND(CharacterCulvertScores.CulvertDate.EQ(DateT(dateRaw))))
+	p := struct {
+		Placement int32 `sql:"placement"`
+	}{}
+	err = stmt.Query(db, &p)
 	if err != nil {
 		log.Println(err)
 		return nil, err
@@ -70,6 +79,7 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	r.ParticipationCountLabel = strconv.Itoa(validCount) + "/" + strconv.Itoa(len(chartData))
 	r.ParticipationPercentRatio = int(math.Round(float64(validCount) / float64(len(chartData)) * 100))
 	r.PersonalBest = int(pb.PersonalBest)
+	r.GuildTopPlacement = int(p.Placement)
 
 	return &r, nil
 }
