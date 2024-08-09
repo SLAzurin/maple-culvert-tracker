@@ -38,8 +38,6 @@ func GenerateDiscordCulvertOutput(chartImageBinData io.ReadCloser, charName stri
 		placementStr := "#" + strconv.Itoa(otherStatsStruct.GuildTopPlacement) + " in the guild"
 		if date != "" {
 			placementStr += " on " + date
-		} else {
-			placementStr += " this week"
 		}
 		embeddedData.Fields = append(embeddedData.Fields, &discordgo.MessageEmbedField{
 			Inline: false,
