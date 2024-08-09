@@ -14,12 +14,7 @@ import (
 )
 
 func GetCharacterStatistics(db *sql.DB, characterName string, date string, chartData []data.ChartMakerPoints) (*data.CharacterStatistics, error) {
-	r := data.CharacterStatistics{
-		PersonalBest:              60000,
-		ParticipationCountLabel:   "12/12",
-		ParticipationPercentRatio: 100,
-		GuildTopPlacement:         1,
-	}
+	r := data.CharacterStatistics{}
 	var dateRaw time.Time
 	var err error
 	dateRaw, err = time.Parse("2006-01-02", date)
