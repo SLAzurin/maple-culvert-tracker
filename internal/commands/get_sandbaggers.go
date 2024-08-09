@@ -144,22 +144,12 @@ func getSandbaggers() *discordgo.InteractionResponse {
 		}
 
 		// sandbag algo: sandbagged scores are scores that fall below 70% of the lastKnownGoodScore or 10k difference as the threshold
-		for i, v := range dest {
-			if i == 0 {
-				if v.Score == 0 {
-					sandbaggedRuns.SandbaggedRunsCount += 1
-					sandbaggedRuns.SandbaggedRuns = append(sandbaggedRuns.SandbaggedRuns, struct {
-						S int32  "json:\"s\""
-						D string "json:\"d\""
-					}{D: v.CulvertDate.Format("2006-01-02"), S: v.Score})
-				}
-				continue
-			}
+		for _, v := range dest {
 			threshold := int64(float64(lastKnownGoodScore) * .7)
 			if int64(lastKnownGoodScore)-threshold > data.MaxCulvertScoreThreshold {
 				threshold = lastKnownGoodScore - data.MaxCulvertScoreThreshold
 			}
-			if int64(v.Score) < threshold {
+			if int64(v.Score) <= threshold {
 				sandbaggedRuns.SandbaggedRunsCount += 1
 				sandbaggedRuns.SandbaggedRuns = append(sandbaggedRuns.SandbaggedRuns, struct {
 					S int32  "json:\"s\""
