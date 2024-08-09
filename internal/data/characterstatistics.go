@@ -5,4 +5,5 @@ type CharacterStatistics struct {
 	ParticipationCountLabel   string
 	ParticipationPercentRatio int
 	GuildTopPlacement         int
+	Average                   int
 }

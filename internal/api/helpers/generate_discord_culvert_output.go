@@ -50,13 +50,28 @@ func GenerateDiscordCulvertOutput(chartImageBinData io.ReadCloser, charName stri
 				Inline: true,
 			},
 			&discordgo.MessageEmbedField{
+				Name:   "Period Average",
+				Value:  strconv.Itoa(otherStatsStruct.Average),
+				Inline: true,
+			},
+			&discordgo.MessageEmbedField{
+				Name:   "",
+				Value:  "",
+				Inline: true,
+			},
+			&discordgo.MessageEmbedField{
 				Name:   "Participation",
 				Value:  otherStatsStruct.ParticipationCountLabel,
 				Inline: true,
 			},
 			&discordgo.MessageEmbedField{
-				Name:   "Participation Ratio",
-				Value:  strconv.Itoa(otherStatsStruct.ParticipationPercentRatio),
+				Name:   "Ratio",
+				Value:  strconv.Itoa(otherStatsStruct.ParticipationPercentRatio) + "%",
+				Inline: true,
+			},
+			&discordgo.MessageEmbedField{
+				Name:   "",
+				Value:  "",
 				Inline: true,
 			},
 		)
