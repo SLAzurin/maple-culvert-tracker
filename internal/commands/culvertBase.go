@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
@@ -178,6 +179,8 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
+	statistics, err := cmdhelpers.GetCharacterStatistics(db.DB, charName, weeks, date)
+
 	// Sample below
 	// jsonData := []byte(`[{"label":"2/26","score":0},{"label":"3/5","score":1233},{"label":"3/12","score":8000},{"label":"3/19","score":8100},{"label":"3/26","score":5600},{"label":"4/2","score":5500},{"label":"4/9","score":25000}]`)
 	r, err := http.Post("http://"+os.Getenv("CHARTMAKER_HOST")+"/chartmaker", "application/json", bytes.NewBuffer(jsonData))
@@ -192,7 +195,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	} else {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: helpers.GenerateDiscordCulvertOutput(r.Body, lastSeenCharName, date, nil),
+			Data: helpers.GenerateDiscordCulvertOutput(r.Body, lastSeenCharName, date, statistics),
 		})
 	}
 }
