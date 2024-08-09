@@ -96,7 +96,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 		if err != nil {
 			if errors.Is(err, qrm.ErrNoRows) {
 				// This guy is beyond sandbag
-				neverRanCulvert += v.MapleCharacterName + " 0/0 []\n"
+				neverRanCulvert += v.MapleCharacterName + " ∞/∞ [\"never ever ran culvert\"]\n"
 				continue
 			}
 			return &discordgo.InteractionResponse{
