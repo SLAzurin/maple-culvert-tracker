@@ -179,7 +179,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	statistics, _ := cmdhelpers.GetCharacterStatistics(db.DB, charName, date, chartData)
+	statistics, _ := cmdhelpers.GetCharacterStatistics(db.DB, lastSeenCharName, date, chartData)
 	// Code below handles statistics nil value
 	// Error here does not break execution
 
