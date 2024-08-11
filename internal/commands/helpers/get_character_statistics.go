@@ -27,7 +27,7 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	}
 	stmt := SELECT(MAX(CharacterCulvertScores.Score).AS("personal_best")).FROM(
 		CharacterCulvertScores.INNER_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID)),
-	).WHERE(LOWER(String(characterName)).EQ(LOWER(Characters.MapleCharacterName)))
+	).WHERE(LOWER(String(characterName)).EQ(LOWER(Characters.MapleCharacterName)).AND(CharacterCulvertScores.CulvertDate.LT_EQ(DateT(dateRaw))))
 	pb := struct {
 		PersonalBest int64 `sql:"personal_best"`
 	}{}
@@ -38,14 +38,17 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 		return nil, err
 	}
 
-	stmt = SELECT(COUNT(CharacterCulvertScores.Score).AS("placement")).FROM(CharacterCulvertScores.INNER_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.Score.GT_EQ(Int32(int32(chartData[len(chartData)-1].Score))).AND(CharacterCulvertScores.CulvertDate.EQ(DateT(dateRaw))))
 	p := struct {
 		Placement int32 `sql:"placement"`
 	}{}
-	err = stmt.Query(db, &p)
-	if err != nil {
-		log.Println(err)
-		return nil, err
+	if chartData[len(chartData)-1].Score != 0 {
+		stmt = SELECT(COUNT(CharacterCulvertScores.Score).AS("placement")).FROM(CharacterCulvertScores.INNER_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.Score.GT_EQ(Int32(int32(chartData[len(chartData)-1].Score))).AND(CharacterCulvertScores.CulvertDate.EQ(DateT(dateRaw))))
+
+		err = stmt.Query(db, &p)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
 	}
 
 	avg := int64(0)
