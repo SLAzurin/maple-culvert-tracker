@@ -60,10 +60,7 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	}
 
 	for _, v := range chartData {
-		threshold := int64(float64(lastKnownGoodScore) * .7)
-		if int64(lastKnownGoodScore)-threshold > data.MaxCulvertScoreThreshold {
-			threshold = lastKnownGoodScore - data.MaxCulvertScoreThreshold
-		}
+		threshold := GetSandbagThreshold(lastKnownGoodScore)
 		if int64(v.Score) < threshold {
 			validCount -= 1
 		}

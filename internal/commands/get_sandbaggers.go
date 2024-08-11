@@ -18,7 +18,6 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
-	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
@@ -145,10 +144,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 
 		// sandbag algo: sandbagged scores are scores that fall below 70% of the lastKnownGoodScore or 10k difference as the threshold
 		for _, v := range dest {
-			threshold := int64(float64(lastKnownGoodScore) * .7)
-			if int64(lastKnownGoodScore)-threshold > data.MaxCulvertScoreThreshold {
-				threshold = lastKnownGoodScore - data.MaxCulvertScoreThreshold
-			}
+			threshold := cmdhelpers.GetSandbagThreshold(lastKnownGoodScore)
 			if int64(v.Score) <= threshold {
 				sandbaggedRuns.SandbaggedRunsCount += 1
 				sandbaggedRuns.SandbaggedRuns = append(sandbaggedRuns.SandbaggedRuns, struct {
