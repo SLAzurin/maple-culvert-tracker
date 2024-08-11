@@ -35,10 +35,16 @@ func GenerateDiscordCulvertOutput(chartImageBinData io.ReadCloser, charName stri
 	}
 
 	if otherStatsStruct != nil {
-		placementStr := "#" + strconv.Itoa(otherStatsStruct.GuildTopPlacement) + " in the guild"
-		if date != "" {
-			placementStr += " on " + date
+		placementStr := ""
+		if otherStatsStruct.GuildTopPlacement == 0 {
+			placementStr = "The heaviest sandbagger in the Maplestory didn't even make it in the top 200 in the guild..."
+		} else {
+			placementStr := "#" + strconv.Itoa(otherStatsStruct.GuildTopPlacement) + " in the guild"
+			if date != "" {
+				placementStr += " on " + date
+			}
 		}
+
 		embeddedData.Fields = append(embeddedData.Fields, &discordgo.MessageEmbedField{
 			Inline: false,
 			Name:   "", // leave this empty
