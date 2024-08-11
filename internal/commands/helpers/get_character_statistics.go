@@ -19,11 +19,11 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	var err error
 	dateRaw, err = time.Parse("2006-01-02", date)
 	if err != nil {
-		dateRaw = time.Now()
-	}
-
-	for dateRaw.Weekday() != time.Sunday {
-		dateRaw = dateRaw.Add(time.Hour * -24)
+		dateRaw, err = GetLatestSundayDate(db)
+		if err != nil {
+			log.Println(err)
+			return nil, err
+		}
 	}
 	stmt := SELECT(MAX(CharacterCulvertScores.Score).AS("personal_best")).FROM(
 		CharacterCulvertScores.INNER_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID)),
