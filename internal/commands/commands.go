@@ -107,4 +107,24 @@ var Commands = []*discordgo.ApplicationCommand{
 		Name:        "sandbaggers",
 		Description: "Shows players with most sandbagged runs over the past 12 weeks",
 	},
+	{
+		Name:        "export-csv",
+		Description: "Export weeks of data to csv format (Compatible with all spreadsheet software)",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				MinValue:    &culvertMinWeeks,
+				MaxValue:    52,
+				Name:        "weeks",
+				Description: "Number of weeks to display in the graph",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "Date in YYYY-MM-DD format to check historical data",
+			},
+		},
+	},
 }
