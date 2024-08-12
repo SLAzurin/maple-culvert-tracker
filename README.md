@@ -38,24 +38,18 @@ You can pick any cpu size, but I'd suggest a minimum of 1gb of ram and 40gb of s
    - Command: `docker compose -f base.yml -f dev.yml up -d chartmaker db16 valkey`
    - Connect inside the db16 container: `docker compose exec db16 sh`
    - Run the sql files: `psql -U $POSTGRES_USER -d $POSTGRES_DB </root/sqlfiles/createdb.sql`
-4. Run the `update_commands` Go app once only.
-   - Command: `go run cmd/update_commands/*.go`
-5. Run the `main` Go app (discord bot) process and leave it running in the background.
+4. Run the `main` Go app (discord bot) process and leave it running in the background.
    - Command: `go run cmd/main/*.go`
-6. Install Nodejs dependencies with `pnpm`:
+5. Install Nodejs dependencies with `pnpm`:
    - Command: `pnpm i`
-7. Run the Website control panel and leave it in the background.
+6. Run the Website control panel and leave it in the background.
    - Command: `cd culvert-web ; pnpm run dev`
 
 # production deployment
 
 1. Setup the discord bot and their permissions and make it join your server.
 2. Setup the `.env` file according to `.env.template`.
-3. Build and run the update_commands entrypoint once
-   - Command: `go build -o update_commands ./cmd/update_commands/*.go `
-   - Copy it to the production server, next to the docker-compose.yml file
-   - Run: `./update_commands`
-4. Use docker compose, and run the following command:
+3. Use docker compose, and run the following command:
    - Command: `docker compose up -d`
    - Connect inside the db16 container: `docker compose exec db16 sh`
    - Run the sql files: `psql -U $POSTGRES_USER -d $POSTGRES_DB </root/sqlfiles/createdb.sql`
