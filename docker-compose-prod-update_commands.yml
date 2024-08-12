@@ -1,4 +1,0 @@
-services:
-  update_commands:
-    image: ghcr.io/slazurin/maple-culvert-tracker/update_commands
-    env_file: .env
