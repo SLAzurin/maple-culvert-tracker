@@ -9,6 +9,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/slazurin/maple-culvert-tracker/internal/api"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands"
+	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	_ "github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
@@ -28,8 +29,14 @@ func init() {
 }
 
 func main() {
+	stop := make(chan os.Signal, 1)
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
+		err := helpers.UpdateCommands(s, commands.Commands)
+		if err != nil {
+			stop <- os.Interrupt
+		}
+		log.Println("Done UpdateCommands Successfully")
 	})
 	err := s.Open()
 	if err != nil {
@@ -47,7 +54,6 @@ func main() {
 		r.Run("0.0.0.0:" + port)
 	}()
 
-	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	log.Println("Press Ctrl+C to exit")
 	<-stop
