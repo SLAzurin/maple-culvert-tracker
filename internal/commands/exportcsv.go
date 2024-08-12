@@ -5,10 +5,8 @@ package commands
 import (
 	"bytes"
 	"encoding/csv"
-	"io"
 	"log"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -132,6 +130,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		charNamesHeader = append(charNamesHeader, v.MapleCharacterName)
 	}
 	err = w.Write(charNamesHeader)
+	w.Flush()
 	if err != nil {
 		log.Println("export csv write charNamesHeader", err)
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -155,6 +154,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	for n, row := range culvertData {
 		err = w.Write(row)
+		w.Flush()
 		if err != nil {
 			log.Println("export csv write culvertData at "+strconv.Itoa(n), err)
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -167,8 +167,6 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 
-	contentRaw, _ := io.ReadAll(bytesBuffer)
-
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -177,7 +175,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				{
 					Name:        "export_" + originalInputDate + ".csv",
 					ContentType: "text/csv",
-					Reader:      strings.NewReader(string(contentRaw)),
+					Reader:      bytesBuffer,
 				},
 			},
 		},
