@@ -1,9 +1,8 @@
-import { ChartJSNodeCanvas } from "chartjs-node-canvas"
-import { ChartConfiguration, ScriptableContext } from "chart.js"
-import Chart from "chart.js/auto"
+import { createCanvas } from "canvas"
+
+import { Chart, ChartItem } from "chart.js"
 import ChartDataLabels from "chartjs-plugin-datalabels"
 
-Chart.register(ChartDataLabels)
 const dataColors = [
   "#ea5545",
   "#f46a9b",
@@ -23,13 +22,10 @@ export const chartmakerMultiple = (data: {
   const width = data.labels.length <= 8 ? 1000 : 125 * data.labels.length
   const height = 600
   const backgroundColour = "rgba(27,27,27,255)"
-  const chartJSNodeCanvas = new ChartJSNodeCanvas({
-    width,
-    height,
-    backgroundColour,
-  })
+  const chartJSNodeCanvas = createCanvas(width, height)
+  const ctx = chartJSNodeCanvas.getContext("2d")
 
-  const lineChartConfig: ChartConfiguration<any> = {
+  const chart = new Chart(ctx as unknown as ChartItem, {
     plugins: [ChartDataLabels],
     type: "line",
     data: {
@@ -66,6 +62,8 @@ export const chartmakerMultiple = (data: {
         },
       },
     },
-  }
-  return chartJSNodeCanvas.renderToBufferSync(lineChartConfig)
+  })
+  const b = chartJSNodeCanvas.toBuffer()
+  chart.destroy()
+  return b
 }
