@@ -1,6 +1,20 @@
 import express from "express"
 import { chartmaker } from "./chartmaker"
 import { chartmakerMultiple } from "./chartmaker-multiple"
+import ChartDataLabels from "chartjs-plugin-datalabels"
+import { Chart } from "chart.js"
+
+Chart.register(ChartDataLabels, {
+  id: "BackgroundColor",
+  beforeDraw: chart => {
+    const { ctx } = chart
+    ctx.save()
+    ctx.fillStyle = "rgba(27,27,27,255)"
+    ctx.fillRect(0, 0, chart.canvas.width, chart.canvas.height)
+    ctx.restore()
+  },
+})
+
 const app = express()
 const port = process.env.PORT || 3000
 
