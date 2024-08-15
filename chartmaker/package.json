@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme",
   "dependencies": {
-    "canvas": "^2.11.2",
+    "canvas": "^3.0.0-rc2",
     "chart.js": "^4.4.3"
   },
   "devDependencies": {
