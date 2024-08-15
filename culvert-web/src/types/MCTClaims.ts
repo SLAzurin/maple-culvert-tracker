@@ -1,7 +1,7 @@
 interface MCTClaims {
-  exp: string
-  discord_username: string
-  discord_server_id: string
+	exp: string;
+	discord_username: string;
+	discord_server_id: string;
 }
 
-export default MCTClaims
+export default MCTClaims;
