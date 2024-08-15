@@ -1,1 +1,61 @@
-docker-compose-base.yml
+services:
+  bot:
+    depends_on:
+      - db16
+      - chartmaker
+      - valkey
+    image: ghcr.io/slazurin/maple-culvert-tracker/bot
+    restart: unless-stopped
+    env_file: .env
+  chartmaker:
+    image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker
+    restart: unless-stopped
+    init: true
+    environment:
+      - NODE_ENV=production
+  valkey:
+    image: valkey/valkey:7.2-alpine
+    volumes:
+      - mapleculverttracker_valkey_data:/data
+    restart: unless-stopped
+  db16:
+    image: postgres:16-alpine
+    volumes:
+      - mapleculverttracker_pg16_data:/var/lib/postgresql/data
+      - ./sqlfiles:/root/sqlfiles
+    restart: unless-stopped
+    env_file:
+      - .env
+  nginx:
+    depends_on:
+      - web
+      - bot
+    image: nginx:1.23-alpine
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+  web:
+    image: ghcr.io/slazurin/maple-culvert-tracker/web
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    init: true
+  periodicredis:
+    depends_on:
+      - valkey
+    image: ghcr.io/slazurin/maple-culvert-tracker/periodicredis
+    restart: unless-stopped
+    env_file: .env
+  cron:
+    image: ghcr.io/slazurin/maple-culvert-tracker/cron
+    restart: unless-stopped
+    env_file:
+      - .env
+    init: true
+    entrypoint: sh
+    command: ['-c', '/usr/sbin/crond -f -c /etc/cron']
+volumes:
+  mapleculverttracker_pg16_data:
+  mapleculverttracker_valkey_data:

@@ -2,15 +2,14 @@
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/G2G0WUCP2)
 
-This software helps track Maplestory culvert scores over time!
-
-This software is best used in conjunction with my https://github.com/SLAzurin/gpq-image-ocr-gui
+This software helps track Maplestory culvert scores over time!  
+It is best used in conjunction with my https://github.com/SLAzurin/gpq-image-ocr-gui
 
 Join the Discord server for update notifications! Here: Server under construction.
 
-A lot of work still needs to be done to be considered a well established Open Source software, so it is like Public Source instead.
+A lot of work still needs to be done to be considered a well established and well documented Open Source software, so it is much more of a Public Source project instead.
 
-# Pre-requisites
+# pre-requisites for development
 
 Install Docker Engine (Linux) or Docker Desktop (Linux/Windows/Mac) for development.  
 Install Golang 1.23.x or newer versions when developing.  
@@ -19,7 +18,7 @@ Enable `pnpm` with this command:
 
 - Command: `corepack enable && corepack prepare --activate`
 
-## Small note
+## on a small note
 
 Hosting this on the Cloud is recommended to keep stable uptime.
 
@@ -30,7 +29,15 @@ I suggest the following providers for competitive pricing:
 
 You can pick any cpu size, but I'd suggest a minimum of 1gb of ram and 40gb of storage.
 
-# developer notes
+# Pre-requisites
+
+You must setup a discord bot first before running this application.  
+Follow the steps below to create your discord bot:
+
+1. Navigate here https://discord.com/developers/applications and login with your discord account.
+2. 
+
+# development notes
 
 1. Setup the discord bot and their permissions and make it join your test server.
 2. Setup the `.env` file according to `.env.template`.
@@ -45,9 +52,9 @@ You can pick any cpu size, but I'd suggest a minimum of 1gb of ram and 40gb of s
 6. Run the Website control panel and leave it in the background.
    - Command: `cd culvert-web ; pnpm run dev`
 
-# production deployment
+# Getting Setup
 
-1. Setup the discord bot and their permissions and make it join your server.
+1. Setup the discord bot and their permissions and make it join your server. (See pre-requisites)
 2. Setup the `.env` file according to `.env.template`.
 3. Use docker compose, and run the following command:
    - Command: `docker compose up -d`
