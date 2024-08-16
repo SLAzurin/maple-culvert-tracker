@@ -110,7 +110,7 @@ function App() {
 					setStatusMessage("Failed with error " + res);
 					return;
 				}
-				store.dispatch(setCharacters(res));
+				if (res.length > 0) store.dispatch(setCharacters(res));
 			});
 		}
 	}, [action, characters, token]);
@@ -157,7 +157,7 @@ function App() {
 					}
 					return;
 				}
-				store.dispatch(setMembers(res));
+				if (res.length > 0) store.dispatch(setMembers(res));
 				setAction("culvert_score");
 			})();
 		}
