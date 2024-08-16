@@ -13,7 +13,7 @@ A lot of work still needs to be done to be considered a well established Open So
 # Pre-requisites
 
 Install Docker Engine (Linux) or Docker Desktop (Linux/Windows/Mac) for development.  
-Install Golang 1.22.x or newer versions when developing.  
+Install Golang 1.23.x or newer versions when developing.  
 Install Nodejs 20.x or newer even number LTS versions. (Using [nvm.sh](https://github.com/nvm-sh/nvm) is recommended)  
 Enable `pnpm` with this command:
 
