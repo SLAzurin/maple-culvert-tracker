@@ -1,22 +1,15 @@
-import { ChartJSNodeCanvas } from "chartjs-node-canvas"
-import { ChartConfiguration } from "chart.js"
+import { createCanvas } from "canvas"
+import { ChartItem } from "chart.js"
 import Chart from "chart.js/auto"
 import ChartDataLabels from "chartjs-plugin-datalabels"
-
-Chart.register(ChartDataLabels)
 
 export const chartmaker = (
   data: { label: string; score: number }[],
 ): Buffer => {
   const width = data.length <= 8 ? 1000 : 125 * data.length
   const height = 600
-  const backgroundColour = "rgba(27,27,27,255)"
-  const chartJSNodeCanvas = new ChartJSNodeCanvas({
-    width,
-    height,
-    backgroundColour,
-  })
-
+  const chartJSNodeCanvas = createCanvas(width, height)
+  const ctx = chartJSNodeCanvas.getContext("2d")
   const labels: string[] = []
   const rawData: number[] = []
   data.forEach(row => {
@@ -24,7 +17,8 @@ export const chartmaker = (
     rawData.push(row.score)
   })
 
-  const lineChartConfig: ChartConfiguration<any> = {
+  // This works. yes.
+  const chart = new Chart(ctx as unknown as ChartItem, {
     plugins: [ChartDataLabels],
     type: "line",
     data: {
@@ -60,6 +54,8 @@ export const chartmaker = (
         },
       },
     },
-  }
-  return chartJSNodeCanvas.renderToBufferSync(lineChartConfig)
+  })
+  const b = chartJSNodeCanvas.toBuffer()
+  chart.destroy()
+  return b
 }

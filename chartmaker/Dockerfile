@@ -1,4 +1,4 @@
-FROM node:20-slim AS base
+FROM node:22-slim AS base
 ARG BUILDARCH
 # TODO: Either include this code or fork the project, replace with @napi-rs/canvas to make it work on arm64
 RUN echo "$BUILDARCH" | grep -v "amd64" && apt-get update && \
