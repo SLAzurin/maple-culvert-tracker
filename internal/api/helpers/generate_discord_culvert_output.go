@@ -37,7 +37,7 @@ func GenerateDiscordCulvertOutput(chartImageBinData io.ReadCloser, charName stri
 	if otherStatsStruct != nil {
 		placementStr := ""
 		if otherStatsStruct.GuildTopPlacement == 0 {
-			placementStr = "The heaviest sandbagger in Maplestory didn't even make it in the top 200 in the guild..."
+			placementStr = "This heavy sandbagger didn't even make it in the guild's top 200..."
 		} else {
 			placementStr = "#" + strconv.Itoa(otherStatsStruct.GuildTopPlacement) + " in the guild"
 			if date != "" {
