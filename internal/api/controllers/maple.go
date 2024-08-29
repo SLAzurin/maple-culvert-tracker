@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
+	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
@@ -102,25 +103,25 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 		return
 	}
 	thisWeek := time.Now()
-	thisSunday := thisWeek.Add(time.Hour * -24 * time.Duration(int(thisWeek.Weekday())))
+	thisReset := cmdhelpers.GetCulvertResetDate(thisWeek)
 	var err error
 	if body.Week != "" {
 		thisWeek, err = time.Parse("2006-01-02", body.Week)
 		if err != nil || thisWeek.Weekday() != 0 {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
-				"error": "Date incorrectly formatted or isn't sunday.",
+				"error": "Date incorrectly formatted or isn't a culvert reset day.",
 			})
 			return
 		}
 	}
-	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(int(thisWeek.Weekday())))
+	thisWeek = cmdhelpers.GetCulvertResetDate(thisWeek)
 	thisWeekStr := thisWeek.Format("2006-01-02")
 	shouldNotifyScoreUpdated := false
 	if body.IsNew {
 		// Check if we should notify the involved channels if the insert is successful
-		if thisSunday.Format("2006-01-02") == thisWeek.Format("2006-01-02") {
+		if thisReset.Format("2006-01-02") == thisWeek.Format("2006-01-02") {
 			shouldNotifyScoreUpdated = true
-			rows, err := db.DB.Query("SELECT id FROM character_culvert_scores WHERE culvert_date = $1 AND score > 0 ORDER BY score DESC LIMIT 1", thisSunday.Format("2006-01-02"))
+			rows, err := db.DB.Query("SELECT id FROM character_culvert_scores WHERE culvert_date = $1 AND score > 0 ORDER BY score DESC LIMIT 1", thisReset.Format("2006-01-02"))
 			if err != nil {
 				log.Println("DB ERROR ShouldNotifyScoreUpdated", err)
 				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -188,19 +189,19 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 }
 func (m MapleController) GETCulvert(c *gin.Context) {
 	thisWeek := time.Now()
-	thisWeek = thisWeek.Add(time.Hour * -24 * time.Duration(int(thisWeek.Weekday())))
-	lastWeek := thisWeek.Add(time.Hour * -24 * 7)
+	thisWeek = cmdhelpers.GetCulvertResetDate(thisWeek)
+	lastWeek := cmdhelpers.GetCulvertPreviousDate(thisWeek)
 	editableDays := []string{}
 	for i := 0; i < 3; i++ {
 		editableDays = append(editableDays, thisWeek.Format("2006-01-02"))
-		thisWeek = thisWeek.Add(time.Hour * -24 * 7)
+		thisWeek = cmdhelpers.GetCulvertPreviousDate(thisWeek)
 	}
 	week := c.Query("week")
 	if week != "" {
 		queryWeek, err := time.Parse("2006-01-02", week)
-		if err != nil || queryWeek.Weekday() != 0 {
+		if err != nil || queryWeek.Weekday() != cmdhelpers.GetCulvertResetDay(queryWeek) {
 			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-				"error": "Date format error... Probably not your fault. Also date must be Sunday.",
+				"error": "Date format error... Probably not your fault. Also date must be a reset date.",
 			})
 			return
 		}

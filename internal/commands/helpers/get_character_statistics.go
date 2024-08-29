@@ -19,7 +19,7 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	var err error
 	dateRaw, err = time.Parse("2006-01-02", date)
 	if err != nil {
-		dateRaw, err = GetLatestSundayDate(db)
+		dateRaw, err = GetLatestResetDate(db)
 		if err != nil {
 			log.Println(err)
 			return nil, err

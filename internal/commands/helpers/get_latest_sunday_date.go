@@ -10,7 +10,7 @@ import (
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 )
 
-func GetLatestSundayDate(db *sql.DB) (time.Time, error) {
+func GetLatestResetDate(db *sql.DB) (time.Time, error) {
 	stmt := SELECT(CharacterCulvertScores.CulvertDate.AS("culvert_date")).FROM(CharacterCulvertScores).GROUP_BY(CharacterCulvertScores.CulvertDate).ORDER_BY(CharacterCulvertScores.CulvertDate.DESC()).LIMIT(1)
 
 	v := struct {
