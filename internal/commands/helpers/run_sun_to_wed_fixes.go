@@ -36,6 +36,7 @@ func RunSunToWedFixes(db *sql.DB) {
 	for _, v := range wrongDates {
 		// convert to wednesday
 		rawDate := GetCulvertResetDate(v.CulvertDate)
+		log.Println("Fixing date", v.CulvertDate, "to", rawDate)
 		updateStmt := CharacterCulvertScores.UPDATE(CharacterCulvertScores.CulvertDate).SET(Date(rawDate.Year(), rawDate.Month(), rawDate.Day())).WHERE(CharacterCulvertScores.CulvertDate.EQ(DateT(v.CulvertDate)))
 		_, err := updateStmt.Exec(db)
 		if err != nil {
