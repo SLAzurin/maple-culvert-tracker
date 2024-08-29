@@ -64,7 +64,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	for i := 0; i < int(weeks); i++ {
 		allDates = append(allDates, DateT(rawDate))
 		allDatesRaw = append(allDatesRaw, rawDate)
-		rawDate = rawDate.Add(time.Hour * 24 * -7)
+		rawDate = helpers.GetCulvertPreviousDate(rawDate)
 	}
 
 	chars, err := helpers.GetAcviveCharacters(apiredis.RedisDB, db.DB)

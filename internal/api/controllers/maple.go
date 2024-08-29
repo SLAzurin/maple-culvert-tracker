@@ -107,7 +107,7 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 	var err error
 	if body.Week != "" {
 		thisWeek, err = time.Parse("2006-01-02", body.Week)
-		if err != nil || thisWeek.Weekday() != 0 {
+		if err != nil || thisWeek.Weekday() != cmdhelpers.GetCulvertResetDay(thisWeek) {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"error": "Date incorrectly formatted or isn't a culvert reset day.",
 			})
@@ -219,7 +219,7 @@ func (m MapleController) GETCulvert(c *gin.Context) {
 			return
 		}
 		thisWeek = queryWeek
-		lastWeek = thisWeek.Add(time.Hour * -24 * 7)
+		lastWeek = cmdhelpers.GetCulvertPreviousDate(thisWeek)
 	} else {
 		thisWeek, _ = time.Parse("2006-01-02", editableDays[0])
 		// lastWeek was not manipulated
