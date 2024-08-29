@@ -10,7 +10,7 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/api"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
-	_ "github.com/slazurin/maple-culvert-tracker/internal/db"
+	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
 var s *discordgo.Session
@@ -55,6 +55,8 @@ func main() {
 		}
 		r.Run("0.0.0.0:" + port)
 	}()
+
+	go helpers.RunSunToWedFixes(db.DB)
 
 	signal.Notify(stop, os.Interrupt)
 	log.Println("Press Ctrl+C to exit")
