@@ -8,6 +8,11 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+// UpdateCommands updates the slash commands in the given guild.
+//
+// It will update or create new commands, and delete any remaining commands.
+//
+// The commands are identified by their name.
 func UpdateCommands(s *discordgo.Session, commands []*discordgo.ApplicationCommand) error {
 	log.Println("Updating Application slash commands")
 	cmds, err := s.ApplicationCommands(s.State.User.ID, os.Getenv("DISCORD_GUILD_ID"))

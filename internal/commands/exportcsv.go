@@ -30,13 +30,13 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			weeks = v.IntValue()
 		}
 	}
-	rawDate, err := helpers.GetLatestSundayDate(db.DB)
+	rawDate, err := helpers.GetLatestResetDate(db.DB)
 	if err != nil {
 		log.Println("exportcsv", err)
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "Failed to retrieve latest sunday date. See server logs.",
+				Content: "Failed to retrieve latest culvert reset date. See server logs.",
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
@@ -55,9 +55,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			})
 			return
 		}
-		for rawDate.Weekday() != time.Sunday {
-			rawDate = rawDate.Add(time.Hour * -24)
-		}
+		rawDate = helpers.GetCulvertResetDate(rawDate)
 	}
 	originalInputDate := rawDate.Format("2006-01-02")
 
@@ -66,7 +64,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	for i := 0; i < int(weeks); i++ {
 		allDates = append(allDates, DateT(rawDate))
 		allDatesRaw = append(allDatesRaw, rawDate)
-		rawDate = rawDate.Add(time.Hour * 24 * -7)
+		rawDate = helpers.GetCulvertPreviousDate(rawDate)
 	}
 
 	chars, err := helpers.GetAcviveCharacters(apiredis.RedisDB, db.DB)

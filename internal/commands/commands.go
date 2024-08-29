@@ -5,6 +5,7 @@ import (
 )
 
 var culvertMinWeeks = float64(8)
+var exportCsvMinWeeks = float64(4)
 
 var Commands = []*discordgo.ApplicationCommand{
 	{
@@ -114,7 +115,7 @@ var Commands = []*discordgo.ApplicationCommand{
 			{
 				Required:    false,
 				Type:        discordgo.ApplicationCommandOptionInteger,
-				MinValue:    &culvertMinWeeks,
+				MinValue:    &exportCsvMinWeeks,
 				MaxValue:    52,
 				Name:        "weeks",
 				Description: "Number of weeks to export",
