@@ -19,6 +19,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min";
 import Rename from "./routes/rename";
 import NewChar from "./routes/newchar";
 import LinkDiscord from "./routes/LinkDiscord";
+import EditGlobalSettings from "./routes/EditGlobalSettings";
 
 const router = createBrowserRouter(
 	createRoutesFromElements([
@@ -26,6 +27,7 @@ const router = createBrowserRouter(
 		<Route path="/rename" element={<Rename />} />,
 		<Route path="/newchar" element={<NewChar />} />,
 		<Route path="/linkdiscord" element={<LinkDiscord />} />,
+		<Route path="/edit-global-settings" element={<EditGlobalSettings />} />,
 	]),
 );
 

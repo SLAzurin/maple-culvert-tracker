@@ -37,6 +37,12 @@ func NewRouter() *gin.Engine {
 			}
 
 		}
+		settingsGroup := apiGroup.Group("/settings")
+		{
+			settings := controllers.SettingsController{}
+			settingsGroup.GET("/get-editable", settings.GETEditable)
+			// settingsGroup.POST("/set", settings.POST)
+		}
 	}
 	return router
 }
