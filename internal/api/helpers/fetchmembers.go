@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
@@ -36,7 +37,7 @@ func FetchMembers(discordServerID string, DiscordSession *discordgo.Session) ([]
 	}
 
 	// Get members that are member
-	roleIDs := strings.Split(os.Getenv("DISCORD_GUILD_ROLE_ID"), ",")
+	roleIDs := strings.Split(apiredis.CONF_DISCORD_GUILD_ROLE_IDS.GetWithDefault(apiredis.RedisDB, os.Getenv("DISCORD_GUILD_ROLE_ID")), ",")
 	roleIDsMap := map[string]struct{}{}
 	for _, v := range roleIDs {
 		roleIDsMap[v] = struct{}{}

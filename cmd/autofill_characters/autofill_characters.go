@@ -52,7 +52,7 @@ func main() {
 			trimmedCharName = strings.Trim(trimmedCharName, " ⭐")
 			log.Println("Onto", trimmedCharName)
 			time.Sleep(time.Second)
-			charData, err := helpers.FetchCharacterData(trimmedCharName, os.Getenv("MAPLE_REGION"))
+			charData, err := helpers.FetchCharacterData(trimmedCharName, apiredis.OPTIONAL_CONF_MAPLE_REGION.GetWithDefault(apiredis.RedisDB, "na"))
 
 			if err != nil {
 				log.Println("[WARN]", trimmedCharName, "not found in official rankings and will be skipped")

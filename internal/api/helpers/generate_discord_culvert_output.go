@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
@@ -25,7 +26,7 @@ func GenerateDiscordCulvertOutput(chartImageBinData io.ReadCloser, charName stri
 		Fields: []*discordgo.MessageEmbedField{},
 	}
 
-	charData, err := FetchCharacterData(charName, os.Getenv("MAPLE_REGION"))
+	charData, err := FetchCharacterData(charName, apiredis.OPTIONAL_CONF_MAPLE_REGION.GetWithDefault(apiredis.RedisDB, os.Getenv("MAPLE_REGION")))
 	if err == nil {
 		embeddedData.Title = strings.Trim(charData.CharacterName+" "+date, " ")
 		embeddedData.Thumbnail = &discordgo.MessageEmbedThumbnail{URL: charData.CharacterImgURL}

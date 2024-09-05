@@ -4,61 +4,47 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"syscall"
 
-	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/slazurin/maple-culvert-tracker/internal/api"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
-	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
-var s *discordgo.Session
+func main() {
+	helpers.PreflightTest()
+	stop := make(chan os.Signal, 1)
 
-func init() {
+	log.Println("Starting discord bot")
 	var err error
-	s, err = discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
+	api.DiscordSession, err = helpers.CreateBotSessionWithCommands(commands.Commands, commands.CommandHandlers)
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
-	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if h, ok := commands.CommandHandlers[i.ApplicationCommandData().Name]; ok && os.Getenv("DISCORD_GUILD_ID") == i.GuildID {
-			log.Printf("Got discord command %v from %v\n", i.ApplicationCommandData().Name, i.Member.User.Username)
-			h(s, i)
-			log.Printf("Done discord command %v from %v\n", i.ApplicationCommandData().Name, i.Member.User.Username)
-		}
-	})
-}
-
-func main() {
-	stop := make(chan os.Signal, 1)
-	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
-		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
-		err := helpers.UpdateCommands(s, commands.Commands)
-		if err != nil {
-			stop <- os.Interrupt
-		}
-		log.Println("Done UpdateCommands Successfully")
-	})
-	err := s.Open()
+	err = api.DiscordSession.Open()
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer s.Close()
 
 	go func() {
-		api.DiscordSession = s
 		r := api.NewRouter()
 		port := os.Getenv("BACKEND_HTTP_PORT")
 		if port == "" {
 			port = "8080"
 		}
 		r.Run("0.0.0.0:" + port)
+		// gin router no need to close anything
 	}()
 
-	go helpers.RunSunToWedFixes(db.DB)
-
-	signal.Notify(stop, os.Interrupt)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	log.Println("Press Ctrl+C to exit")
 	<-stop
+	if api.DiscordSession != nil {
+		err = api.DiscordSession.Close()
+		if err != nil {
+			log.Println("Cannot close the session:", err.Error())
+		}
+	}
+	log.Println("Bye")
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 )
 
 var randomFluffDuelText = []string{
@@ -33,7 +34,7 @@ func GenerateDiscordCulvertDuelOutput(chartImageBinData io.ReadCloser, yourWin b
 	// otherStatsStruct to be implemented when we get more stats
 	title := yourCharName + " wins against " + theirCharName
 	// thumbnail := "attachment://outcome.webp"
-	thumbnail := os.Getenv("CULVERT_DUEL_THUMBNAIL_URL")
+	thumbnail := apiredis.OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL.GetWithDefault(apiredis.RedisDB, os.Getenv("CULVERT_DUEL_THUMBNAIL_URL"))
 	// filename := "./backend_static/victory.webp"
 	if !yourWin {
 		// filename = "./backend_static/defeat.webp"
@@ -57,7 +58,7 @@ func GenerateDiscordCulvertDuelOutput(chartImageBinData io.ReadCloser, yourWin b
 		}
 	}
 
-	// charData, err := FetchCharacterData(charName, os.Getenv("MAPLE_REGION"))
+	// charData, err := FetchCharacterData(charName, apiredis.OPTIONAL_CONF_MAPLE_REGION.GetWithDefault(apiredis.RedisDB, os.Getenv("MAPLE_REGION")))
 	// if err == nil {
 	// 	embeddedData.Title = strings.Trim(charData.CharacterName+" "+date, " ")
 	// 	embeddedData.Thumbnail = &discordgo.MessageEmbedThumbnail{URL: charData.CharacterImgURL}

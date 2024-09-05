@@ -7,6 +7,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
@@ -53,8 +54,8 @@ func main() {
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
 
-		content := "Reminder to input culvert scores " + date + " " + os.Getenv("DISCORD_REMINDER_SUFFIX")
-		s.ChannelMessageSend(os.Getenv("DISCORD_REMINDER_CHANNEL_ID"), content)
+		content := "Reminder to input culvert scores " + date + " " + apiredis.OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX.GetWithDefault(apiredis.RedisDB, os.Getenv("DISCORD_REMINDER_SUFFIX"))
+		s.ChannelMessageSend(apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, os.Getenv("DISCORD_REMINDER_CHANNEL_ID")), content)
 		sendMsgCh <- struct{}{}
 	})
 	err = s.Open()
