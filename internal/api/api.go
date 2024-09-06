@@ -40,7 +40,7 @@ func NewRouter() *gin.Engine {
 		settingsGroup := apiGroup.Group("/settings")
 		{
 			settings := controllers.SettingsController{}
-			settingsGroup.GET("/get-editable", settings.GETEditable)
+			settingsGroup.GET("/get-editable", settings.GETEditable(DiscordSession))
 			// settingsGroup.POST("/set", settings.POST)
 		}
 	}
