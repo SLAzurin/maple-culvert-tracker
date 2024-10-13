@@ -41,7 +41,7 @@ func NewRouter() *gin.Engine {
 		{
 			settings := controllers.SettingsController{}
 			settingsGroup.GET("/editable", settings.GETEditable(DiscordSession))
-			// settingsGroup.POST("/set", settings.POST)
+			settingsGroup.PATCH("/editable", settings.PatchEditable(DiscordSession))
 		}
 	}
 	return router
