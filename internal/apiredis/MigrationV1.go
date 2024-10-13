@@ -1,12 +1,20 @@
 package apiredis
 
 import (
+	"context"
 	"os"
 
 	"github.com/redis/go-redis/v9"
 )
 
 func MigrationV1(rdb *redis.Client) error {
+	// wipe old data
+	oldDataDiscordMembersKey := "discord_members_" + os.Getenv("DISCORD_GUILD_ID")
+	err := rdb.Del(context.Background(), oldDataDiscordMembersKey).Err()
+	if err != nil {
+		return err
+	}
+	// Import old data to new keys
 	var migrationV1EnvToKeys = map[string]redisInternalKey{
 		"DISCORD_MEMBERS_MAIN_CHANNEL_ID": CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID,
 		"DISCORD_REMINDER_CHANNEL_ID":     CONF_DISCORD_ADMIN_CHANNEL_ID,
