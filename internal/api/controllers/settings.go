@@ -48,15 +48,12 @@ func (SettingsController) GETEditable(s *discordgo.Session) func(c *gin.Context)
 			apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.ToString(): EditableSetting{
 				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID),
 				Value:                    apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, ""),
-				Key:                      apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.ToString(),
 				EditableType:             string(apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.EditableType),
 				AvailableChannels:        channels,
-				Multiple:                 false,
 			},
 			apiredis.CONF_DISCORD_GUILD_ROLE_IDS.ToString(): EditableSetting{
 				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.CONF_DISCORD_GUILD_ROLE_IDS),
 				Value:                    apiredis.CONF_DISCORD_GUILD_ROLE_IDS.GetWithDefault(apiredis.RedisDB, ""),
-				Key:                      apiredis.CONF_DISCORD_GUILD_ROLE_IDS.ToString(),
 				EditableType:             string(apiredis.CONF_DISCORD_GUILD_ROLE_IDS.EditableType),
 				AvailableRoles:           roles,
 				Multiple:                 true,
@@ -64,26 +61,22 @@ func (SettingsController) GETEditable(s *discordgo.Session) func(c *gin.Context)
 			apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID.ToString(): EditableSetting{
 				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID),
 				Value:                    apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, ""),
-				Key:                      apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID.ToString(),
 				EditableType:             string(apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID.EditableType),
 				AvailableChannels:        channels,
 			},
 			apiredis.OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL.ToString(): EditableSetting{
 				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL),
 				Value:                    apiredis.OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL.GetWithDefault(apiredis.RedisDB, ""),
-				Key:                      apiredis.OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL.ToString(),
 				EditableType:             string(apiredis.OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL.EditableType),
 			},
 			apiredis.OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX.ToString(): EditableSetting{
 				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX),
 				Value:                    apiredis.OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX.GetWithDefault(apiredis.RedisDB, ""),
-				Key:                      apiredis.OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX.ToString(),
 				EditableType:             string(apiredis.OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX.EditableType),
 			},
 			apiredis.OPTIONAL_CONF_MAPLE_REGION.ToString(): EditableSetting{
 				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.OPTIONAL_CONF_MAPLE_REGION),
 				Value:                    apiredis.OPTIONAL_CONF_MAPLE_REGION.GetWithDefault(apiredis.RedisDB, ""),
-				Key:                      apiredis.OPTIONAL_CONF_MAPLE_REGION.ToString(),
 				EditableType:             string(apiredis.OPTIONAL_CONF_MAPLE_REGION.EditableType),
 				AvailableSelections:      []string{"", "na", "eu"},
 			},
