@@ -252,7 +252,7 @@ function App() {
 										<button
 											className="btn btn-primary"
 											onClick={() => {
-												navigate("/edit-global-settings");
+												navigate("/edit-settings");
 											}}
 										>
 											Edit Global Settings
