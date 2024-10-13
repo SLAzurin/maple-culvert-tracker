@@ -2,17 +2,22 @@ export const getHumanValue = (editableValues: any, key: string) => {
 	switch (editableValues[key].editable_type) {
 		case "discord_channel":
 			if (editableValues[key].multiple) {
-				const cs = editableValues[key].value.split(",");
-				const cn: string[] = [];
-				cs.forEach((channelID: string) => {
-					const channelName = (
-						editableValues[key].available_channels as any[]
-					).find(
-						(cdata: any) => cdata.id === channelID && cdata.type === 0,
-					)?.name;
-					cn.push(channelName || channelID);
-				});
-				return cn.join(", ");
+				// const cs = editableValues[key].value.split(",");
+				// const cn: string[] = [];
+				// cs.forEach((channelID: string) => {
+				// 	const channelName = (
+				// 		editableValues[key].available_channels as any[]
+				// 	).find(
+				// 		(cdata: any) => cdata.id === channelID && cdata.type === 0,
+				// 	)?.name;
+				// 	cn.push(channelName || channelID);
+				// });
+				// return cn.join(", ");
+				//
+				//
+				//
+				//
+				// This shouldn't be possible yet
 			} else
 				return (
 					editableValues[key].available_channels.find(
