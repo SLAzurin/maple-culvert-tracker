@@ -9,12 +9,90 @@ const EditSettings = () => {
 	const navigate = useNavigate();
 	const token = useSelector(selectToken);
 	const [status, setStatus] = useState("");
+	const [statusColor, setStatusColor] = useState("green");
 	const [editableValues, setEditableValues] = useState({} as any);
 	const [newValuesMap, setNewValuesMap] = useState({} as any);
+
+	const saveValue = async (key: string) => {
+		if (newValuesMap[key] === undefined) {
+			setStatus("No value provided");
+			setStatusColor("red");
+			return;
+		}
+		if (newValuesMap[key] === editableValues[key].value) {
+			setStatus("No change between old and new");
+			setStatusColor("red");
+			return;
+		}
+		try {
+			setStatus(
+				"Saving " + editableValues[key].human_readable_description.name + "...",
+			);
+			setStatusColor("");
+			const res = await fetch("/api/editable-settings", {
+				method: "PATCH",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${token}`,
+				},
+				body: JSON.stringify({
+					key: key,
+					value: newValuesMap[key],
+				}),
+			});
+			if (res.status !== 200) {
+				let json: any = {};
+				try {
+					json = await res.json();
+				} catch {
+					// ignore
+				}
+				setStatus(
+					"Failed to save value: " +
+						editableValues[key].human_readable_description.name +
+						" Status: " +
+						res.status +
+						" " +
+						res.statusText +
+						"\n" +
+						json?.error,
+				);
+				setStatusColor("red");
+				return;
+			}
+
+			setStatus(
+				"Saved " +
+					editableValues[key].human_readable_description.name +
+					" successfully!",
+			);
+			setStatusColor("green");
+
+			setEditableValues({
+				...editableValues,
+				[key]: {
+					...editableValues[key],
+					value: newValuesMap[key],
+				},
+			});
+		} catch (e: any) {
+			setStatus(
+				"Failed to save value: " +
+					editableValues[key].human_readable_description.name +
+					"\n" +
+					e.toString(),
+			);
+			setStatusColor("red");
+		}
+	};
 
 	useEffect(() => {
 		try {
 			fetchEditableSettings(token).then((res) => {
+				const vals = Object.entries(res).map(([key, v]) => ({
+					[key]: (v as any).value,
+				}));
+				setNewValuesMap(Object.assign(newValuesMap, ...vals));
 				setEditableValues(res);
 			});
 		} catch {
@@ -24,11 +102,17 @@ const EditSettings = () => {
 
 	return (
 		<div>
-			<button className="btn btn-secondary" onClick={() => navigate(-1)}>
+			<button className="btn btn-secondary" onClick={() => navigate("/")}>
 				Return to homepage
 			</button>
 			<br />
 			<br />
+
+			{status !== "" && (
+				<h2 style={statusColor !== "" ? { color: statusColor } : {}}>
+					{status}
+				</h2>
+			)}
 
 			<form>
 				{Object.keys(editableValues).map((key) => (
@@ -57,7 +141,7 @@ const EditSettings = () => {
 														[key]: e.target.value,
 													});
 												}}
-												value={newValuesMap[key] || editableValues[key].value}
+												value={newValuesMap[key] ?? editableValues[key].value}
 											/>
 										</div>
 									);
@@ -195,6 +279,17 @@ const EditSettings = () => {
 									}
 							}
 						})()}
+
+						<br />
+						<button
+							className="btn btn-primary"
+							onClick={async (e) => {
+								e.preventDefault();
+								await saveValue(key);
+							}}
+						>
+							Save {editableValues[key].human_readable_description.name}
+						</button>
 					</div>
 				))}
 			</form>

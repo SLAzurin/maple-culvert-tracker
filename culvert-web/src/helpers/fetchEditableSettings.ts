@@ -1,6 +1,6 @@
 const fetchEditableSettings = async (auth: string): Promise<any> => {
 	try {
-		const res = await fetch("/api/settings/editable", {
+		const res = await fetch("/api/editable-settings", {
 			headers: {
 				Authorization: `Bearer ${auth}`,
 			},

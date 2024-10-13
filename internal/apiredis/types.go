@@ -10,17 +10,18 @@ import (
 type editableType string
 
 const (
-	editableTypeString         editableType = "string"
-	editableTypeUInt           editableType = "uint"
-	editableTypeDiscordRole    editableType = "discord_role"
-	editableTypeDiscordChannel editableType = "discord_channel"
-	editableTypeSelection      editableType = "selection"
-	editableTypeNone           editableType = "none"
+	EditableTypeString         editableType = "string"
+	EditableTypeUInt           editableType = "uint"
+	EditableTypeDiscordRole    editableType = "discord_role"
+	EditableTypeDiscordChannel editableType = "discord_channel"
+	EditableTypeSelection      editableType = "selection"
+	EditableTypeNone           editableType = "none"
 )
 
 type redisInternalKey struct {
 	Name         string
 	EditableType editableType
+	Multiple     bool
 }
 
 func (k redisInternalKey) ToString() string {
