@@ -13,6 +13,7 @@ import (
 )
 
 func main() {
+	helpers.EnvVarsTest()
 	helpers.PreflightTest()
 	stop := make(chan os.Signal, 1)
 

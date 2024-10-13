@@ -69,7 +69,7 @@ func (EditableSettingsController) PatchEditable(s *discordgo.Session) func(c *gi
 			switch rdbKey.EditableType {
 			case apiredis.EditableTypeDiscordChannel:
 				if rdbKey.Multiple {
-					// TODO: add support for multiple channels later as it is not needed atm
+					// TODO: long-term add support for multiple channels later as it is not needed atm
 					c.JSON(http.StatusNotImplemented, gin.H{
 						"error": "not implemented",
 					})
@@ -134,7 +134,7 @@ func (EditableSettingsController) PatchEditable(s *discordgo.Session) func(c *gi
 					c.JSON(http.StatusOK, gin.H{})
 					return
 				} else {
-					// todo: add support for single roles later as it is not needed atm
+					// TODO: long-term add support for single roles later as it is not needed atm
 					c.JSON(http.StatusNotImplemented, gin.H{
 						"error": "not implemented",
 					})
@@ -203,7 +203,6 @@ func (EditableSettingsController) GETEditable(s *discordgo.Session) func(c *gin.
 			})
 			return
 		}
-		// TODO: filter channels by type 0 (text)
 		c.JSON(http.StatusOK, gin.H{
 			apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.ToString(): EditableSetting{
 				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID),

@@ -77,7 +77,6 @@ func culvertDuel(anyone bool) func(*discordgo.Session, *discordgo.InteractionCre
 					Content: "Your character was not found. Your available characters:",
 				},
 			}
-			// TODO: Use i.interaction thingy member id
 			yourChars, err := helpers.GetCharactersByDiscordID(db.DB, i.Member.User.ID)
 			if err == nil {
 				resp.Data.Flags = discordgo.MessageFlagsEphemeral
