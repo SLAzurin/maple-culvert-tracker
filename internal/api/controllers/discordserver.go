@@ -44,7 +44,7 @@ func (d DiscordServerController) RetrieveMembersForce(c *gin.Context) {
 	}
 
 	resultData, _ := json.Marshal(result)
-	apiredis.RedisDB.Set(context.Background(), c.GetString("discord_server_id")+"_discord_members", string(resultData), 0)
+	apiredis.DATA_DISCORD_MEMBERS.Set(apiredis.RedisDB, string(resultData))
 
 	c.JSON(http.StatusOK, result)
 	c.Abort()

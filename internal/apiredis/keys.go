@@ -14,4 +14,6 @@ const (
 	DATA_DB_VERSION    redisInternalKey = "DATA_DB_VERSION"
 
 	DATA_FIXES_SUN_TO_WED redisInternalKey = "DATA_FIXES_SUN_TO_WED"
+
+	DATA_DISCORD_MEMBERS redisInternalKey = "DATA_DISCORD_MEMBERS"
 )

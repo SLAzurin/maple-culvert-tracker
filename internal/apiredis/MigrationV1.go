@@ -1,7 +1,6 @@
 package apiredis
 
 import (
-	"context"
 	"os"
 
 	"github.com/redis/go-redis/v9"
@@ -26,7 +25,7 @@ func MigrationV1(rdb *redis.Client) error {
 		"CULVERT_DUEL_THUMBNAIL_URL": OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL,
 	}
 	for k, v := range migrationV1EnvToKeys {
-		err := rdb.Set(context.Background(), v.ToString(), os.Getenv(k), 0).Err()
+		err := v.Set(rdb, os.Getenv(k))
 		if err != nil {
 			return err
 		}

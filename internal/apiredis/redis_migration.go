@@ -1,7 +1,6 @@
 package apiredis
 
 import (
-	"context"
 	"log"
 	"strconv"
 
@@ -37,7 +36,7 @@ func Migrate(rdb *redis.Client) error {
 			log.Println("Failed to run Migration from version "+strconv.Itoa(i)+" to "+strconv.Itoa(i+1), err)
 			return err
 		}
-		err = rdb.Set(context.Background(), DATA_REDIS_VERSION.ToString(), strconv.Itoa(i+1), 0).Err()
+		err = DATA_REDIS_VERSION.Set(rdb, strconv.Itoa(i+1))
 		if err != nil {
 			log.Println("Failed to set redis data version "+DATA_REDIS_VERSION, err)
 			return err
