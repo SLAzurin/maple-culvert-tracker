@@ -36,7 +36,7 @@ func main() {
 			} else {
 				resultArr, _ := json.Marshal(result)
 				err = apiredis.DATA_DISCORD_MEMBERS.Set(apiredis.RedisDB, string(resultArr))
-				log.Println("Set", os.Getenv("DISCORD_GUILD_ID")+"_discord_members", err)
+				log.Println("Set", apiredis.DATA_DISCORD_MEMBERS.Name, err)
 			}
 			time.Sleep(time.Minute * 30)
 		}

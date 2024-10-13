@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -17,7 +16,7 @@ type DiscordServerController struct{}
 
 func (d DiscordServerController) RetrieveMembers(c *gin.Context) {
 	result := []data.WebGuildMember{}
-	val, err := apiredis.RedisDB.Get(context.Background(), c.GetString("discord_server_id")+"_discord_members").Result()
+	val, err := apiredis.DATA_DISCORD_MEMBERS.Get(apiredis.RedisDB)
 	if err == redis.Nil {
 		c.AbortWithStatusJSON(http.StatusOK, result)
 		return

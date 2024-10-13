@@ -41,7 +41,7 @@ type postCulvertBody struct {
 }
 
 func (m MapleController) GETCharacters(c *gin.Context) {
-	discordIDs, err := apiredis.RedisDB.Get(c, c.GetString("discord_server_id")+"_discord_members").Result()
+	discordIDs, err := apiredis.DATA_DISCORD_MEMBERS.Get(apiredis.RedisDB)
 	if err != nil {
 		log.Println("Valkey ERROR GETCharacters", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{

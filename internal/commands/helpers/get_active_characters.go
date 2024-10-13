@@ -2,21 +2,20 @@ package helpers
 
 //lint:file-ignore ST1001 Dot imports by jet
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
-	"os"
 
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 
 	"github.com/redis/go-redis/v9"
 	"github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/model"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
 func GetAcviveCharacters(r *redis.Client, db *sql.DB) (*[]model.Characters, error) {
-	discordIDsFullRaw, err := r.Get(context.Background(), os.Getenv("DISCORD_GUILD_ID")+"_discord_members").Result()
+	discordIDsFullRaw, err := apiredis.DATA_DISCORD_MEMBERS.Get(r)
 	if err != nil {
 		return nil, err
 	}
