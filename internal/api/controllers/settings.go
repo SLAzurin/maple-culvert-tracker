@@ -12,13 +12,14 @@ import (
 type SettingsController struct{}
 
 type EditableSetting struct {
-	HumanReadableDescription *apiredis.HumanReadableDescriptions
-	Value                    string               `json:"value"`
-	Key                      string               `json:"key"`
-	EditableType             editableType         `json:"editable_type"`
-	Multiple                 bool                 `json:"multiple"`
-	AvailableRoles           []*discordgo.Role    `json:"available_roles,omitempty"`
-	AvailableChannels        []*discordgo.Channel `json:"available_channels,omitempty"`
+	HumanReadableDescription *apiredis.HumanReadableDescriptions `json:"human_readable_description"`
+	Value                    string                              `json:"value"`
+	Key                      string                              `json:"key"`
+	EditableType             editableType                        `json:"editable_type"`
+	Multiple                 bool                                `json:"multiple"`
+	AvailableRoles           []*discordgo.Role                   `json:"available_roles,omitempty"`
+	AvailableChannels        []*discordgo.Channel                `json:"available_channels,omitempty"`
+	AvailableSelections      []string                            `json:"available_selections,omitempty"`
 }
 
 type editableType string
@@ -28,6 +29,7 @@ const (
 	editableTypeUInt           editableType = "uint"
 	editableTypeDiscordRole    editableType = "discord_role"
 	editableTypeDiscordChannel editableType = "discord_channel"
+	editableTypeSelection      editableType = "selection"
 )
 
 func (SettingsController) GETEditable(s *discordgo.Session) func(c *gin.Context) {
@@ -87,8 +89,8 @@ func (SettingsController) GETEditable(s *discordgo.Session) func(c *gin.Context)
 				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.OPTIONAL_CONF_MAPLE_REGION),
 				Value:                    apiredis.OPTIONAL_CONF_MAPLE_REGION.GetWithDefault(apiredis.RedisDB, ""),
 				Key:                      apiredis.OPTIONAL_CONF_MAPLE_REGION.ToString(),
-				EditableType:             editableTypeString,
-				AvailableRoles:           roles,
+				EditableType:             editableTypeSelection,
+				AvailableSelections:      []string{"na", "eu"},
 			},
 		})
 	}
