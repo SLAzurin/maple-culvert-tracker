@@ -16,7 +16,7 @@ import (
 )
 
 func GetAcviveCharacters(r *redis.Client, db *sql.DB) (*[]model.Characters, error) {
-	discordIDsFullRaw, err := r.Get(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID")).Result()
+	discordIDsFullRaw, err := r.Get(context.Background(), os.Getenv("DISCORD_GUILD_ID")+"_discord_members").Result()
 	if err != nil {
 		return nil, err
 	}

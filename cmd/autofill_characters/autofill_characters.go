@@ -21,7 +21,7 @@ main parses the discord_nickname from Valkey and automatically INSERT them to th
 It is not recommended to run this on a repeat schedule because it cannot handle name changes, and will easily end up with duplicate names.
 */
 func main() {
-	val, err := apiredis.RedisDB.Get(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID")).Result()
+	val, err := apiredis.RedisDB.Get(context.Background(), os.Getenv("DISCORD_GUILD_ID")+"_discord_members").Result()
 	if err != nil {
 		log.Fatalln(err)
 	}
