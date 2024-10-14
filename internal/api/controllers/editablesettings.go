@@ -75,14 +75,21 @@ func (EditableSettingsController) PatchEditable(s *discordgo.Session) func(c *gi
 					})
 					return
 				} else {
-					dChan, err := s.Channel(body.Value)
+					dChan, err := s.GuildChannels(os.Getenv("DISCORD_GUILD_ID"))
 					if err != nil {
 						c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 							"error": "failed to get channel",
 						})
 						return
 					}
-					if dChan.GuildID != os.Getenv("DISCORD_GUILD_ID") {
+					found := false
+					for _, dChan := range dChan {
+						if dChan.ID == body.Value {
+							found = true
+							break
+						}
+					}
+					if !found {
 						c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 							"error": "invalid channel",
 						})
