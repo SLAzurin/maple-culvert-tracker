@@ -32,4 +32,9 @@ jobs:
 
           docker image tag maple-culvert-tracker-${{matrix.service}} ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:$(git rev-parse HEAD)
           docker image tag maple-culvert-tracker-${{matrix.service}} ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:HEAD
+          docker image rm maple-culvert-tracker-${{matrix.service}}:latest
+      - if: github.event_name == 'push' && github.event.base_ref == 'refs/heads/master'
+        run: |
+          docker image tag maple-culvert-tracker-${{matrix.service}}:HEAD ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:latest
+      - run: |
           docker push -a ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}
