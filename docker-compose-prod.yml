@@ -13,7 +13,8 @@ services:
       - "traefik.http.routers.api.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
-      - "traefik.http.services.my-service.loadbalancer.server.port=8080"
+      - "traefik.http.routers.api.service=api-service"
+      - "traefik.http.services.api-service.loadbalancer.server.port=8080"
   chartmaker:
     image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker
     restart: unless-stopped
@@ -49,7 +50,8 @@ services:
       - "traefik.http.routers.static.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/`)"
       - "traefik.http.routers.static.entrypoints=websecure"
       - "traefik.http.routers.static.tls.certresolver=myresolver"
-      - "traefik.http.services.my-service.loadbalancer.server.port=8080"
+      - "traefik.http.routers.static.service=static-service"
+      - "traefik.http.services.static-service.loadbalancer.server.port=8080"
   periodicredis:
     depends_on:
       - valkey
