@@ -9,9 +9,9 @@ services:
     env_file: .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.guestbook.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.guestbook.entrypoints=websecure"
-      - "traefik.http.routers.guestbook.tls.certresolver=myresolver"
+      - "traefik.http.routers.api.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.services.my-service.loadbalancer.server.port=8080"
   chartmaker:
     image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker
@@ -44,9 +44,9 @@ services:
     init: true
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.guestbook.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/`)"
-      - "traefik.http.routers.guestbook.entrypoints=websecure"
-      - "traefik.http.routers.guestbook.tls.certresolver=myresolver"
+      - "traefik.http.routers.static.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/`)"
+      - "traefik.http.routers.static.entrypoints=websecure"
+      - "traefik.http.routers.static.tls.certresolver=myresolver"
       - "traefik.http.services.my-service.loadbalancer.server.port=8080"
   periodicredis:
     depends_on:
