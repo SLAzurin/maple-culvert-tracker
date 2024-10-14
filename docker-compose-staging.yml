@@ -4,19 +4,11 @@ services:
       - db16
       - chartmaker
       - valkey
-    build:
-      dockerfile: Dockerfile.goapps
-      target: final
-      context: .
-      args:
-        APPNAME: main
+    image: ghcr.io/slazurin/maple-culvert-tracker/bot:HEAD
     restart: unless-stopped
     env_file: .env
   chartmaker:
-    build:
-      context: .
-      dockerfile: chartmaker/Dockerfile
-      target: runner
+    image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker:HEAD
     restart: unless-stopped
     init: true
     environment:
@@ -45,10 +37,7 @@ services:
     volumes:
       - ./nginx/conf.d/:/etc/nginx/conf.d/
   web:
-    build:
-      context: .
-      dockerfile: culvert-web/Dockerfile
-      target: runner
+    image: ghcr.io/slazurin/maple-culvert-tracker/web:HEAD
     environment:
       - NODE_ENV=production
     restart: unless-stopped
@@ -56,21 +45,11 @@ services:
   periodicredis:
     depends_on:
       - valkey
-    build:
-      dockerfile: Dockerfile.goapps
-      target: final
-      context: .
-      args:
-        APPNAME: periodicredis
+    image: ghcr.io/slazurin/maple-culvert-tracker/periodicredis:HEAD
     restart: unless-stopped
     env_file: .env
   cron:
-    build:
-      context: .
-      dockerfile: Dockerfile.goapps
-      target: cron
-      args:
-        APPNAME: auto_backup
+    image: ghcr.io/slazurin/maple-culvert-tracker/cron:HEAD
     restart: unless-stopped
     env_file:
       - .env
