@@ -7,18 +7,17 @@ services:
     image: ghcr.io/slazurin/maple-culvert-tracker/bot
     restart: unless-stopped
     env_file: .env
-    deploy:
-      mode: replicated
-      replicas: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.guestbook.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.guestbook.entrypoints=websecure"
+      - "traefik.http.routers.guestbook.tls.certresolver=myresolver"
   chartmaker:
     image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker
     restart: unless-stopped
     init: true
     environment:
       - NODE_ENV=production
-    deploy:
-      mode: replicated
-      replicas: 2
   valkey:
     image: valkey/valkey:7.2-alpine
     volumes:
@@ -42,6 +41,11 @@ services:
       - NODE_ENV=production
     restart: unless-stopped
     init: true
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.guestbook.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/`)"
+      - "traefik.http.routers.guestbook.entrypoints=websecure"
+      - "traefik.http.routers.guestbook.tls.certresolver=myresolver"
   periodicredis:
     depends_on:
       - valkey
@@ -61,6 +65,31 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - "--rolling-restart"
+  traefik:
+    image: traefik:v3
+    restart: unless-stopped
+    volumes:
+      # - traefik.yml:/etc/traefik/traefik.yml # Do not use, since we depend on env variables defined during deployment
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    ports:
+      80:80
+      8080:8080
+      443:443
+    command:
+      - "--providers.docker"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entryPoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--entryPoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+    
 volumes:
   mapleculverttracker_pg16_data:
   mapleculverttracker_valkey_data:
+  letsencrypt:
