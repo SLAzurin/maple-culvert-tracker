@@ -1,0 +1,10 @@
+[http.middlewares]
+[http.middlewares.redirect-to-https.redirectScheme]
+scheme = "https"
+[http.middlewares.hsts-header.headers]
+[http.middlewares.hsts-header.headers.customResponseHeaders]
+Strict-Transport-Security = "max-age=63072000"
+
+[tls.options]
+[tls.options.modern]
+minVersion = "VersionTLS13"
