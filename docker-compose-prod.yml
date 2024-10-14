@@ -9,6 +9,7 @@ services:
     env_file: .env
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.api.priority=100"
       - "traefik.http.routers.api.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
@@ -44,6 +45,7 @@ services:
     init: true
     labels:
       - "traefik.enable=true"
+      - "traefik.http.routers.static.priority=10"
       - "traefik.http.routers.static.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/`)"
       - "traefik.http.routers.static.entrypoints=websecure"
       - "traefik.http.routers.static.tls.certresolver=myresolver"
