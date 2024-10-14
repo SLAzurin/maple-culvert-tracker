@@ -236,6 +236,33 @@ function App() {
 		<div className="App">
 			<header className="App-header">
 				<Login />
+				{token !== "" && (
+					<div className="m-5">
+						<Navbar
+							expand="lg"
+							sticky="top"
+							className="bg-body-tertiary"
+							variant="light"
+						>
+							<Container
+								style={{ justifyContent: "space-between", maxWidth: "95%" }}
+							>
+								<Navbar.Collapse id="basic-navbar-nav">
+									<Nav className="me-auto">
+										<button
+											className="btn btn-primary"
+											onClick={() => {
+												navigate("/edit-settings");
+											}}
+										>
+											Edit Global Settings
+										</button>
+									</Nav>
+								</Navbar.Collapse>
+							</Container>
+						</Navbar>
+					</div>
+				)}
 				{statusMessage !== "" && (
 					<div className="m-5" style={{ color: successful ? "green" : "red" }}>
 						{statusMessage}

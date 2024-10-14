@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -17,7 +16,7 @@ type DiscordServerController struct{}
 
 func (d DiscordServerController) RetrieveMembers(c *gin.Context) {
 	result := []data.WebGuildMember{}
-	val, err := apiredis.RedisDB.Get(context.Background(), "discord_members_"+c.GetString("discord_server_id")).Result()
+	val, err := apiredis.DATA_DISCORD_MEMBERS.Get(apiredis.RedisDB)
 	if err == redis.Nil {
 		c.AbortWithStatusJSON(http.StatusOK, result)
 		return
@@ -44,7 +43,7 @@ func (d DiscordServerController) RetrieveMembersForce(c *gin.Context) {
 	}
 
 	resultData, _ := json.Marshal(result)
-	apiredis.RedisDB.Set(context.Background(), "discord_members_"+c.GetString("discord_server_id"), string(resultData), 0)
+	apiredis.DATA_DISCORD_MEMBERS.Set(apiredis.RedisDB, string(resultData))
 
 	c.JSON(http.StatusOK, result)
 	c.Abort()

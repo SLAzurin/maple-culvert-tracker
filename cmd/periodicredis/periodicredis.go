@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"os"
@@ -36,8 +35,8 @@ func main() {
 				log.Println("Failed to fetch members periodically")
 			} else {
 				resultArr, _ := json.Marshal(result)
-				cmd := apiredis.RedisDB.Set(context.Background(), "discord_members_"+os.Getenv("DISCORD_GUILD_ID"), string(resultArr), 0)
-				log.Println("Set", "discord_members_"+os.Getenv("DISCORD_GUILD_ID"), cmd.Err())
+				err = apiredis.DATA_DISCORD_MEMBERS.Set(apiredis.RedisDB, string(resultArr))
+				log.Println("Set", apiredis.DATA_DISCORD_MEMBERS.Name, err)
 			}
 			time.Sleep(time.Minute * 30)
 		}

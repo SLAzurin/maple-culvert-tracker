@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -42,7 +41,7 @@ type postCulvertBody struct {
 }
 
 func (m MapleController) GETCharacters(c *gin.Context) {
-	discordIDs, err := apiredis.RedisDB.Get(c, "discord_members_"+c.GetString("discord_server_id")).Result()
+	discordIDs, err := apiredis.DATA_DISCORD_MEMBERS.Get(apiredis.RedisDB)
 	if err != nil {
 		log.Println("Valkey ERROR GETCharacters", err)
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
@@ -176,9 +175,9 @@ func (m MapleController) POSTCulvert(c *gin.Context) {
 
 	if shouldNotifyScoreUpdated {
 		if DiscordSession != nil {
-			for _, envName := range []string{"DISCORD_MEMBERS_MAIN_CHANNEL_ID", "DISCORD_REMINDER_CHANNEL_ID"} {
-				if os.Getenv(envName) != "" {
-					DiscordSession.ChannelMessageSend(os.Getenv(envName), "Culvert scores updated! ANY GAINS SINCE LAST WEEK?")
+			for _, key := range apiredis.MakeKeysSlice(apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID, apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID) {
+				if channelID := key.GetWithDefault(apiredis.RedisDB, ""); channelID != "" {
+					DiscordSession.ChannelMessageSend(channelID, "Culvert scores updated! ANY GAINS SINCE LAST WEEK?")
 				}
 			}
 		} else {
@@ -259,7 +258,7 @@ func (m MapleController) LinkDiscord(c *gin.Context) {
 		return
 	}
 
-	charData, err := helpers.FetchCharacterData(body.CharacterName, os.Getenv("MAPLE_REGION"))
+	charData, err := helpers.FetchCharacterData(body.CharacterName, apiredis.OPTIONAL_CONF_MAPLE_REGION.GetWithDefault(apiredis.RedisDB, "na"))
 	if err != nil && !body.BypassNameCheck {
 		c.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
 			"error": err.Error(),
@@ -345,7 +344,7 @@ func (m MapleController) POSTRename(c *gin.Context) {
 	}
 	rows.Close()
 
-	charData, err := helpers.FetchCharacterData(body.NewName, os.Getenv("MAPLE_REGION"))
+	charData, err := helpers.FetchCharacterData(body.NewName, apiredis.OPTIONAL_CONF_MAPLE_REGION.GetWithDefault(apiredis.RedisDB, "na"))
 	if err != nil && !body.BypassNameCheck {
 		c.AbortWithStatusJSON(http.StatusFailedDependency, gin.H{
 			"error": err.Error(),
