@@ -14,6 +14,8 @@ services:
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.routers.api.service=api-service"
+      - "traefik.http.routers.api.tls.options=modern"
+      - "traefik.http.routers.api.middlewares[0]=hsts-header"
       - "traefik.http.services.api-service.loadbalancer.server.port=8080"
   chartmaker:
     image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker
@@ -51,6 +53,8 @@ services:
       - "traefik.http.routers.static.entrypoints=websecure"
       - "traefik.http.routers.static.tls.certresolver=myresolver"
       - "traefik.http.routers.static.service=static-service"
+      - "traefik.http.routers.static.tls.options=modern"
+      - "traefik.http.routers.static.middlewares[0]=hsts-header"
       - "traefik.http.services.static-service.loadbalancer.server.port=8080"
   periodicredis:
     depends_on:
@@ -97,6 +101,8 @@ services:
       - "--entryPoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--http.middlewares.hsts-header.headers.customResponseHeaders.Strict-Transport-Security=max-age=63072000"
+      - "--tls.options.modern.minVersion=VersionTLS13"
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 volumes:
