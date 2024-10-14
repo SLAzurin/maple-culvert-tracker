@@ -18,6 +18,8 @@ services:
     volumes:
       - mapleculverttracker_valkey_data:/data
     restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
   db16:
     image: postgres:16-alpine
     volumes:
@@ -26,6 +28,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
   nginx:
     depends_on:
       - web
@@ -58,6 +62,7 @@ services:
     command: ['-c', '/usr/sbin/crond -f -c /etc/cron']
   watchtower:
     image: containrrr/watchtower
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
 volumes:
