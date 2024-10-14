@@ -10,3 +10,8 @@ services:
     image: ghcr.io/slazurin/maple-culvert-tracker/periodicredis:HEAD
   cron:
     image: ghcr.io/slazurin/maple-culvert-tracker/cron:HEAD
+  watchtower:
+    command:
+      - "--interval"
+      - "30"
+      - "--rolling-restart"
