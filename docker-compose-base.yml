@@ -46,9 +46,11 @@ services:
       - ./nginx/conf.d/:/etc/nginx/conf.d/
   web:
     build:
+      dockerfile: Dockerfile.goapps
+      target: culvert-web-final
       context: .
-      dockerfile: culvert-web/Dockerfile
-      target: runner
+      args:
+        APPNAME: staticserve
     restart: unless-stopped
   periodicredis:
     depends_on:
