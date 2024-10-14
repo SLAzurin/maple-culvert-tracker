@@ -11,21 +11,7 @@ COPY culvert-web/src culvert-web/src/
 RUN corepack enable && corepack prepare --activate && cd culvert-web && pnpm run build
 
 
-FROM base AS runner
-WORKDIR /app/culvert-web
-ENV NODE_ENV production
-
-RUN npm i -g serve
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nodeuser
-
-COPY --from=builder /app/culvert-web/build ./build
-
-USER nodeuser
-
-EXPOSE 8080
-
-ENV PORT 8080
-
-CMD ["serve", "-s", "build", "-l", "8080"]
+FROM nginx:stable-alpine-slim AS runner
+RUN rm -rf /usr/share/nginx/html && mkdir -p /usr/share/nginx/html
+COPY --from=builder /app/culvert-web/build /usr/share/nginx/html
+COPY nginx/static.conf.d/default.conf /etc/nginx/conf.d/default.conf
