@@ -1,0 +1,17 @@
+# Use this yaml file with docker-compose -f docker-compose-prod.yml -f staging.yml
+services:
+  bot:
+    image: ghcr.io/slazurin/maple-culvert-tracker/bot:HEAD
+  chartmaker:
+    image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker:HEAD
+  web:
+    image: ghcr.io/slazurin/maple-culvert-tracker/web:HEAD
+  periodicredis:
+    image: ghcr.io/slazurin/maple-culvert-tracker/periodicredis:HEAD
+  cron:
+    image: ghcr.io/slazurin/maple-culvert-tracker/cron:HEAD
+  watchtower:
+    command:
+      - "--interval"
+      - "30"
+      - "--rolling-restart"
