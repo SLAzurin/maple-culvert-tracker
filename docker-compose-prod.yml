@@ -14,6 +14,9 @@ services:
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls.certresolver=myresolver"
       - "traefik.http.routers.api.service=api-service"
+      - "traefik.http.routers.api.tls.options=modern@file"
+      - "traefik.http.routers.api.middlewares[0]=hsts-header"
+      - "traefik.http.routers.api.middlewares[1]=redirect-to-https"
       - "traefik.http.services.api-service.loadbalancer.server.port=8080"
   chartmaker:
     image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker
@@ -51,6 +54,9 @@ services:
       - "traefik.http.routers.static.entrypoints=websecure"
       - "traefik.http.routers.static.tls.certresolver=myresolver"
       - "traefik.http.routers.static.service=static-service"
+      - "traefik.http.routers.static.tls.options=modern@file"
+      - "traefik.http.routers.static.middlewares[0]=hsts-header"
+      - "traefik.http.routers.static.middlewares[1]=redirect-to-https"
       - "traefik.http.services.static-service.loadbalancer.server.port=8080"
   periodicredis:
     depends_on:
@@ -83,6 +89,7 @@ services:
       # - traefik.yml:/etc/traefik/traefik.yml # Do not use, since we depend on env variables defined during deployment
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - letsencrypt:/letsencrypt
+      - ./traefik:/configs
     ports:
       - 80:80
       - 8080:8080
@@ -90,6 +97,7 @@ services:
     command:
       - "--providers.docker"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/configs/"
       - "--entryPoints.websecure.address=:443"
       - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"
