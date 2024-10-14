@@ -95,7 +95,8 @@ services:
       - "--entryPoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-    
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
 volumes:
   mapleculverttracker_pg16_data:
   mapleculverttracker_valkey_data:
