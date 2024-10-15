@@ -65,6 +65,8 @@ function App() {
 	const [newCharacterName, setNewCharacterName] = useState("");
 	const [importedData, setImportedData] = useState("");
 	const [importedDataStatus, setImportedDataStatus] = useState("");
+	const [disabledUntrackCharacter, setDisabledUntrackCharacter] =
+		useState(false);
 
 	useEffect(() => {
 		if (selectedWeekFE !== "") {
@@ -205,6 +207,7 @@ function App() {
 	}, [importedData, characters]);
 
 	const untrackCharacter = (member: GuildMember, charID: string) => {
+		setDisabledUntrackCharacter(true);
 		const res = linkDiscordMaple(
 			token,
 			member.discord_user_id,
@@ -215,19 +218,22 @@ function App() {
 		res
 			.then((res) => {
 				if (res.status === 200) {
+					setDisabledUntrackCharacter(false);
 					setSuccessful(true);
-					setStatusMessage;
+					setStatusMessage("Successfully untracked character");
 					store.dispatch(setCharacters([]));
 				} else {
 					setStatusMessage(
 						"Error unlinking discord server: " + res.status + " " + res.payload,
 					);
+					setDisabledUntrackCharacter(false);
 					setSuccessful(false);
 				}
 			})
 			.catch((err) => {
 				console.error(err);
 				setStatusMessage("Error unlinking discord client: " + err.toString());
+				setDisabledUntrackCharacter(false);
 				setSuccessful(false);
 			});
 	};
@@ -508,6 +514,7 @@ Don't forget to submit"
 															const [discordID] = entry;
 															return (
 																<button
+																	disabled={disabledUntrackCharacter}
 																	key={"untrack-character-" + charID}
 																	className="btn btn-danger"
 																	onClick={() => {

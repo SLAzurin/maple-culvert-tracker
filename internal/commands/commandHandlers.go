@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
@@ -15,7 +16,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "I am alive. You are <@" + i.Member.User.ID + ">, who joined on " + i.Member.JoinedAt.Format(time.RFC822) + ".\nThis bot was created by Azuri. (AzurinDayo on Twitch, SLAzurin on Github)",
+				Content: "I am alive! You are <@" + i.Member.User.ID + ">, who joined on " + i.Member.JoinedAt.Format(time.RFC822) + ".\nThis bot was created by Azuri. (AzuriDayo_ on Twitch, SLAzurin and AzuriDayo on Github)",
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
@@ -27,12 +28,17 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		if i.Member.Nick == "" {
 			displayName = i.Member.User.Username
 		}
+		mode := 0
+		if os.Getenv(gin.EnvGinMode) != gin.ReleaseMode {
+			mode = 1
+		}
 		claims := &data.MCTClaims{
 			DiscordUsername: displayName,
 			DiscordServerID: i.GuildID,
 			RegisteredClaims: jwt.RegisteredClaims{
 				ExpiresAt: jwt.NewNumericDate(time.Now().Add(4 * time.Hour)),
 			},
+			DevMode: mode,
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
