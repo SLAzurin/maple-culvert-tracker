@@ -12,6 +12,7 @@ const NewChar = () => {
 	const [status, setStatus] = useState("");
 	const [characterName, setCharacterName] = useState("");
 	const [bypassNameCheck, setBypassNameCheck] = useState(false);
+	const [disabled, setDisabled] = useState(false);
 
 	return (
 		<div>
@@ -25,12 +26,15 @@ const NewChar = () => {
 				}}
 			></input>
 			<button
+				disabled={disabled}
 				className="btn btn-primary"
 				onClick={async () => {
 					if (characterName.length <= 2) {
 						setStatus("Error: Character Name is too short");
 						return;
 					}
+					setStatus("Linking character...");
+					setDisabled(true);
 					linkDiscordMaple(
 						token,
 						"2",
@@ -40,6 +44,7 @@ const NewChar = () => {
 					).then((res) => {
 						if (res.status !== 200) {
 							setStatus(`Error: ${res.status} ${res.payload}`);
+							setDisabled(false);
 							return;
 						}
 						store.dispatch(resetInitialStateCharacters());

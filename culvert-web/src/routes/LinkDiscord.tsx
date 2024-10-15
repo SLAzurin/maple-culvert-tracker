@@ -17,10 +17,13 @@ const LinkDiscord = () => {
 	const members = useSelector(selectMembers);
 	const token = useSelector(selectToken);
 	const [status, setStatus] = useState("");
+	const [disabled, setDisabled] = useState(false);
 
 	const [charID, setCharID] = useState("0");
 
 	const link = (member: GuildMember) => {
+		setDisabled(true);
+		setStatus("Linking character...");
 		const res = linkDiscordMaple(
 			token,
 			member.discord_user_id,
@@ -45,6 +48,7 @@ const LinkDiscord = () => {
 								store.dispatch(resetInitialStateCharacters());
 								navigate("/");
 							} else {
+								setDisabled(false);
 								setStatus(
 									"Error linking discord server: " +
 										res.status +
@@ -55,9 +59,11 @@ const LinkDiscord = () => {
 						})
 						.catch((err) => {
 							console.error(err);
+							setDisabled(false);
 							setStatus("Error linking discord client: " + err.toString());
 						});
 				} else {
+					setDisabled(false);
 					setStatus(
 						"Error unlinking discord server: " + res.status + " " + res.payload,
 					);
@@ -65,6 +71,7 @@ const LinkDiscord = () => {
 			})
 			.catch((err) => {
 				console.error(err);
+				setDisabled(false);
 				setStatus("Error unlinking discord client: " + err.toString());
 			});
 	};
@@ -88,6 +95,7 @@ const LinkDiscord = () => {
 
 			<div>
 				<button
+					disabled={disabled}
 					className="btn btn-warning mt-3"
 					onClick={() =>
 						link({
@@ -120,6 +128,7 @@ const LinkDiscord = () => {
 					})
 					.map((member, i) => (
 						<button
+							disabled={disabled}
 							className="btn btn-link"
 							key={i}
 							onClick={() => link(member)}
