@@ -9,7 +9,7 @@ export function Login() {
 	return (
 		<div
 			style={{
-				backgroundColor: claims && claims.dev_mode === 1 ? "red" : undefined,
+				backgroundColor: claims && claims.dev_mode === 1 ? "#ffebef" : undefined,
 			}}
 		>
 			{claims &&
