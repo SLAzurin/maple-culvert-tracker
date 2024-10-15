@@ -7,7 +7,11 @@ export function Login() {
 	const dispatch = useDispatch();
 
 	return (
-		<div>
+		<div
+			style={{
+				backgroundColor: claims && claims.dev_mode === 1 ? "red" : undefined,
+			}}
+		>
 			{claims &&
 				claims.exp !== "0" &&
 				"Expires " + new Date(Number(claims.exp) * 1000).toString()}
@@ -21,6 +25,13 @@ export function Login() {
 					value={token}
 				/>
 			</div>
+			{claims && (
+				<div>
+					<br />
+					<p>Welcome {claims.discord_username}!</p>
+					{claims.dev_mode === 1 && <p>THIS IS IN DEV MODE.</p>}
+				</div>
+			)}
 		</div>
 	);
 }

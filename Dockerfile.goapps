@@ -35,6 +35,7 @@ COPY --from=alpine:latest /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /usr/share/zoneinfo /usr/share/zoneinfo
 ENV TZ=America/Vancouver
+ENV GIN_MODE=release
 USER nobody
 
 ENTRYPOINT [ "/main" ]
