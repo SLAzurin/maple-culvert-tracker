@@ -12,6 +12,7 @@ const EditSettings = () => {
 	const [statusColor, setStatusColor] = useState("green");
 	const [editableValues, setEditableValues] = useState({} as any);
 	const [newValuesMap, setNewValuesMap] = useState({} as any);
+	const [disabled, setDisabled] = useState(false);
 
 	const saveValue = async (key: string) => {
 		if (newValuesMap[key] === undefined) {
@@ -25,6 +26,7 @@ const EditSettings = () => {
 			return;
 		}
 		try {
+			setDisabled(true);
 			setStatus(
 				"Saving " + editableValues[key].human_readable_description.name + "...",
 			);
@@ -47,6 +49,7 @@ const EditSettings = () => {
 				} catch {
 					// ignore
 				}
+				setDisabled(false);
 				setStatus(
 					"Failed to save value: " +
 						editableValues[key].human_readable_description.name +
@@ -61,6 +64,7 @@ const EditSettings = () => {
 				return;
 			}
 
+			setDisabled(false);
 			setStatus(
 				"Saved " +
 					editableValues[key].human_readable_description.name +
@@ -76,6 +80,7 @@ const EditSettings = () => {
 				},
 			});
 		} catch (e: any) {
+			setDisabled(false);
 			setStatus(
 				"Failed to save value: " +
 					editableValues[key].human_readable_description.name +
@@ -282,6 +287,7 @@ const EditSettings = () => {
 
 						<br />
 						<button
+							disabled={disabled}
 							className="btn btn-primary"
 							onClick={async (e) => {
 								e.preventDefault();

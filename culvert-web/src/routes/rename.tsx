@@ -16,6 +16,7 @@ const Rename = () => {
 	const [status, setStatus] = useState("");
 	const [newName, setNewName] = useState("");
 	const [bypassNameCheck, setBypassNameCheck] = useState(false);
+	const [disabled, setDisabled] = useState(false);
 
 	const [charID, setCharID] = useState("0");
 	useEffect(() => {
@@ -42,19 +43,24 @@ const Rename = () => {
 				}}
 			></input>
 			<button
+				disabled={disabled}
 				className="btn btn-primary"
 				onClick={async () => {
 					if (newName.length <= 2) {
 						setStatus("Error: Character Name is too short");
 						return;
 					}
+					setStatus("Renaming character...");
+					setDisabled(true);
 					const res = await renameCharacter(token, {
 						character_id: Number(charID),
 						new_name: newName,
 						bypass_name_check: bypassNameCheck,
 					});
 					if (res.status !== 200) {
-						return setStatus(`Error: ${res.status} ${res.payload}`);
+						setDisabled(false);
+						setStatus(`Error: ${res.status} ${res.payload}`);
+						return;
 					}
 					store.dispatch(resetInitialStateCharacters());
 					navigate("/");
