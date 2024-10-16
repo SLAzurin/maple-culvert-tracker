@@ -128,4 +128,28 @@ var Commands = []*discordgo.ApplicationCommand{
 			},
 		},
 	},
+	{
+		Name:        "track-character",
+		Description: "Track a new character in the Guild",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "character-name",
+				Description: "Character name",
+			},
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "discord-user-id",
+				Description: "Discord user global username or ID",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "skip-name-check",
+				Description: "Skip character name check with maple rankings",
+			},
+		},
+	},
 }
