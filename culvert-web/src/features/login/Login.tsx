@@ -9,7 +9,8 @@ export function Login() {
 	return (
 		<div
 			style={{
-				backgroundColor: claims && claims.dev_mode === 1 ? "#ffebef" : undefined,
+				backgroundColor:
+					claims && claims.dev_mode === 1 ? "#ffebef" : undefined,
 			}}
 		>
 			{claims &&
@@ -25,7 +26,7 @@ export function Login() {
 					value={token}
 				/>
 			</div>
-			{claims && (
+			{claims?.discord_username && (
 				<div>
 					<br />
 					<p>Welcome {claims.discord_username}!</p>
