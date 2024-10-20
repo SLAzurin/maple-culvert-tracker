@@ -34,9 +34,8 @@ func EnvVarsTest() {
 	}
 	// In theory, this should not be needed. But should be set
 	// if os.Getenv("FRONTEND_URL") == "" {
-	// 	log.Fatalln("FRONTEND_URL is not set")
+	//  log.Println("Frontend URL missing but should be set. This does not break anything and will work anyway without it.")
 	// }
-	log.Println("Frontend URL missing but should be set. This does not break anything but it will work anyway without it.")
 	if os.Getenv("REDIS_HOST") == "" {
 		log.Fatalln("REDIS_HOST is not set")
 	}
