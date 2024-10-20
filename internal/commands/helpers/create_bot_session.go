@@ -5,15 +5,16 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
 func CreateBotSessionWithCommands(commands []*discordgo.ApplicationCommand, commandHandlers map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate)) (*discordgo.Session, error) {
-	s, err := discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
+	s, err := discordgo.New("Bot " + os.Getenv(data.EnvVarDiscordToken))
 	if err != nil {
 		return nil, err
 	}
 	s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok && os.Getenv("DISCORD_GUILD_ID") == i.GuildID {
+		if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok && os.Getenv(data.EnvVarDiscordGuildID) == i.GuildID {
 			log.Printf("Got discord command %v from %v\n", i.ApplicationCommandData().Name, i.Member.User.Username)
 			h(s, i)
 			log.Printf("Done discord command %v from %v\n", i.ApplicationCommandData().Name, i.Member.User.Username)

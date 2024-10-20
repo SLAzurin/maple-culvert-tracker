@@ -210,7 +210,7 @@ func culvertDuel(anyone bool) func(*discordgo.Session, *discordgo.InteractionCre
 			return
 		}
 
-		r, err := http.Post("http://"+os.Getenv("CHARTMAKER_HOST")+"/chartmaker-multiple", "application/json", bytes.NewBuffer(jsonData))
+		r, err := http.Post("http://"+os.Getenv(data.EnvVarChartMakerHost)+"/chartmaker-multiple", "application/json", bytes.NewBuffer(jsonData))
 		if err != nil || r.StatusCode != http.StatusOK {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,

@@ -6,13 +6,14 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
 var DB *sql.DB
 
 func init() {
 	var err error
-	var connStr = "postgresql://" + os.Getenv("POSTGRES_USER") + ":" + url.QueryEscape(os.Getenv("POSTGRES_PASSWORD")) + "@" + os.Getenv("CLIENT_POSTGRES_HOST") + ":" + os.Getenv("CLIENT_POSTGRES_PORT") + "/" + os.Getenv("POSTGRES_DB") + "?sslmode=disable"
+	var connStr = "postgresql://" + os.Getenv(data.EnvVarPostgresUser) + ":" + url.QueryEscape(os.Getenv(data.EnvVarPostgresPassword)) + "@" + os.Getenv(data.EnvVarClientPostgresHost) + ":" + os.Getenv(data.EnvVarClientPostgresPort) + "/" + os.Getenv(data.EnvVarPostgresDB) + "?sslmode=disable"
 	DB, err = sql.Open("postgres", connStr)
 	if err != nil {
 		panic(err)

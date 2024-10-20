@@ -9,6 +9,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
@@ -45,7 +46,7 @@ func main() {
 
 	log.Println("reminding...")
 
-	s, err = discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
+	s, err = discordgo.New("Bot " + os.Getenv(data.EnvVarDiscordToken))
 	if err != nil {
 		log.Printf("Invalid bot parameters: %v", err)
 		return

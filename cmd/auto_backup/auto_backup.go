@@ -11,14 +11,15 @@ import (
 	"github.com/bwmarrin/discordgo"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
 var s *discordgo.Session
 
 func startBackup(s *discordgo.Session, stopChan chan struct{}) {
-	// cmd := exec.Command("/usr/local/bin/pg_dump", "-h", "db16", "-U", os.Getenv("POSTGRES_USER"), "-d", os.Getenv("POSTGRES_DB"), "-p", "5432") // Only use this line outside of docker container
-	cmd := exec.Command("/usr/local/bin/pg_dump", "-h", os.Getenv("CLIENT_POSTGRES_HOST"), "-U", os.Getenv("POSTGRES_USER"), "-d", os.Getenv("POSTGRES_DB"), "-p", os.Getenv("CLIENT_POSTGRES_PORT"))
-	cmd.Env = append(cmd.Env, "PGPASSWORD="+os.Getenv("POSTGRES_PASSWORD"))
+	// cmd := exec.Command("/usr/local/bin/pg_dump", "-h", "db16", "-U", os.Getenv(data.EnvVarPostgresUser), "-d", os.Getenv(data.EnvVarPostgresDB), "-p", "5432") // Only use this line outside of docker container
+	cmd := exec.Command("/usr/local/bin/pg_dump", "-h", os.Getenv(data.EnvVarClientPostgresHost), "-U", os.Getenv(data.EnvVarPostgresUser), "-d", os.Getenv(data.EnvVarPostgresDB), "-p", os.Getenv(data.EnvVarClientPostgresPort))
+	cmd.Env = append(cmd.Env, "PGPASSWORD="+os.Getenv(data.EnvVarPostgresPassword))
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -42,7 +43,7 @@ func startBackup(s *discordgo.Session, stopChan chan struct{}) {
 
 func main() {
 	var err error
-	s, err = discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
+	s, err = discordgo.New("Bot " + os.Getenv(data.EnvVarDiscordToken))
 	if err != nil {
 		log.Fatalf("Invalid bot parameters: %v", err)
 	}
