@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
 type EditableSettingsController struct{}
@@ -75,7 +76,7 @@ func (EditableSettingsController) PatchEditable(s *discordgo.Session) func(c *gi
 					})
 					return
 				} else {
-					dChan, err := s.GuildChannels(os.Getenv("DISCORD_GUILD_ID"))
+					dChan, err := s.GuildChannels(os.Getenv(data.EnvVarDiscordGuildID))
 					if err != nil {
 						c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 							"error": "failed to get channel",
@@ -108,7 +109,7 @@ func (EditableSettingsController) PatchEditable(s *discordgo.Session) func(c *gi
 			case apiredis.EditableTypeDiscordRole:
 				if rdbKey.Multiple {
 					roleIDs := strings.Split(body.Value, ",")
-					allRoles, err := s.GuildRoles(os.Getenv("DISCORD_GUILD_ID"))
+					allRoles, err := s.GuildRoles(os.Getenv(data.EnvVarDiscordGuildID))
 					if err != nil {
 						c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 							"error": "failed to get existing guild roles from discord, unable to validate roles",
@@ -196,14 +197,14 @@ func (EditableSettingsController) PatchEditable(s *discordgo.Session) func(c *gi
 }
 func (EditableSettingsController) GETEditable(s *discordgo.Session) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		roles, err := s.GuildRoles(os.Getenv("DISCORD_GUILD_ID"))
+		roles, err := s.GuildRoles(os.Getenv(data.EnvVarDiscordGuildID))
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to get guild roles",
 			})
 			return
 		}
-		channels, err := s.GuildChannels(os.Getenv("DISCORD_GUILD_ID"))
+		channels, err := s.GuildChannels(os.Getenv(data.EnvVarDiscordGuildID))
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 				"error": "failed to get guild channels",

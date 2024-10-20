@@ -11,15 +11,16 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
 var s *discordgo.Session
 
 func main() {
-	log.Println("env", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
+	log.Println("env", os.Getenv(data.EnvVarRedisHost), os.Getenv(data.EnvVarRedisPort))
 
 	var err error
-	s, err = discordgo.New("Bot " + os.Getenv("DISCORD_TOKEN"))
+	s, err = discordgo.New("Bot " + os.Getenv(data.EnvVarDiscordToken))
 	if err != nil {
 		log.Fatalln("Cannot init discord session", err)
 	}
@@ -30,7 +31,7 @@ func main() {
 	defer s.Close()
 	go func() {
 		for {
-			result, err := helpers.FetchMembers(os.Getenv("DISCORD_GUILD_ID"), s)
+			result, err := helpers.FetchMembers(os.Getenv(data.EnvVarDiscordGuildID), s)
 			if err != nil {
 				log.Println("Failed to fetch members periodically")
 			} else {

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
 // UpdateCommands updates the slash commands in the given guild.
@@ -15,7 +16,7 @@ import (
 // The commands are identified by their name.
 func UpdateCommands(s *discordgo.Session, commands []*discordgo.ApplicationCommand) error {
 	log.Println("Updating Application slash commands")
-	cmds, err := s.ApplicationCommands(s.State.User.ID, os.Getenv("DISCORD_GUILD_ID"))
+	cmds, err := s.ApplicationCommands(s.State.User.ID, os.Getenv(data.EnvVarDiscordGuildID))
 	if err != nil {
 		return err
 	}
@@ -47,7 +48,7 @@ func UpdateCommands(s *discordgo.Session, commands []*discordgo.ApplicationComma
 				}
 			}
 			if needUpdate {
-				_, err := s.ApplicationCommandCreate(s.State.User.ID, os.Getenv("DISCORD_GUILD_ID"), appCommand)
+				_, err := s.ApplicationCommandCreate(s.State.User.ID, os.Getenv(data.EnvVarDiscordGuildID), appCommand)
 				if err != nil {
 					log.Panicf("Cannot create '%v' command: %v", appCommand.Name, err)
 					return err
@@ -56,7 +57,7 @@ func UpdateCommands(s *discordgo.Session, commands []*discordgo.ApplicationComma
 			}
 		} else {
 			// Create command
-			_, err := s.ApplicationCommandCreate(s.State.User.ID, os.Getenv("DISCORD_GUILD_ID"), appCommand)
+			_, err := s.ApplicationCommandCreate(s.State.User.ID, os.Getenv(data.EnvVarDiscordGuildID), appCommand)
 			if err != nil {
 				log.Panicf("Cannot create '%v' command: %v", appCommand.Name, err)
 				return err
@@ -67,7 +68,7 @@ func UpdateCommands(s *discordgo.Session, commands []*discordgo.ApplicationComma
 	}
 	for _, v := range m {
 		// delete remainder
-		err := s.ApplicationCommandDelete(s.State.User.ID, os.Getenv("DISCORD_GUILD_ID"), v.ID)
+		err := s.ApplicationCommandDelete(s.State.User.ID, os.Getenv(data.EnvVarDiscordGuildID), v.ID)
 		if err != nil {
 			return err
 		}

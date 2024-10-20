@@ -185,7 +185,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Sample below
 	// jsonData := []byte(`[{"label":"2/26","score":0},{"label":"3/5","score":1233},{"label":"3/12","score":8000},{"label":"3/19","score":8100},{"label":"3/26","score":5600},{"label":"4/2","score":5500},{"label":"4/9","score":25000}]`)
-	r, err := http.Post("http://"+os.Getenv("CHARTMAKER_HOST")+"/chartmaker", "application/json", bytes.NewBuffer(jsonData))
+	r, err := http.Post("http://"+os.Getenv(data.EnvVarChartMakerHost)+"/chartmaker", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil || r.StatusCode != http.StatusOK {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
