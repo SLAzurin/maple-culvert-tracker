@@ -26,10 +26,10 @@ func trackCharacter(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := i.ApplicationCommandData().Options
 	for _, v := range options {
 		if v.Name == "character-name" {
-			characterName = strings.ToLower(v.StringValue())
+			characterName = strings.Trim(strings.ToLower(v.StringValue()), " ")
 		}
 		if v.Name == "discord-user-id" {
-			discordUserID = v.StringValue()
+			discordUserID = strings.Trim(v.StringValue(), " ")
 		}
 		if v.Name == "skip-name-check" {
 			skipNameCheck = v.BoolValue()
