@@ -78,7 +78,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command:
-      - "--rolling-restart"
+      - --rolling-restart
+      - --cleanup
   traefik:
     depends_on:
       - bot

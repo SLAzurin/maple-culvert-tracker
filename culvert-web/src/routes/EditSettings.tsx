@@ -92,6 +92,7 @@ const EditSettings = () => {
 	};
 
 	useEffect(() => {
+		setStatus("Loading settings...");
 		try {
 			fetchEditableSettings(token).then((res) => {
 				const vals = Object.entries(res).map(([key, v]) => ({
@@ -99,9 +100,12 @@ const EditSettings = () => {
 				}));
 				setNewValuesMap(Object.assign(newValuesMap, ...vals));
 				setEditableValues(res);
+				setStatus("");
 			});
 		} catch {
-			alert("Failed to fetch editable settings");
+			setStatus(
+				"Loading settings failed, please refresh or go back to homepage",
+			);
 		}
 	}, []);
 
