@@ -5,12 +5,18 @@ import updateCulvertScores from "../../helpers/updateCulvertScores";
 interface CharactersState {
 	characters: { [key: number]: string };
 	membersCharacters: { [key: string]: number[] };
-	characterScores: {
-		[key: number]: {
-			prev?: number;
-			current?: number;
+	fetchedScoresFromServer: boolean;
+	characterScoresGroup: {
+		characterScores: {
+			[key: number]: {
+				prev?: number;
+				current?: number;
+			};
+		} | null;
+		characterScoresUnsubmitted: {
+			[key: number]: number;
 		};
-	} | null;
+	};
 	characterScoresOriginal: {
 		[key: number]: {
 			prev?: number;
@@ -29,15 +35,19 @@ interface CharactersState {
 const initialState: CharactersState = {
 	characters: {},
 	membersCharacters: {},
-	characterScores: null,
+	fetchedScoresFromServer: false,
 	characterScoresOriginal: {},
+	characterScoresGroup: {
+		characterScores: null,
+		characterScoresUnsubmitted: {},
+	},
 	updateCulvertScoresResult: null,
 	selectedWeek: null,
 	editableWeeks: null,
 };
 
-export const membersSlice = createSlice({
-	name: "members",
+export const charactersSlice = createSlice({
+	name: "characters",
 	initialState,
 	reducers: {
 		setCharacters: (
@@ -61,17 +71,29 @@ export const membersSlice = createSlice({
 			state.characters = newCharacters;
 			state.membersCharacters = newMembersCharacters;
 		},
+		resetUnsubmittedScores: (state) => {
+			const newCharacterScoresGroup = { ...state.characterScoresGroup };
+			newCharacterScoresGroup.characterScoresUnsubmitted = {};
+			state.characterScoresGroup = newCharacterScoresGroup;
+		},
 		resetCharacterScores: (state) => {
 			state.characterScoresOriginal = null;
-			state.characterScores = null;
+			state.characterScoresGroup = {
+				characterScores: null,
+				characterScoresUnsubmitted: {},
+			};
 		},
 		setCharacterScores: (
 			state,
 			action: PayloadAction<{
 				weeks: string[];
 				data: { character_id: number; culvert_date: string; score: number }[];
+				wasFetchedFromServer?: boolean;
 			}>,
 		) => {
+			if (action.payload.wasFetchedFromServer) {
+				state.fetchedScoresFromServer = true;
+			}
 			const newScores: {
 				[key: number]: {
 					prev?: number;
@@ -97,28 +119,50 @@ export const membersSlice = createSlice({
 					newScores[v.character_id].prev = v.score;
 				}
 			}
-			state.characterScores = newScores;
+			const newCharacterScoresGroup = { ...state.characterScoresGroup };
+			newCharacterScoresGroup.characterScores = newScores;
+			state.characterScoresGroup = newCharacterScoresGroup;
 			state.characterScoresOriginal = newScores;
 		},
 		updateScoreValue: (
 			state,
 			action: PayloadAction<{ character_id: number; score: number }>,
 		) => {
-			const newScores = { ...state.characterScores };
-			if (typeof newScores[action.payload.character_id] === "undefined") {
-				newScores[action.payload.character_id] = {};
+			const newScoresGroup = { ...state.characterScoresGroup };
+			if (
+				typeof newScoresGroup.characterScores === "undefined" ||
+				newScoresGroup.characterScores === null
+			) {
+				newScoresGroup.characterScores = {};
 			}
-			newScores[action.payload.character_id].current = action.payload.score;
-			state.characterScores = newScores;
+			if (
+				typeof newScoresGroup.characterScores[action.payload.character_id] ===
+				"undefined"
+			) {
+				newScoresGroup.characterScores[action.payload.character_id] = {};
+			}
+
+			newScoresGroup.characterScoresUnsubmitted[action.payload.character_id] =
+				action.payload.score;
+
+			newScoresGroup.characterScores[action.payload.character_id].current =
+				action.payload.score;
+			state.characterScoresGroup = newScoresGroup;
 		},
 		addNewCharacterScore: (state, action: PayloadAction<number>) => {
-			const newScores = { ...state.characterScores };
-			newScores[action.payload] = {};
-			state.characterScores = newScores;
+			const newScoresGroup = { ...state.characterScoresGroup };
+			if (
+				typeof newScoresGroup.characterScores === "undefined" ||
+				newScoresGroup.characterScores === null
+			) {
+				newScoresGroup.characterScores = {};
+			}
+			newScoresGroup.characterScores[action.payload] = {};
+			state.characterScoresGroup = newScoresGroup;
 		},
 		applyCulvertChanges: (state, action: PayloadAction<string>) => {
 			if (
-				state.characterScores === null ||
+				state.characterScoresGroup.characterScores === null ||
 				state.characterScoresOriginal === null
 			)
 				return;
@@ -141,7 +185,9 @@ export const membersSlice = createSlice({
 				week: state.selectedWeek !== null ? state.selectedWeek : "",
 			};
 
-			for (let [charID, { current }] of Object.entries(state.characterScores)) {
+			for (let [charID, { current }] of Object.entries(
+				state.characterScoresGroup.characterScores,
+			)) {
 				if (
 					typeof state.characterScoresOriginal[Number(charID)] ===
 						"undefined" ||
@@ -193,12 +239,12 @@ export const membersSlice = createSlice({
 		},
 	},
 });
-export default membersSlice.reducer;
+export default charactersSlice.reducer;
 
 export const selectCharacters = (state: RootState) =>
 	state.characters.characters;
-export const selectCharacterScores = (state: RootState) =>
-	state.characters.characterScores;
+// export const selectCharacterScores = (state: RootState) =>
+// state.characters.characterScoresGroup.characterScores;
 export const selectUpdateCulvertScoresResult = (state: RootState) =>
 	state.characters.updateCulvertScoresResult;
 export const selectEditableWeeks = (state: RootState) =>
@@ -207,7 +253,12 @@ export const selectSelectedWeek = (state: RootState) =>
 	state.characters.selectedWeek;
 export const selectMembersCharacters = (state: RootState) =>
 	state.characters.membersCharacters;
-
+// export const selectCharacterScoresUnsubmitted = (state: RootState) =>
+// state.characters.characterScoresGroup.characterScoresUnsubmitted;
+export const selectCharacterScoresGroup = (state: RootState) =>
+	state.characters.characterScoresGroup;
+export const selectFetchedScoresFromServer = (state: RootState) =>
+	state.characters.fetchedScoresFromServer;
 export const {
 	setCharacters,
 	setCharacterScores,
@@ -215,6 +266,7 @@ export const {
 	addNewCharacterScore,
 	applyCulvertChanges,
 	resetCharacterScores,
+	resetUnsubmittedScores,
 	setSelectedWeek,
 	resetInitialStateCharacters,
-} = membersSlice.actions;
+} = charactersSlice.actions;
