@@ -17,9 +17,7 @@ type announcement struct {
 func getAnnouncements() []announcement {
 	announcements := []announcement{
 		{
-			FilePathsAttachments: []string{
-				"./server_assets/announcement0.png",
-			},
+			// 0
 			ComplexMessage: &discordgo.MessageSend{
 				Content: `New features have landed!
 - I now tell you all about new features when they get implemented!
@@ -33,6 +31,9 @@ If anything is broken, please report directly to ` + "`.azuri`.\nEnjoy!",
 }
 
 // - The admin panel now saves unsubmitted scores, so that you won't lose your work-in-progress if you accidentally close your tab!, revert this: bf69ff1321fb60e744ecda98d7253ff2a17e8cfa
+// FilePathsAttachments: []string{
+// 	"./server_assets/announcement1.png",
+// },
 
 func announceNewFeatures(s *discordgo.Session) {
 	log.Println("Announcing new features")
