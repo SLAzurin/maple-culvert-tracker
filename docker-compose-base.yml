@@ -6,7 +6,7 @@ services:
       - valkey
     build:
       dockerfile: Dockerfile.goapps
-      target: final
+      target: final-with-server-assets
       context: .
       args:
         APPNAME: main

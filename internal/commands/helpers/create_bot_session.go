@@ -23,6 +23,8 @@ func CreateBotSessionWithCommands(commands []*discordgo.ApplicationCommand, comm
 
 	s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.Printf("Logged in as: %v#%v", s.State.User.Username, s.State.User.Discriminator)
+		go announceNewFeatures(s)
+
 		err := UpdateCommands(s, commands)
 		if err != nil {
 			log.Println("Failed UpdateCommands")

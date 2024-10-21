@@ -54,3 +54,7 @@ FROM postgres:16-alpine AS cron
 COPY --from=build /src/main /usr/local/bin/auto_backup
 COPY --from=cron-specific-build /src/culvert_score_update_reminder /usr/local/bin/
 COPY ./cron.d/root /etc/cron/
+
+FROM final AS final-with-server-assets
+COPY ./server_assets /server_assets/
+ENTRYPOINT [ "/main" ]

@@ -16,6 +16,8 @@ var (
 	DATA_FIXES_SUN_TO_WED redisInternalKey = redisInternalKey{"DATA_FIXES_SUN_TO_WED", EditableTypeNone, false}
 
 	DATA_DISCORD_MEMBERS redisInternalKey = redisInternalKey{"DATA_DISCORD_MEMBERS", EditableTypeNone, false}
+
+	DATA_DISCORD_NEW_FEATURES_ANNOUNCEMENT_VERSION redisInternalKey = redisInternalKey{"DATA_DISCORD_NEW_FEATURES_ANNOUNCEMENT_VERSION", EditableTypeNone, false}
 )
 
 var KeysMap = map[string]redisInternalKey{}
