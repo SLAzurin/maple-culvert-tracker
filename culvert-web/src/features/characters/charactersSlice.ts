@@ -243,8 +243,6 @@ export default charactersSlice.reducer;
 
 export const selectCharacters = (state: RootState) =>
 	state.characters.characters;
-// export const selectCharacterScores = (state: RootState) =>
-// state.characters.characterScoresGroup.characterScores;
 export const selectUpdateCulvertScoresResult = (state: RootState) =>
 	state.characters.updateCulvertScoresResult;
 export const selectEditableWeeks = (state: RootState) =>
@@ -253,8 +251,6 @@ export const selectSelectedWeek = (state: RootState) =>
 	state.characters.selectedWeek;
 export const selectMembersCharacters = (state: RootState) =>
 	state.characters.membersCharacters;
-// export const selectCharacterScoresUnsubmitted = (state: RootState) =>
-// state.characters.characterScoresGroup.characterScoresUnsubmitted;
 export const selectCharacterScoresGroup = (state: RootState) =>
 	state.characters.characterScoresGroup;
 export const selectFetchedScoresFromServer = (state: RootState) =>
