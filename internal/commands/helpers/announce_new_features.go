@@ -24,7 +24,6 @@ func getAnnouncements() []announcement {
 				Content: `New features have landed!
 - I now tell you all about new features when they get implemented!
 - You can now use ` + "`/track-character`" + ` to track new characters using a command instead of logging in! Go check it out!
-- The admin panel now saves unsubmitted scores, so that you won't lose your work-in-progress if you accidentally close your tab!
 
 If anything is broken, please report directly to ` + "`.azuri`.\nEnjoy!",
 			},
@@ -32,6 +31,8 @@ If anything is broken, please report directly to ` + "`.azuri`.\nEnjoy!",
 	}
 	return announcements
 }
+
+// - The admin panel now saves unsubmitted scores, so that you won't lose your work-in-progress if you accidentally close your tab!, revert this: bf69ff1321fb60e744ecda98d7253ff2a17e8cfa
 
 func announceNewFeatures(s *discordgo.Session) {
 	log.Println("Announcing new features")
