@@ -414,12 +414,13 @@ Don't forget to submit"
 											Object.entries(
 												characterScoresGroup.characterScoresUnsubmitted,
 											).forEach(([charID, unsubmittedScore]) => {
-												store.dispatch(
-													updateScoreValue({
-														character_id: Number(charID),
-														score: unsubmittedScore,
-													}),
-												);
+												if (characters[Number(charID)] !== undefined)
+													store.dispatch(
+														updateScoreValue({
+															character_id: Number(charID),
+															score: unsubmittedScore,
+														}),
+													);
 											});
 										}}
 									>
@@ -435,26 +436,27 @@ Don't forget to submit"
 									</button>
 								</div>
 								<pre>
-									{Object.entries(
-										characterScoresGroup.characterScoresUnsubmitted,
-									)
-										.filter(([charID, unsubmittedScore]) => {
-											return (
-												((characterScoresGroup.characterScores ?? {})[
-													Number(charID)
-												]?.current ?? 0) !== unsubmittedScore
-											);
-										})
-										.sort(([charID1], [charID2]) => {
-											return characters[Number(charID1)].localeCompare(
-												characters[Number(charID2)],
-											);
-										})
-										.map(
-											([charID, unsubmittedScore]) =>
-												`${characters[Number(charID)]}: ${(characterScoresGroup.characterScores ?? {})[Number(charID)]?.current ?? 0} => ${unsubmittedScore}`,
+									{Object.keys(characters).length > 0 &&
+										Object.entries(
+											characterScoresGroup.characterScoresUnsubmitted,
 										)
-										.join("\n")}
+											.filter(([charID, unsubmittedScore]) => {
+												return (
+													((characterScoresGroup.characterScores ?? {})[
+														Number(charID)
+													]?.current ?? 0) !== unsubmittedScore
+												);
+											})
+											.sort(([charID1], [charID2]) => {
+												return (
+													characters[Number(charID1)] ?? ""
+												).localeCompare(characters[Number(charID2)] ?? "");
+											})
+											.map(
+												([charID, unsubmittedScore]) =>
+													`${characters[Number(charID)] ?? "UNKNOWN_CHARACTER"}: ${(characterScoresGroup.characterScores ?? {})[Number(charID)]?.current ?? 0} => ${unsubmittedScore}`,
+											)
+											.join("\n")}
 								</pre>
 							</div>
 						)}
