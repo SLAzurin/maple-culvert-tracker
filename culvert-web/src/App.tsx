@@ -17,7 +17,7 @@ import {
 	addNewCharacterScore,
 	applyCulvertChanges,
 	resetCharacterScores,
-	selectCharacterScoresGroup,
+	selectCharacterScores,
 	selectCharacters,
 	selectMembersCharacters,
 	selectEditableWeeks,
@@ -27,8 +27,6 @@ import {
 	setCharacters,
 	setSelectedWeek,
 	updateScoreValue,
-	resetUnsubmittedScores,
-	selectFetchedScoresFromServer,
 } from "./features/characters/charactersSlice";
 import fetchCharacters from "./helpers/fetchCharacters";
 import fetchCharacterScores from "./helpers/fetchCharacterScores";
@@ -37,7 +35,6 @@ import renameCharacter from "./helpers/renameCharacter";
 import { useNavigate } from "react-router-dom";
 import linkDiscordMaple from "./helpers/linkDiscordMaple";
 import GuildMember from "./types/GuildMember";
-
 interface ImportedData {
 	[key: string]: number;
 }
@@ -49,8 +46,7 @@ function App() {
 	const members = useSelector(selectMembers);
 	const membersByID = useSelector(selectMembersByID);
 	const characters = useSelector(selectCharacters);
-	const characterScoresGroup = useSelector(selectCharacterScoresGroup);
-	const fetchedScoresFromServer = useSelector(selectFetchedScoresFromServer);
+	const characterScores = useSelector(selectCharacterScores);
 	const updateCulvertScoresResult = useSelector(
 		selectUpdateCulvertScoresResult,
 	);
@@ -71,7 +67,6 @@ function App() {
 	const [importedDataStatus, setImportedDataStatus] = useState("");
 	const [disabledUntrackCharacter, setDisabledUntrackCharacter] =
 		useState(false);
-	const [disableScoreInputField, setDisableScoreInputField] = useState(false);
 
 	useEffect(() => {
 		if (selectedWeekFE !== "") {
@@ -125,7 +120,7 @@ function App() {
 		if (
 			action === "culvert_score" &&
 			Object.values(characters).length !== 0 &&
-			fetchedScoresFromServer === false
+			characterScores === null
 		) {
 			console.log("action get character scores");
 			fetchCharacterScores(
@@ -140,7 +135,7 @@ function App() {
 				store.dispatch(setCharacterScores(res));
 			});
 		}
-	}, [action, characters, token, fetchedScoresFromServer, selectedWeek]);
+	}, [action, characters, token, characterScores, selectedWeek]);
 	useEffect(() => {
 		// claims expired
 		if (
@@ -284,7 +279,6 @@ function App() {
 						{editableWeeks !== null && (
 							<div style={{ display: "flex", flexDirection: "column" }}>
 								<textarea
-									disabled={disableScoreInputField}
 									style={{ resize: "none" }}
 									value={importedData}
 									rows={3}
@@ -367,7 +361,7 @@ Don't forget to submit"
 										style={{ marginRight: "0px !important" }}
 									>
 										<button
-											disabled={disabledLink || disableScoreInputField}
+											disabled={disabledLink}
 											className="btn btn-primary"
 											onClick={() => {
 												setImportedDataStatus("");
@@ -382,84 +376,6 @@ Don't forget to submit"
 								</Navbar.Collapse>
 							</Container>
 						</Navbar>
-						{((): boolean => {
-							// Display the unsubmitted scores if there are any that are out of sync with currently displayed scores
-							if (characterScoresGroup.characterScores === null) {
-								return false;
-							}
-							const displayUnsubmittedScores = Object.entries(
-								characterScoresGroup.characterScoresUnsubmitted,
-							).some(([charID, unsubmittedScore]) => {
-								if (
-									(characterScoresGroup.characterScores ?? {})[Number(charID)]
-										?.current !== unsubmittedScore
-								) {
-									return true;
-								} else {
-									return false;
-								}
-							});
-							if (displayUnsubmittedScores !== disableScoreInputField) {
-								setDisableScoreInputField(displayUnsubmittedScores);
-							}
-							return displayUnsubmittedScores;
-						})() && (
-							<div>
-								<h3>You previously had unsubmitted scores</h3>
-								<p>Would you want to apply them?</p>
-								<div>
-									<button
-										className="btn btn-success"
-										onClick={() => {
-											Object.entries(
-												characterScoresGroup.characterScoresUnsubmitted,
-											).forEach(([charID, unsubmittedScore]) => {
-												if (characters[Number(charID)] !== undefined)
-													store.dispatch(
-														updateScoreValue({
-															character_id: Number(charID),
-															score: unsubmittedScore,
-														}),
-													);
-											});
-										}}
-									>
-										Apply these scores
-									</button>
-									<button
-										className="btn btn-danger"
-										onClick={() => {
-											store.dispatch(resetUnsubmittedScores());
-										}}
-									>
-										Discard these scores
-									</button>
-								</div>
-								<pre>
-									{Object.keys(characters).length > 0 &&
-										Object.entries(
-											characterScoresGroup.characterScoresUnsubmitted,
-										)
-											.filter(([charID, unsubmittedScore]) => {
-												return (
-													((characterScoresGroup.characterScores ?? {})[
-														Number(charID)
-													]?.current ?? 0) !== unsubmittedScore
-												);
-											})
-											.sort(([charID1], [charID2]) => {
-												return (
-													characters[Number(charID1)] ?? ""
-												).localeCompare(characters[Number(charID2)] ?? "");
-											})
-											.map(
-												([charID, unsubmittedScore]) =>
-													`${characters[Number(charID)] ?? "UNKNOWN_CHARACTER"}: ${(characterScoresGroup.characterScores ?? {})[Number(charID)]?.current ?? 0} => ${unsubmittedScore}`,
-											)
-											.join("\n")}
-								</pre>
-							</div>
-						)}
 						<table>
 							<thead>
 								<tr>
@@ -479,9 +395,8 @@ Don't forget to submit"
 											: -1;
 									})
 									.map(([charID], i) => {
-										const scores = characterScoresGroup.characterScores
-											? characterScoresGroup.characterScores[Number(charID)] ||
-												{}
+										const scores = characterScores
+											? characterScores[Number(charID)] || {}
 											: {};
 										return (
 											<tr key={"scores-" + i}>
@@ -565,10 +480,9 @@ Don't forget to submit"
 												</td>
 												<td>
 													<input
-														disabled={disableScoreInputField}
 														onChange={(e) => {
 															const n = Number(e.target.value);
-															if (!Number.isNaN(n) && n >= 0) {
+															if (!Number.isNaN(n)) {
 																store.dispatch(
 																	updateScoreValue({
 																		score: n,
@@ -600,10 +514,7 @@ Don't forget to submit"
 															const [discordID] = entry;
 															return (
 																<button
-																	disabled={
-																		disabledUntrackCharacter ||
-																		disableScoreInputField
-																	}
+																	disabled={disabledUntrackCharacter}
 																	key={"untrack-character-" + charID}
 																	className="btn btn-danger"
 																	onClick={() => {

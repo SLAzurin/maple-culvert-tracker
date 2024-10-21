@@ -40,7 +40,7 @@ type postCulvertBody struct {
 	} `json:"payload"`
 }
 
-func (MapleController) GETCharacters(c *gin.Context) {
+func (m MapleController) GETCharacters(c *gin.Context) {
 	discordIDs, err := apiredis.DATA_DISCORD_MEMBERS.Get(apiredis.RedisDB)
 	if err != nil {
 		log.Println("Valkey ERROR GETCharacters", err)
@@ -95,7 +95,7 @@ func (MapleController) GETCharacters(c *gin.Context) {
 	c.AbortWithStatusJSON(http.StatusOK, result)
 }
 
-func (MapleController) POSTCulvert(c *gin.Context) {
+func (m MapleController) POSTCulvert(c *gin.Context) {
 	body := postCulvertBody{}
 	if err := c.BindJSON(&body); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -186,7 +186,7 @@ func (MapleController) POSTCulvert(c *gin.Context) {
 	}
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{})
 }
-func (MapleController) GETCulvert(c *gin.Context) {
+func (m MapleController) GETCulvert(c *gin.Context) {
 	thisWeek := time.Now()
 	thisWeek = cmdhelpers.GetCulvertResetDate(thisWeek)
 	lastWeek := cmdhelpers.GetCulvertPreviousDate(thisWeek)
@@ -251,7 +251,7 @@ func (MapleController) GETCulvert(c *gin.Context) {
 	})
 }
 
-func (MapleController) LinkDiscord(c *gin.Context) {
+func (m MapleController) LinkDiscord(c *gin.Context) {
 	body := linkDiscordBody{}
 	if err := c.BindJSON(&body); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
@@ -327,7 +327,7 @@ func (MapleController) LinkDiscord(c *gin.Context) {
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{})
 }
 
-func (MapleController) POSTRename(c *gin.Context) {
+func (m MapleController) POSTRename(c *gin.Context) {
 	body := postRenameBody{}
 	if err := c.BindJSON(&body); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
