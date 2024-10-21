@@ -31,14 +31,14 @@ const persistCharactersConfig = {
 	],
 };
 
-const persistedRootReducer = combineReducers({
+const rootReducer = combineReducers({
 	login: persistReducer(persistLoginConfig, loginReducer),
 	members: membersReducer,
 	characters: persistReducer(persistCharactersConfig, charactersSlice),
 });
 
 export const store = configureStore({
-	reducer: persistedRootReducer,
+	reducer: rootReducer,
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({ serializableCheck: false }),
 });
