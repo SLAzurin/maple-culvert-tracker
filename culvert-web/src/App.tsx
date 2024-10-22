@@ -12,6 +12,7 @@ import { store } from "./app/store";
 import { useSelector } from "react-redux";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
+import Alert from "react-bootstrap/Alert";
 import Navbar from "react-bootstrap/Navbar";
 import {
 	addNewCharacterScore,
@@ -27,6 +28,11 @@ import {
 	setCharacters,
 	setSelectedWeek,
 	updateScoreValue,
+	selectScoresFetched,
+	selectUnsubmittedScores,
+	resetUnsubmittedScores,
+	resetScoresFetched,
+	setScoresFetched,
 } from "./features/characters/charactersSlice";
 import fetchCharacters from "./helpers/fetchCharacters";
 import fetchCharacterScores from "./helpers/fetchCharacterScores";
@@ -50,6 +56,9 @@ function App() {
 	const updateCulvertScoresResult = useSelector(
 		selectUpdateCulvertScoresResult,
 	);
+	const scoresFetched = useSelector(selectScoresFetched);
+	const unsubmittedScores = useSelector(selectUnsubmittedScores);
+
 	const membersCharacters = useSelector(selectMembersCharacters);
 	const editableWeeks = useSelector(selectEditableWeeks);
 	const selectedWeek = useSelector(selectSelectedWeek);
@@ -67,6 +76,10 @@ function App() {
 	const [importedDataStatus, setImportedDataStatus] = useState("");
 	const [disabledUntrackCharacter, setDisabledUntrackCharacter] =
 		useState(false);
+	const [
+		isPromptingToRecoverUnsubmittedScores,
+		setIsPromptingToRecoverUnsubmittedScores,
+	] = useState(false);
 
 	useEffect(() => {
 		if (selectedWeekFE !== "") {
@@ -206,6 +219,26 @@ function App() {
 		setImportedData("");
 	}, [importedData, characters]);
 
+	useEffect(() => {
+		// if scores were fetched and set to state
+		// we need to compare previously submitted scores from redux persist
+		// We will ask the user if they want to recover the scores or not
+		if (scoresFetched) {
+			const entries = Object.entries(unsubmittedScores.scores);
+			if (entries.length > 0) {
+				setIsPromptingToRecoverUnsubmittedScores(true);
+			} else if (isPromptingToRecoverUnsubmittedScores !== false) {
+				setIsPromptingToRecoverUnsubmittedScores(false);
+			}
+			store.dispatch(resetScoresFetched());
+		}
+	}, [scoresFetched, unsubmittedScores]);
+
+	useEffect(() => {
+		// When app component reloads, force mark scores as fetched
+		store.dispatch(setScoresFetched());
+	}, []);
+
 	const untrackCharacter = (member: GuildMember, charID: string) => {
 		setDisabledUntrackCharacter(true);
 		const res = linkDiscordMaple(
@@ -279,6 +312,7 @@ function App() {
 						{editableWeeks !== null && (
 							<div style={{ display: "flex", flexDirection: "column" }}>
 								<textarea
+									disabled={isPromptingToRecoverUnsubmittedScores}
 									style={{ resize: "none" }}
 									value={importedData}
 									rows={3}
@@ -291,9 +325,11 @@ Don't forget to submit"
 								></textarea>
 								{importedDataStatus !== "" && <p>{importedDataStatus}</p>}
 								<select
+									disabled={Object.keys(unsubmittedScores.scores).length > 0}
 									onChange={(e) => {
 										setSelectedWeekFE(e.target.value);
 									}}
+									value={unsubmittedScores.week || selectedWeekFE}
 								>
 									{editableWeeks.map((d) => (
 										<option key={`editable-weeks-${d}`} value={d}>
@@ -308,6 +344,7 @@ Don't forget to submit"
 							expand="lg"
 							sticky="top"
 							className="bg-body-tertiary"
+							style={{ flexDirection: "column" }}
 							variant="light"
 						>
 							<Container
@@ -361,7 +398,9 @@ Don't forget to submit"
 										style={{ marginRight: "0px !important" }}
 									>
 										<button
-											disabled={disabledLink}
+											disabled={
+												disabledLink || isPromptingToRecoverUnsubmittedScores
+											}
 											className="btn btn-primary"
 											onClick={() => {
 												setImportedDataStatus("");
@@ -375,7 +414,75 @@ Don't forget to submit"
 									</Nav>
 								</Navbar.Collapse>
 							</Container>
+							{Object.keys(unsubmittedScores.scores).length > 0 && (
+								<Container>
+									<Alert
+										variant="warning"
+										className="mt-4"
+										style={{ width: "100%" }}
+									>
+										Warning! You have unsubmitted scores! Don't forget to
+										submit!
+									</Alert>
+								</Container>
+							)}
 						</Navbar>
+						{isPromptingToRecoverUnsubmittedScores && (
+							<div>
+								<h3>You previously had unsubmitted scores</h3>
+								<p>Would you want to apply them?</p>
+								<div>
+									<button
+										className="btn btn-success"
+										onClick={() => {
+											Object.entries(unsubmittedScores.scores).forEach(
+												([charID, unsubmittedScore]) => {
+													if (characters[Number(charID)] !== undefined)
+														store.dispatch(
+															updateScoreValue({
+																character_id: Number(charID),
+																score: unsubmittedScore,
+															}),
+														);
+												},
+											);
+											setIsPromptingToRecoverUnsubmittedScores(false);
+										}}
+									>
+										Apply these scores
+									</button>
+									<button
+										className="btn btn-danger"
+										onClick={() => {
+											store.dispatch(resetUnsubmittedScores());
+											setIsPromptingToRecoverUnsubmittedScores(false);
+										}}
+									>
+										Discard these scores
+									</button>
+								</div>
+								<pre>
+									{Object.keys(characters).length > 0 &&
+										Object.entries(unsubmittedScores.scores)
+											.filter(([charID, unsubmittedScore]) => {
+												return (
+													((characterScores ?? {})[Number(charID)]?.current ??
+														0) !== unsubmittedScore
+												);
+											})
+											.sort(([charID1], [charID2]) => {
+												return (
+													characters[Number(charID1)] ?? ""
+												).localeCompare(characters[Number(charID2)] ?? "");
+											})
+											.map(
+												([charID, unsubmittedScore]) =>
+													`${characters[Number(charID)] ?? "UNKNOWN_CHARACTER"}: ${(characterScores ?? {})[Number(charID)]?.current ?? 0} => ${unsubmittedScore}`,
+											)
+											.join("\n")}
+								</pre>
+							</div>
+						)}
 						<table>
 							<thead>
 								<tr>
@@ -480,6 +587,7 @@ Don't forget to submit"
 												</td>
 												<td>
 													<input
+														disabled={isPromptingToRecoverUnsubmittedScores}
 														onChange={(e) => {
 															const n = Number(e.target.value);
 															if (!Number.isNaN(n)) {
@@ -514,7 +622,10 @@ Don't forget to submit"
 															const [discordID] = entry;
 															return (
 																<button
-																	disabled={disabledUntrackCharacter}
+																	disabled={
+																		disabledUntrackCharacter ||
+																		isPromptingToRecoverUnsubmittedScores
+																	}
 																	key={"untrack-character-" + charID}
 																	className="btn btn-danger"
 																	onClick={() => {

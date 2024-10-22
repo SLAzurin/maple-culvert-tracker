@@ -11,23 +11,34 @@ import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import charactersSlice from "../features/characters/charactersSlice";
 
-const persistConfig = {
-	blacklist: ["members", "characters"],
-	key: "root",
+const persistLoginConfig = {
+	key: "login",
 	storage,
 };
 
-const persistedReducer = persistReducer(
-	persistConfig,
-	combineReducers({
-		login: loginReducer,
-		members: membersReducer,
-		characters: charactersSlice,
-	}),
-);
+const persistCharactersConfig = {
+	key: "characters",
+	storage,
+	blacklist: [
+		"characters",
+		"membersCharacters",
+		"characterScores",
+		"characterScoresOriginal",
+		"updateCulvertScoresResult",
+		"selectedWeek",
+		"editableWeeks",
+		// The only omitted fields are characterScores
+	],
+};
+
+const rootReducer = combineReducers({
+	login: persistReducer(persistLoginConfig, loginReducer),
+	members: membersReducer,
+	characters: persistReducer(persistCharactersConfig, charactersSlice),
+});
 
 export const store = configureStore({
-	reducer: persistedReducer,
+	reducer: rootReducer,
 	middleware: (getDefaultMiddleware) =>
 		getDefaultMiddleware({ serializableCheck: false }),
 });
