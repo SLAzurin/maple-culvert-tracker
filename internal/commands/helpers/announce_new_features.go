@@ -36,7 +36,7 @@ If anything is broken, please report directly to ` + "`.azuri`.\nEnjoy!",
 - The admin panel now saves unsubmitted scores, so that you won't lose your work-in-progress if you accidentally close your tab!
     - _Small fair warning: Admin console changes are very prone to bugs, but I made sure to test as much as I can before I release it._
 
-If anything is broken, please report directly to ` + "`.azuri` please!\nEnjoy the new features!",
+If anything is broken, please report directly to ` + "`.azuri`!\nEnjoy the new features!",
 			},
 		},
 	}
