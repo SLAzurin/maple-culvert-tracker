@@ -26,14 +26,22 @@ func getAnnouncements() []announcement {
 If anything is broken, please report directly to ` + "`.azuri`.\nEnjoy!",
 			},
 		},
+		{
+			// 1
+			FilePathsAttachments: []string{
+				"./server_assets/announcement1.png",
+			},
+			ComplexMessage: &discordgo.MessageSend{
+				Content: `New features have landed!
+- The admin panel now saves unsubmitted scores, so that you won't lose your work-in-progress if you accidentally close your tab!
+    - _Small fair warning: Admin console changes are very prone to bugs, but I made sure to test as much as I can before I release it._
+
+If anything is broken, please report directly to ` + "`.azuri` please!\nEnjoy the new features!",
+			},
+		},
 	}
 	return announcements
 }
-
-// - The admin panel now saves unsubmitted scores, so that you won't lose your work-in-progress if you accidentally close your tab!, revert this: bf69ff1321fb60e744ecda98d7253ff2a17e8cfa
-// FilePathsAttachments: []string{
-// 	"./server_assets/announcement1.png",
-// },
 
 func announceNewFeatures(s *discordgo.Session) {
 	log.Println("Announcing new features")
