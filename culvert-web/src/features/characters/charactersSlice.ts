@@ -2,17 +2,22 @@ import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 import updateCulvertScores from "../../helpers/updateCulvertScores";
 
+type character_id = number;
+type score = number;
+type week = string;
+type character_name = string;
+
 interface CharactersState {
-	characters: { [key: number]: string };
-	membersCharacters: { [key: string]: number[] };
+	characters: { [key: character_id]: character_name };
+	membersCharacters: { [key: character_name]: character_id[] };
 	characterScores: {
-		[key: number]: {
+		[key: character_id]: {
 			prev?: number;
 			current?: number;
 		};
 	} | null;
 	characterScoresOriginal: {
-		[key: number]: {
+		[key: character_id]: {
 			prev?: number;
 			current?: number;
 		};
@@ -22,8 +27,10 @@ interface CharactersState {
 		statusMessage: string;
 		date: Date;
 	}> | null;
-	selectedWeek: string | null;
-	editableWeeks: string[] | null;
+	selectedWeek: week | null;
+	editableWeeks: week[] | null;
+	unsubmittedScores: { week: week | null; scores: Record<character_id, score> };
+	scoresFetched: null | boolean;
 }
 
 const initialState: CharactersState = {
@@ -34,10 +41,15 @@ const initialState: CharactersState = {
 	updateCulvertScoresResult: null,
 	selectedWeek: null,
 	editableWeeks: null,
+	unsubmittedScores: {
+		week: null,
+		scores: {},
+	},
+	scoresFetched: null,
 };
 
-export const membersSlice = createSlice({
-	name: "members",
+export const charactersSlice = createSlice({
+	name: "characters",
 	initialState,
 	reducers: {
 		setCharacters: (
@@ -62,8 +74,14 @@ export const membersSlice = createSlice({
 			state.membersCharacters = newMembersCharacters;
 		},
 		resetCharacterScores: (state) => {
+			// called after successful scores submit
 			state.characterScoresOriginal = null;
 			state.characterScores = null;
+			const newUnsubmittedScores = {
+				week: state.unsubmittedScores.week,
+				scores: {},
+			};
+			state.unsubmittedScores = newUnsubmittedScores;
 		},
 		setCharacterScores: (
 			state,
@@ -81,9 +99,22 @@ export const membersSlice = createSlice({
 			if (state.editableWeeks == null) {
 				state.editableWeeks = action.payload.weeks;
 			}
-			if (state.selectedWeek == null) {
-				state.selectedWeek = action.payload.weeks[0];
+			if (state.editableWeeks.length > 0 && state.selectedWeek == null) {
+				if (
+					state.unsubmittedScores.week !== null &&
+					state.editableWeeks.includes(state.unsubmittedScores.week)
+				) {
+					state.selectedWeek = state.unsubmittedScores.week;
+				} else {
+					state.selectedWeek = action.payload.weeks[0];
+					state.unsubmittedScores = {
+						week: action.payload.weeks[0],
+						scores: {},
+					};
+				}
+				state.scoresFetched = true;
 			}
+
 			for (let v of action.payload.data) {
 				if (typeof state.characters[v.character_id] === "undefined") {
 					continue;
@@ -110,6 +141,10 @@ export const membersSlice = createSlice({
 			}
 			newScores[action.payload.character_id].current = action.payload.score;
 			state.characterScores = newScores;
+			const newUnsubmittedScores = { ...state.unsubmittedScores };
+			newUnsubmittedScores.scores[action.payload.character_id] =
+				action.payload.score;
+			state.unsubmittedScores = newUnsubmittedScores;
 		},
 		addNewCharacterScore: (state, action: PayloadAction<number>) => {
 			const newScores = { ...state.characterScores };
@@ -184,16 +219,39 @@ export const membersSlice = createSlice({
 			})();
 		},
 		setSelectedWeek: (state, action: PayloadAction<string>) => {
+			if (state.selectedWeek !== action.payload) {
+				state.unsubmittedScores = {
+					week: action.payload,
+					scores: {},
+				};
+			}
 			state.selectedWeek = action.payload;
+			state.scoresFetched = true;
 		},
 		resetInitialStateCharacters: (state) => {
+			// Do all keys except for unsubmittedScores
 			Object.keys(state).forEach((key) => {
-				(state as any)[key] = (initialState as any)[key];
+				if (key !== "unsubmittedScores")
+					(state as any)[key] = (initialState as any)[key];
 			});
+		},
+		resetUnsubmittedScores: (state) => {
+			const newUnsubmittedScores = {
+				week: state.unsubmittedScores.week,
+				scores: {},
+			};
+			state.scoresFetched = null;
+			state.unsubmittedScores = newUnsubmittedScores;
+		},
+		resetScoresFetched: (state) => {
+			state.scoresFetched = null;
+		},
+		setScoresFetched: (state) => {
+			state.scoresFetched = true;
 		},
 	},
 });
-export default membersSlice.reducer;
+export default charactersSlice.reducer;
 
 export const selectCharacters = (state: RootState) =>
 	state.characters.characters;
@@ -207,6 +265,10 @@ export const selectSelectedWeek = (state: RootState) =>
 	state.characters.selectedWeek;
 export const selectMembersCharacters = (state: RootState) =>
 	state.characters.membersCharacters;
+export const selectScoresFetched = (state: RootState) =>
+	state.characters.scoresFetched;
+export const selectUnsubmittedScores = (state: RootState) =>
+	state.characters.unsubmittedScores;
 
 export const {
 	setCharacters,
@@ -217,4 +279,7 @@ export const {
 	resetCharacterScores,
 	setSelectedWeek,
 	resetInitialStateCharacters,
-} = membersSlice.actions;
+	resetUnsubmittedScores,
+	resetScoresFetched,
+	setScoresFetched,
+} = charactersSlice.actions;
