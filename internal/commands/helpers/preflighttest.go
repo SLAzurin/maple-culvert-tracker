@@ -37,6 +37,12 @@ func PreflightTest() {
 
 	// Apply postgres migrations
 	log.Println("Applying postgres migrations")
+	err = db.Migrate(db.DB)
+	if err != nil {
+		log.Println("Failed to apply postgres migrations")
+		log.Fatal(err)
+	}
+
 	// None for now
 	log.Println("Postgres migrations successfully applied")
 

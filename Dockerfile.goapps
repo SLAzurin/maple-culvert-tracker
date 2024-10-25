@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.23-alpine AS build
+FROM golang:1.23.2-alpine AS build
 RUN apk --no-cache add tzdata
 
 WORKDIR /src/
@@ -57,4 +57,6 @@ COPY ./cron.d/root /etc/cron/
 
 FROM final AS final-with-server-assets
 COPY ./server_assets /server_assets/
+COPY ./db_migrations /db_migrations/
+
 ENTRYPOINT [ "/main" ]
