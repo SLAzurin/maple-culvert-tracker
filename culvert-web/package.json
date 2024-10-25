@@ -25,7 +25,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-prettier": "^5.2.1",
 		"eslint-plugin-react": "^7.37.1",
-		"eslint-plugin-react-hooks": "^5.1.0-rc-d1afcb43-20240903",
+		"eslint-plugin-react-hooks": "^5.1.0-rc.0",
 		"jsdom": "^25.0.1",
 		"prettier": "^3.3.3",
 		"prettier-config-a11y": "^1.1.2",
