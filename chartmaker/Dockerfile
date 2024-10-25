@@ -20,7 +20,7 @@ COPY chartmaker/package.json /app/chartmaker/
 RUN cd /app && corepack enable && corepack prepare --activate && pnpm i -P && rm -rf /app/{package.json,pnpm-lock.yaml,pnpm-workspace.yaml} /app/chartmaker/package.json
 
 
-FROM base as runner
+FROM base AS runner
 WORKDIR /chartmaker/
 
 RUN addgroup --system --gid 1001 nodejs
