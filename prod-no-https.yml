@@ -3,7 +3,7 @@ services:
   traefik:
     restart: unless-stopped
     image: nginx:stable-alpine-slim
-  volumes:
-    - ./nginx/conf.d/:/etc/nginx/conf.d/
-  ports:
-    - 8080:8080
+    volumes:
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    ports:
+      - 8080:8080
