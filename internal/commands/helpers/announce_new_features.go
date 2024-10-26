@@ -39,6 +39,13 @@ If anything is broken, please report directly to ` + "`.azuri`.\nEnjoy!",
 If anything is broken, please report directly to ` + "`.azuri`!\nEnjoy the new features!",
 			},
 		},
+		{
+			// 2 database migrations
+			ComplexMessage: &discordgo.MessageSend{
+				Content: `Minor internal database changes were applied to prepare for future updates.
+If anything is broken, please report directly to ` + "`.azuri`! Thank you",
+			},
+		},
 	}
 	return announcements
 }
