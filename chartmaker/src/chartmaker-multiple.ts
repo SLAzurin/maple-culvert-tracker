@@ -21,7 +21,6 @@ export const chartmakerMultiple = (data: {
 }): Buffer => {
   const width = data.labels.length <= 8 ? 1000 : 125 * data.labels.length
   const height = 600
-  const backgroundColour = "rgba(27,27,27,255)"
   const chartJSNodeCanvas = createCanvas(width, height)
   const ctx = chartJSNodeCanvas.getContext("2d")
 
