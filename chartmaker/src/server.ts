@@ -26,12 +26,34 @@ app.get("/", (req, res) => {
 })
 
 app.post("/chartmaker-multiple", (req, res) => {
+  if (
+    typeof req.body !== "object" ||
+    !Array.isArray(req.body.labels) ||
+    !req.body.labels.every((label: string) => typeof label === "string") ||
+    !Array.isArray(req.body.req.bodyPlots) ||
+    !req.body.req.bodyPlots.every(
+      (plot: { characterName: string; scores: number[] }) =>
+        typeof plot.characterName === "string" &&
+        Array.isArray(plot.scores) &&
+        plot.scores.every(score => typeof score === "number"),
+    )
+  ) {
+    throw new Error("Invalid input data format")
+  }
   res.statusCode = 200
   res.type("png")
   res.send(chartmakerMultiple(req.body))
 })
 
 app.post("/chartmaker", (req, res) => {
+  if (
+    !Array.isArray(req.body) ||
+    !req.body.every(
+      row => typeof row.label === "string" && typeof row.score === "number",
+    )
+  ) {
+    throw new Error("Invalid input data format")
+  }
   res.statusCode = 200
   res.type("png")
   res.send(chartmaker(req.body))
