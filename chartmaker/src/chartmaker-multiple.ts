@@ -1,7 +1,8 @@
-import { createCanvas } from "canvas"
+import { createCanvas } from "@napi-rs/canvas"
 
 import { Chart, ChartItem } from "chart.js"
 import ChartDataLabels from "chartjs-plugin-datalabels"
+import { fontFamily } from "./fontfamily"
 
 const dataColors = [
   "#ea5545",
@@ -55,6 +56,7 @@ export const chartmakerMultiple = (data: {
           color: "white",
           font: {
             weight: "bold",
+            family: fontFamily,
           },
           formatter: Math.round,
           padding: 6,
@@ -62,7 +64,7 @@ export const chartmakerMultiple = (data: {
       },
     },
   })
-  const b = chartJSNodeCanvas.toBuffer()
+  const b = chartJSNodeCanvas.toBuffer("image/png")
   chart.destroy()
   return b
 }

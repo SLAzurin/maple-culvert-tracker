@@ -1,7 +1,8 @@
-import { createCanvas } from "canvas"
+import { createCanvas } from "@napi-rs/canvas"
 import { ChartItem } from "chart.js"
 import Chart from "chart.js/auto"
 import ChartDataLabels from "chartjs-plugin-datalabels"
+import { fontFamily } from "./fontfamily"
 
 export const chartmaker = (
   data: { label: string; score: number }[],
@@ -48,6 +49,7 @@ export const chartmaker = (
           color: "white",
           font: {
             weight: "bold",
+            family: fontFamily,
           },
           formatter: Math.round,
           padding: 6,
@@ -55,7 +57,7 @@ export const chartmaker = (
       },
     },
   })
-  const b = chartJSNodeCanvas.toBuffer()
+  const b = chartJSNodeCanvas.toBuffer("image/png")
   chart.destroy()
   return b
 }
