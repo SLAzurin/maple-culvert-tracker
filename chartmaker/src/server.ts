@@ -3,6 +3,7 @@ import { chartmaker } from "./chartmaker"
 import { chartmakerMultiple } from "./chartmaker-multiple"
 import ChartDataLabels from "chartjs-plugin-datalabels"
 import { Chart } from "chart.js"
+import { fontFamily } from "./fontfamily"
 
 Chart.register(ChartDataLabels, {
   id: "BackgroundColor",
@@ -14,6 +15,8 @@ Chart.register(ChartDataLabels, {
     ctx.restore()
   },
 })
+
+Chart.defaults.font.family = fontFamily
 
 const app = express()
 const port = process.env.PORT || 3000

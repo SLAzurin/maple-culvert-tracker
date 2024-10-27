@@ -1,0 +1,6 @@
+{
+    "main": "dist/server.js",
+    "output": "dist/chartmaker.blob",
+    "disableExperimentalSEAWarning": true,
+    "useCodeCache": true
+}

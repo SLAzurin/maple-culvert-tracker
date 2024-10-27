@@ -7,7 +7,7 @@
   "private": true,
   "scripts": {
     "test": "exit 0",
-    "build": "rm -rf dist && tsc && esbuild --minify --bundle --platform=node --outdir=dist --external:chart.js --external:canvas src/server.ts"
+    "build": "rm -rf dist && tsc && node chartmakerBuilder.cjs"
   },
   "repository": {
     "type": "git",
@@ -24,11 +24,11 @@
   },
   "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme",
   "dependencies": {
-    "canvas": "^3.0.0-rc2",
-    "chart.js": "^4.4.5"
+    "@napi-rs/canvas": "^0.1.59"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",
+    "chart.js": "^4.4.5",
     "chartjs-plugin-datalabels": "^2.2.0",
     "express": "^4.21.1"
   }
