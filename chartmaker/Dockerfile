@@ -1,5 +1,5 @@
 FROM node:22-alpine AS base
-RUN apk add --no-cache openssl
+RUN apk add --no-cache 'libcrypto3>=3.3.2-r1'
 
 FROM base AS skia-deps
 RUN apk add --no-cache wget
