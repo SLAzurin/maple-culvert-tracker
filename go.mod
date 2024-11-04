@@ -7,7 +7,7 @@ go 1.23
 require (
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-jet/jet/v2 v2.11.1
+	github.com/go-jet/jet/v2 v2.12.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/joho/godotenv v1.5.1
