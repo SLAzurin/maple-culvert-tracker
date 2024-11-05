@@ -13,8 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service:
-          [bot, web, chartmaker, periodicredis, autofill_characters, cron]
+        service: [
+            bot,
+            web,
+            chartmaker,
+            periodicredis,
+            autofill_characters,
+            cron,
+          ] # Dont forget to make sure this array is identical to what is promoted to stable!
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
@@ -36,3 +42,30 @@ jobs:
           docker image tag ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:HEAD ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:latest
       - run: |
           docker push -a ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}
+  promote-stable:
+    if: github.event_name == 'push' && github.ref_name == 'master'
+    environment: promote-stable
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [
+            bot,
+            web,
+            chartmaker,
+            periodicredis,
+            autofill_characters,
+            cron,
+          ] # Dont forget to make sure this array is identical to the above!
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          docker image pull ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:$(git rev-parse HEAD)
+          docker image tag ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:$(git rev-parse HEAD) ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:latest
+          docker push ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:latest
