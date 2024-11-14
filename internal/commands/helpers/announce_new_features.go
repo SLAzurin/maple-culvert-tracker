@@ -46,6 +46,15 @@ If anything is broken, please report directly to ` + "`.azuri`!\nEnjoy the new f
 If anything is broken, please report directly to ` + "`.azuri`! Thank you",
 			},
 		},
+		{
+			// 3 move reminder to reset -10 minutes
+			ComplexMessage: &discordgo.MessageSend{
+				Content: `Hi everyone! I've moved the daily update scores reminder to 5 minutes before reset.
+Guild members can still run last minute culvert at weekly reset -10 minutes so it'll give them enough time if they're running really late.
+
+That's it, Bot out!`,
+			},
+		},
 	}
 	return announcements
 }

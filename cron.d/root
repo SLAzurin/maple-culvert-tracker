@@ -1,2 +1,2 @@
 0 0 * * 6 /usr/local/bin/auto_backup
-50 23 * * * /usr/local/bin/culvert_score_update_reminder
+55 23 * * * /usr/local/bin/culvert_score_update_reminder
