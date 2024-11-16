@@ -55,6 +55,14 @@ Guild members can still run last minute culvert at weekly reset -10 minutes so i
 That's it, Bot out!`,
 			},
 		},
+		{
+			// 4 fix default week to most recent week
+			ComplexMessage: &discordgo.MessageSend{
+				Content: `Hi everyone! I've fixed the admin panel __not__ defaulting to the most recent week!
+
+Bot out!`,
+			},
+		},
 	}
 	return announcements
 }

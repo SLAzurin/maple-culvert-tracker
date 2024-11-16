@@ -102,7 +102,8 @@ export const charactersSlice = createSlice({
 			if (state.editableWeeks.length > 0 && state.selectedWeek == null) {
 				if (
 					state.unsubmittedScores.week !== null &&
-					state.editableWeeks.includes(state.unsubmittedScores.week)
+					state.editableWeeks.includes(state.unsubmittedScores.week) &&
+					Object.keys(state.unsubmittedScores.scores).length > 0
 				) {
 					state.selectedWeek = state.unsubmittedScores.week;
 				} else {
