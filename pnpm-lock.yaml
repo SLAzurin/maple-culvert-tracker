@@ -73,8 +73,8 @@ importers:
         specifier: ^7.37.2
         version: 7.37.2(eslint@9.14.0)
       eslint-plugin-react-hooks:
-        specifier: ^5.1.0-rc.0
-        version: 5.1.0-rc.0(eslint@9.14.0)
+        specifier: ^5.1.0-rc.1
+        version: 5.1.0-rc.1(eslint@9.14.0)
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1(canvas@2.11.2(encoding@0.1.13))
@@ -1417,8 +1417,8 @@ packages:
       eslint-config-prettier:
         optional: true
 
-  eslint-plugin-react-hooks@5.1.0-rc.0:
-    resolution: {integrity: sha512-xBc+mRT2KSyzKm78GyaOFPyF4EnSRfTSmre88Ak8jG1HnpNGEiHETbCuXih8Xl796DryrJej/8IdW4oQ+m5kPg==}
+  eslint-plugin-react-hooks@5.1.0-rc.1:
+    resolution: {integrity: sha512-nAD017D/00XFwjP4F7cXaIbCxQ9A4pGaqjLs5347px37w/WclOtPqz8bBiTQFoj+teVQei6Ahr1h1aZiuaXMSw==}
     engines: {node: '>=10'}
     peerDependencies:
       eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0
@@ -3998,7 +3998,7 @@ snapshots:
     optionalDependencies:
       eslint-config-prettier: 9.1.0(eslint@9.14.0)
 
-  eslint-plugin-react-hooks@5.1.0-rc.0(eslint@9.14.0):
+  eslint-plugin-react-hooks@5.1.0-rc.1(eslint@9.14.0):
     dependencies:
       eslint: 9.14.0
 
