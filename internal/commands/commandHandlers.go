@@ -60,4 +60,5 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	"culvert-duel-anyone": culvertDuel(true),
 	"export-csv":          exportcsv,
 	"track-character":     trackCharacter,
+	"culvert-mega-details": culvertMegaDetails,
 }
