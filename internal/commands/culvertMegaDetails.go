@@ -71,11 +71,23 @@ func culvertMegaDetails(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
+		return
 	}
 
 	// log dest
 	for _, v := range dest {
 		log.Println(v)
+	}
+
+	if len(dest) < 1 {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "There is no data!",
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		})
+		return
 	}
 
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
