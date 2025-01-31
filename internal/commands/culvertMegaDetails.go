@@ -140,10 +140,6 @@ func culvertMegaDetails(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		})
 
 		// reset data to next character's data
-		chartData.DataPlots = append(chartData.DataPlots, data.DataPlot{
-			CharacterName: currentChar,
-			Scores:        currentScores,
-		})
 		currentChar = v.MapleCharacterName
 		rawRowData = []*struct {
 			CulvertDate        time.Time
