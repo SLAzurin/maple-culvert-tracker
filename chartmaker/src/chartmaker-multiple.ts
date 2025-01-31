@@ -21,7 +21,8 @@ export const chartmakerMultiple = (data: {
   dataPlots: { characterName: string; scores: number[] }[]
 }): Buffer => {
   const width = data.labels.length <= 8 ? 1000 : 125 * data.labels.length
-  const height = 600
+  let height = data.dataPlots.length * 10
+  if (height < 600) height = 600
   const chartJSNodeCanvas = createCanvas(width, height)
   const ctx = chartJSNodeCanvas.getContext("2d")
 
