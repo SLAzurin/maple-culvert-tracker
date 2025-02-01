@@ -63,6 +63,14 @@ That's it, Bot out!`,
 Bot out!`,
 			},
 		},
+		{
+			// 5 new command culvert-mega-details
+			ComplexMessage: &discordgo.MessageSend{
+				Content: `Hi everyone! I've added a new dumb command: ` + "`/culvert-mega-details`" + `!
+This command will show the past culvert progression for the whole entire guild.
+Bot out!`,
+			},
+		},
 	}
 	return announcements
 }
