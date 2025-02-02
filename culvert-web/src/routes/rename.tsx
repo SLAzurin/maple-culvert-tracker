@@ -24,12 +24,20 @@ const Rename = () => {
 		const query = new URLSearchParams(queryString);
 		const id = query.get("id");
 		if (!id) {
-			return navigate(-1);
+			navigate(-1);
+			return;
 		}
-		if (Number.isNaN(Number(id))) return navigate(-1);
-		if (!characters[Number(id)]) return navigate(-1);
+		if (Number.isNaN(Number(id))) {
+			navigate(-1);
+			return;
+		}
+		if (!characters[Number(id)]) {
+			navigate(-1);
+			return;
+		}
 		setNewName(characters[Number(id)]);
-		return setCharID(id);
+		setCharID(id);
+		return;
 	}, []);
 	return (
 		<div>
