@@ -81,11 +81,19 @@ const LinkDiscord = () => {
 		const query = new URLSearchParams(queryString);
 		const id = query.get("id");
 		if (!id) {
-			return navigate(-1);
+			navigate(-1);
+			return;
 		}
-		if (Number.isNaN(Number(id))) return navigate(-1);
-		if (!characters[Number(id)]) return navigate(-1);
-		return setCharID(id);
+		if (Number.isNaN(Number(id))) {
+			navigate(-1);
+			return;
+		}
+		if (!characters[Number(id)]) {
+			navigate(-1);
+			return;
+		}
+		setCharID(id);
+		return;
 	}, []);
 
 	return (
