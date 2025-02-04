@@ -73,19 +73,15 @@ func culvertMegaDetails(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}{}
 	err = stmt.Query(db.DB, &dest)
 	if err != nil {
+		log.Println(err)
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "Failed to find all characters' dataset!",
+				Content: "Failed to find all characters' dataset! See server logs.",
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
 		return
-	}
-
-	// log dest
-	for _, v := range dest {
-		log.Println(v)
 	}
 
 	if len(dest) < 1 {
@@ -151,15 +147,15 @@ func culvertMegaDetails(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	// json format chartData
-	jsonData, err := json.Marshal(chartData)
-	log.Println(string(jsonData), err)
+	jsonData, _ := json.Marshal(chartData)
 
 	r, err := http.Post("http://"+os.Getenv(data.EnvVarChartMakerHost)+"/chartmaker-multiple", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil || r.StatusCode != http.StatusOK {
+		log.Println(err)
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "Looks like my `chartmaker` component is broken... ",
+				Content: "Looks like my `chartmaker` component is broken... See server logs.",
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
