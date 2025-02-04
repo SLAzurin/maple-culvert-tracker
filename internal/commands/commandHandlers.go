@@ -56,9 +56,10 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	"sandbaggers": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		s.InteractionRespond(i.Interaction, getSandbaggers())
 	},
-	"culvert-duel":        culvertDuel(false),
-	"culvert-duel-anyone": culvertDuel(true),
-	"export-csv":          exportcsv,
-	"track-character":     trackCharacter,
+	"culvert-duel":         culvertDuel(false),
+	"culvert-duel-anyone":  culvertDuel(true),
+	"export-csv":           exportcsv,
+	"track-character":      trackCharacter,
 	"culvert-mega-details": culvertMegaDetails,
+	"culvert-summary":      culvertSummary,
 }

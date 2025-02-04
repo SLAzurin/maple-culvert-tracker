@@ -64,10 +64,12 @@ Bot out!`,
 			},
 		},
 		{
-			// 5 new command culvert-mega-details
+			// 5 new command culvert-mega-details and culvert-summary
 			ComplexMessage: &discordgo.MessageSend{
 				Content: `Hi everyone! I've added a new dumb command: ` + "`/culvert-mega-details`" + `!
 This command will show the past culvert progression for the whole entire guild.
+
+` + "`/culvert-summary`" + ` is also here now! You can snoop on the whole guild's past and present culvert scores with this command!
 Bot out!`,
 			},
 		},

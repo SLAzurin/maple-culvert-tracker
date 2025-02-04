@@ -172,4 +172,16 @@ var Commands = []*discordgo.ApplicationCommand{
 			},
 		},
 	},
+	{
+		Name:        "culvert-summary",
+		Description: "Shows the culvert progression for the whole entire guild for a specific week",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "Date in YYYY-MM-DD format to check historical data",
+			},
+		},
+	},
 }
