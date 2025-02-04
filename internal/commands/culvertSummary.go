@@ -3,22 +3,31 @@ package commands
 //lint:file-ignore ST1001 Dot imports by jet
 import (
 	"log"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	// . "github.com/go-jet/jet/v2/postgres"
-	// . "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
+	. "github.com/go-jet/jet/v2/postgres"
+	"github.com/jedib0t/go-pretty/v6/table"
+	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
+	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
 func culvertSummary(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := i.ApplicationCommandData().Options
 
 	date := ""
+	// this can only be `score` or `name`
+	orderBy := "score"
 
 	for _, v := range options {
 		if v.Name == "date" {
 			date = v.StringValue()
+		}
+		if v.Name == "order-by" {
+			orderBy = v.StringValue()
 		}
 	}
 
@@ -37,13 +46,69 @@ func culvertSummary(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		})
 		return
 	}
-	log.Println(d)
+	d = cmdhelpers.GetCulvertResetDate(d)
+
+	if d.After(time.Now()) {
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Invalid date, cannot be in the future",
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		})
+		return
+	}
+
+	var orderByClause []OrderByClause = []OrderByClause{CharacterCulvertScores.Score.DESC(), Characters.MapleCharacterName.ASC()}
+
+	// get all rows for the specific date
+	stmt := SELECT(Characters.MapleCharacterName.AS("maple_character_name"), CharacterCulvertScores.Score.AS("score")).FROM(CharacterCulvertScores.INNER_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.CulvertDate.EQ(DateT(d)).AND(Characters.DiscordUserID.NOT_EQ(String("1")))).ORDER_BY(orderByClause...)
+
+	dest := []struct {
+		Score              int32
+		MapleCharacterName string
+		pos                int
+	}{}
+
+	err = stmt.Query(db.DB, &dest)
+	if err != nil {
+		log.Println(err)
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Failed to retrieve characters' data from database. See server logs.",
+				Flags:   discordgo.MessageFlagsEphemeral,
+			},
+		})
+		return
+	}
+
+	// set pos
+	for i := range dest {
+		dest[i].pos = i + 1
+	}
+
+	if orderBy == "name" {
+		slices.SortFunc(dest, func(a, b struct {
+			Score              int32
+			MapleCharacterName string
+			pos                int
+		}) int {
+			return strings.Compare(a.MapleCharacterName, b.MapleCharacterName)
+		})
+	}
 
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Flags:   discordgo.MessageFlagsEphemeral,
-			Content: "Under construction!",
+			Content: "Culvert summary for " + d.Format("2006-01-02"),
+			Files: []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(cmdhelpers.FormatNthColumnList(3, dest, table.Row{"Pos", "Character", "Score"}, func(data struct {
+				Score              int32
+				MapleCharacterName string
+				pos                int
+			}) table.Row {
+				return table.Row{data.pos, data.MapleCharacterName, data.Score}
+			}))}},
 		},
 	})
 

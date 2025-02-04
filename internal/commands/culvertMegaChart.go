@@ -18,7 +18,7 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
-func culvertMegaDetails(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func culvertMegaChart(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := i.ApplicationCommandData().Options
 
 	weeks := int64(8)
@@ -165,7 +165,6 @@ func culvertMegaDetails(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Flags: discordgo.MessageFlagsEphemeral,
 				Files: []*discordgo.File{{Name: "image.png", Reader: r.Body}},
 			},
 		})
