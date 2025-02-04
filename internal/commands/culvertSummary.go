@@ -98,11 +98,20 @@ func culvertSummary(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		})
 	}
 
+	columnCount := 1
+	if len(dest) > 65 {
+		columnCount = 2
+	}
+
+	if len(dest) > 130 {
+		columnCount = 3
+	}
+
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: "Culvert summary for " + d.Format("2006-01-02"),
-			Files: []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(cmdhelpers.FormatNthColumnList(3, dest, table.Row{"Pos", "Character", "Score"}, func(data struct {
+			Files: []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(cmdhelpers.FormatNthColumnList(columnCount, dest, table.Row{"Pos", "Character", "Score"}, func(data struct {
 				Score              int32
 				MapleCharacterName string
 				pos                int
