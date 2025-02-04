@@ -153,7 +153,7 @@ var Commands = []*discordgo.ApplicationCommand{
 		},
 	},
 	{
-		Name:        "culvert-mega-details",
+		Name:        "culvert-mega-chart",
 		Description: "Shows the past culvert progression for the whole entire guild",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
@@ -169,6 +169,34 @@ var Commands = []*discordgo.ApplicationCommand{
 				MaxValue:    52,
 				Name:        "weeks",
 				Description: "Number of weeks to display in the graph (default 8)",
+			},
+		},
+	},
+	{
+		Name:        "culvert-summary",
+		Description: "Shows the culvert progression for the whole entire guild for a specific week",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "Date in YYYY-MM-DD format to check historical data",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "order-by",
+				Description: "Order the results by name or score (default score)",
+				Choices: []*discordgo.ApplicationCommandOptionChoice{
+					{
+						Name:  "Character name",
+						Value: "name",
+					},
+					{
+						Name:  "Score",
+						Value: "score",
+					},
+				},
 			},
 		},
 	},
