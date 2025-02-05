@@ -19,6 +19,14 @@ import (
 )
 
 func culvertMegaChart(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+	})
+	if err != nil {
+		log.Println("Failed to respond to interaction", err)
+		return
+	}
+
 	options := i.ApplicationCommandData().Options
 
 	weeks := int64(8)
@@ -39,12 +47,9 @@ func culvertMegaChart(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	d, err := time.Parse("2006-01-02", date) // YYYY-MM-DD
 	if err != nil {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Invalid date format, should be YYYY-MM-DD",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
+		str := "Invalid date format, should be YYYY-MM-DD"
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: &str,
 		})
 		return
 	}
@@ -74,23 +79,18 @@ func culvertMegaChart(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	err = stmt.Query(db.DB, &dest)
 	if err != nil {
 		log.Println(err)
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Failed to find all characters' dataset! See server logs.",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
-		})
+		str := "Failed to find all characters' dataset! See server logs."
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: &str,
+		},
+		)
 		return
 	}
 
 	if len(dest) < 1 {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "There is no data!",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
+		str := "There is no data!"
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: &str,
 		})
 		return
 	}
@@ -152,21 +152,15 @@ func culvertMegaChart(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	r, err := http.Post("http://"+os.Getenv(data.EnvVarChartMakerHost)+"/chartmaker-multiple", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil || r.StatusCode != http.StatusOK {
 		log.Println(err)
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Looks like my `chartmaker` component is broken... See server logs.",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
+		str := "Looks like my `chartmaker` component is broken... See server logs."
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: &str,
 		})
 		return
 	} else {
 		defer r.Body.Close()
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Files: []*discordgo.File{{Name: "image.png", Reader: r.Body}},
-			},
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Files: []*discordgo.File{{Name: "image.png", Reader: r.Body}},
 		})
 		return
 	}
