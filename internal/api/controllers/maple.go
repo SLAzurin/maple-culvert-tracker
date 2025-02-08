@@ -175,11 +175,9 @@ func (MapleController) POSTCulvert(c *gin.Context) {
 
 	if shouldNotifyScoreUpdated {
 		if DiscordSession != nil {
-			for _, key := range apiredis.MakeKeysSlice(apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID, apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID) {
-				if channelID := key.GetWithDefault(apiredis.RedisDB, ""); channelID != "" {
-					DiscordSession.ChannelMessageSend(channelID, "Culvert scores updated! ANY GAINS SINCE LAST WEEK?")
-				}
-			}
+			channels := append([]string{}, apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, ""), apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, ""))
+
+			go helpers.SendWeeklyDifferences(DiscordSession, db.DB, apiredis.RedisDB, thisWeek, channels...)
 		} else {
 			log.Fatalln("DiscordSession is nil when trying to notify score update completed!")
 		}
