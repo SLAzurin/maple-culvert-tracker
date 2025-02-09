@@ -17,20 +17,20 @@ import (
 )
 
 type differenceStruct struct {
+	Name    string
 	Prev    int
 	Current int
 	Oldpos  int
-	Newpos  int
 }
 
 func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, submittedDate time.Time, channelID ...string) {
 	log.Println("Sending weekly differences to channel", channelID)
-	log.Println("Submitted Date", submittedDate.Format("2006-01-02"))
 	submittedDate = cmdhelpers.GetCulvertResetDate(submittedDate)
 	lastWeek := cmdhelpers.GetCulvertResetDate(submittedDate.Add(time.Hour * -24 * 7))
+	log.Println("Submitted Date", submittedDate.Format("2006-01-02"), "lastWeek", lastWeek.Format("2006-01-02"))
 
 	// query all summary of current character scores
-	stmt := SELECT(Characters.MapleCharacterName.AS("name"), CharacterCulvertScores.Score.AS("score"), CharacterCulvertScores.CulvertDate.AS("culvert_date")).FROM(CharacterCulvertScores.INNER_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.CulvertDate.IN(DateT(lastWeek), DateT(submittedDate))).ORDER_BY(CharacterCulvertScores.CulvertDate.DESC(), CharacterCulvertScores.Score.DESC(), Characters.MapleCharacterName.ASC())
+	stmt := SELECT(Characters.MapleCharacterName.AS("name"), CharacterCulvertScores.Score.AS("score"), CharacterCulvertScores.CulvertDate.AS("culvert_date")).FROM(CharacterCulvertScores.LEFT_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.CulvertDate.IN(DateT(lastWeek), DateT(submittedDate))).ORDER_BY(CharacterCulvertScores.CulvertDate.DESC(), CharacterCulvertScores.Score.DESC(), Characters.MapleCharacterName.ASC())
 
 	rawData := []struct {
 		Name        string
@@ -44,56 +44,41 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 		return
 	}
 
-	differences := map[string]differenceStruct{}
-
-	// compare the two and send the message as a file to the channel
-	oldposIndex := 0
-	newposIndex := 0
-	for _, v := range rawData {
-		if _, ok := differences[v.Name]; ok {
-			differences[v.Name] = differenceStruct{}
+	nameToIdxMap := map[string]int{}
+	diffs := []differenceStruct{}
+	cutoffPos := -1
+	for i, v := range rawData {
+		if _, ok := nameToIdxMap[v.Name]; !ok {
+			nameToIdxMap[v.Name] = i
 		}
-		if v.CulvertDate.Day() == lastWeek.Day() {
-			oldposIndex++
-			old := differences[v.Name]
-			old.Oldpos = oldposIndex
-			old.Prev = v.Score
-			differences[v.Name] = old
+		if v.CulvertDate.Format("2006-01-02") == lastWeek.Format("2006-01-02") && cutoffPos == -1 {
+			cutoffPos = i
+		}
+		if cutoffPos != -1 {
+			diffs[nameToIdxMap[v.Name]].Oldpos = i + 1 - cutoffPos
+			diffs[nameToIdxMap[v.Name]].Prev = v.Score
 		} else {
-			newposIndex++
-			old := differences[v.Name]
-			old.Newpos = newposIndex
-			old.Current = v.Score
-			differences[v.Name] = old
+			diffs = append(diffs, differenceStruct{
+				Name:    v.Name,
+				Prev:    0,
+				Current: v.Score,
+				Oldpos:  0,
+			})
 		}
-	}
-
-	// convert differences map to slice
-	differencesSlice := []struct {
-		Name    string
-		RawData *differenceStruct
-	}{}
-	for name, v := range differences {
-		differencesSlice = append(differencesSlice, struct {
-			Name    string
-			RawData *differenceStruct
-		}{name, &v})
 	}
 
 	// Send nice ascii table to channel
 	columnCount := 1
-	if newposIndex > 65 {
+	if len(diffs) > 65 {
 		columnCount = 2
 	}
 
-	if newposIndex > 130 {
+	if len(diffs) > 130 {
 		columnCount = 3
 	}
-	rawStr := cmdhelpers.FormatNthColumnList(columnCount, differencesSlice, table.Row{"Character", "Score", "Position"}, func(data struct {
-		Name    string
-		RawData *differenceStruct
-	}) table.Row {
-		return table.Row{data.Name, strconv.Itoa(data.RawData.Prev) + " => " + strconv.Itoa(data.RawData.Current), strconv.Itoa(data.RawData.Oldpos) + " => " + strconv.Itoa(data.RawData.Newpos)}
+
+	rawStr := cmdhelpers.FormatNthColumnList(columnCount, diffs, table.Row{"Character", "Score", "Position"}, func(data differenceStruct, idx int) table.Row {
+		return table.Row{data.Name, strconv.Itoa(data.Prev) + " -> " + strconv.Itoa(data.Current), strconv.Itoa(data.Oldpos) + " -> " + strconv.Itoa(idx+1)}
 	})
 
 	for _, v := range channelID {

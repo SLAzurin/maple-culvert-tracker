@@ -2,7 +2,7 @@ package helpers
 
 import "github.com/jedib0t/go-pretty/v6/table"
 
-func FormatNthColumnList[T interface{}](columnsAmount int, dataArr []T, headers table.Row, formatRowData func(data T) table.Row) string {
+func FormatNthColumnList[T interface{}](columnsAmount int, dataArr []T, headers table.Row, formatRowData func(data T, idx int) table.Row) string {
 	rowCount := len(dataArr) / columnsAmount
 
 	if len(dataArr)%columnsAmount != 0 {
@@ -34,7 +34,7 @@ func FormatNthColumnList[T interface{}](columnsAmount int, dataArr []T, headers 
 					rowData = append(rowData, "")
 				}
 			} else {
-				rowData = append(rowData, formatRowData(dataArr[i+rowCount*j])...)
+				rowData = append(rowData, formatRowData(dataArr[i+rowCount*j], i+rowCount*j)...)
 			}
 		}
 		t.AppendRow(rowData)
