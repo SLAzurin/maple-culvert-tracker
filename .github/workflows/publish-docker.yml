@@ -4,6 +4,10 @@ on:
   push:
     branches: [master, staging]
 
+concurrency:
+  cancel-in-progress: true
+  group: ${{ github.repository_id }}-publish-docker
+
 jobs:
   publish:
     permissions:
