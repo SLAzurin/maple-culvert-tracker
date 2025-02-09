@@ -24,10 +24,8 @@ type differenceStruct struct {
 }
 
 func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, submittedDate time.Time, channelID ...string) {
-	log.Println("Sending weekly differences to channel", channelID)
 	submittedDate = cmdhelpers.GetCulvertResetDate(submittedDate)
 	lastWeek := cmdhelpers.GetCulvertResetDate(submittedDate.Add(time.Hour * -24 * 7))
-	log.Println("Submitted Date", submittedDate.Format("2006-01-02"), "lastWeek", lastWeek.Format("2006-01-02"))
 
 	// query all summary of current character scores
 	stmt := SELECT(Characters.MapleCharacterName.AS("name"), CharacterCulvertScores.Score.AS("score"), CharacterCulvertScores.CulvertDate.AS("culvert_date")).FROM(CharacterCulvertScores.LEFT_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.CulvertDate.IN(DateT(lastWeek), DateT(submittedDate))).ORDER_BY(CharacterCulvertScores.CulvertDate.DESC(), CharacterCulvertScores.Score.DESC(), Characters.MapleCharacterName.ASC())
