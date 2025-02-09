@@ -46,19 +46,15 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	diffs := []differenceStruct{}
 	noLongerExistsFromLastWeek := []string{}
 	cutoffPos := -1
-	log.Println("length of rawData", len(rawData))
 	for curPos, v := range rawData {
 		if _, ok := nameToIdxMap[v.Name]; !ok && cutoffPos == -1 {
-			log.Println("Set character " + v.Name + " at rawData position " + strconv.Itoa(curPos))
 			nameToIdxMap[v.Name] = curPos
 		}
 		if v.CulvertDate.Format("2006-01-02") == lastWeek.Format("2006-01-02") && cutoffPos == -1 {
 			cutoffPos = curPos
-			log.Println("Found cutoff position", cutoffPos)
 		}
 		if cutoffPos != -1 {
 			if _, ok := nameToIdxMap[v.Name]; ok {
-				log.Println("Found character " + v.Name + " at rawData position " + strconv.Itoa(nameToIdxMap[v.Name]))
 				diffs[nameToIdxMap[v.Name]].Oldpos = curPos + 1 - cutoffPos
 				diffs[nameToIdxMap[v.Name]].Prev = v.Score
 			} else {
