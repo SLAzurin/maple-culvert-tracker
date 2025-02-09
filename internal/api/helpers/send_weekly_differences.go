@@ -46,6 +46,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 
 	nameToIdxMap := map[string]int{}
 	diffs := []differenceStruct{}
+	noLongerExistsFromLastWeek := []string{}
 	cutoffPos := -1
 	for i, v := range rawData {
 		if _, ok := nameToIdxMap[v.Name]; !ok {
@@ -55,14 +56,18 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 			cutoffPos = i
 		}
 		if cutoffPos != -1 {
-			diffs[nameToIdxMap[v.Name]].Oldpos = i + 1 - cutoffPos
-			diffs[nameToIdxMap[v.Name]].Prev = v.Score
+			if _, ok := nameToIdxMap[v.Name]; ok {
+				diffs[nameToIdxMap[v.Name]].Oldpos = i + 1 - cutoffPos
+				diffs[nameToIdxMap[v.Name]].Prev = v.Score
+			} else {
+				noLongerExistsFromLastWeek = append(noLongerExistsFromLastWeek, v.Name)
+			}
 		} else {
 			diffs = append(diffs, differenceStruct{
 				Name:    v.Name,
-				Prev:    0,
+				Prev:    -1,
 				Current: v.Score,
-				Oldpos:  0,
+				Oldpos:  -1,
 			})
 		}
 	}
@@ -83,8 +88,14 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 
 	for _, v := range channelID {
 		s.ChannelMessageSendComplex(v, &discordgo.MessageSend{
-			Content: "Culvert scores updated! ANY GAINS SINCE LAST WEEK?",
+			Content: "Culvert scores updated! These are the changes from " + lastWeek.Format("2006-01-02") + " to " + submittedDate.Format("2006-01-02"),
 			Files:   []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(rawStr)}},
 		})
+		if len(noLongerExistsFromLastWeek) > 0 {
+			s.ChannelMessageSendComplex(v, &discordgo.MessageSend{
+				Content: "These characters no longer exist in the last week: " + strings.Join(noLongerExistsFromLastWeek, ", "),
+			})
+		}
 	}
+
 }
