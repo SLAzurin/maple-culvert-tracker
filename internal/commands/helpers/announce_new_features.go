@@ -78,6 +78,19 @@ You can choose to order the results by character name or score (default is score
 Bot out!`,
 			},
 		},
+		{
+			// 6 new diff summary when submitting scores
+			ComplexMessage: &discordgo.MessageSend{
+				Content: `Hi everyone!
+
+I've changed the notification when scores are submitted!
+
+The notification in the admin discord channel will now show the culvert scores compared to the previous week.
+You will immediately notice this change next time you update your scores. You can't miss it!
+
+Bot out!`,
+			},
+		},
 	}
 	return announcements
 }

@@ -115,7 +115,7 @@ func culvertSummary(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				Score              int32
 				MapleCharacterName string
 				pos                int
-			}) table.Row {
+			}, idx int) table.Row {
 				return table.Row{data.pos, data.MapleCharacterName, data.Score}
 			}))}},
 		},
