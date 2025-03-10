@@ -91,6 +91,12 @@ You will immediately notice this change next time you update your scores. You ca
 Bot out!`,
 			},
 		},
+		{
+			// 7 sandbag announcement
+			ComplexMessage: &discordgo.MessageSend{
+				Content: `I did something. Hehe.`,
+			},
+		},
 	}
 	return announcements
 }

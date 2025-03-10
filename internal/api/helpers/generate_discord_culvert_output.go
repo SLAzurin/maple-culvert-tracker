@@ -39,6 +39,7 @@ func GenerateDiscordCulvertOutput(chartImageBinData io.ReadCloser, charName stri
 		placementStr := ""
 		if otherStatsStruct.GuildTopPlacement == 0 {
 			placementStr = "This heavy sandbagger didn't even make it in the guild's top 200..."
+			embeddedData.Thumbnail = &discordgo.MessageEmbedThumbnail{URL: "https://raw.githubusercontent.com/SLAzurin/7tv-to-gif-stuff/refs/heads/master/sandbag.jpg"}
 		} else {
 			placementStr = "#" + strconv.Itoa(otherStatsStruct.GuildTopPlacement) + " in the guild"
 			if date != "" {
