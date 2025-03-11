@@ -225,6 +225,9 @@ func culvertDuel(anyone bool) func(*discordgo.Session, *discordgo.InteractionCre
 			if f != nil {
 				defer f.Close()
 			}
+			if yourWin && characterData[theirChar][chartData.Labels[len(chartData.Labels)-1]] == 0 {
+				data.Embeds[0].Thumbnail.URL = "https://raw.githubusercontent.com/SLAzurin/7tv-to-gif-stuff/refs/heads/master/ness-sandbag-cropped.png"
+			}
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: data,
