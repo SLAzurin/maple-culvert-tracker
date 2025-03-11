@@ -97,6 +97,12 @@ Bot out!`,
 				Content: `I did something. Hehe.`,
 			},
 		},
+		{
+			// 8 sandbag announcement culvert-duel
+			ComplexMessage: &discordgo.MessageSend{
+				Content: `I did something else. Hehe.`,
+			},
+		},
 	}
 	return announcements
 }
