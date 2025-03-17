@@ -1,13 +1,11 @@
 module github.com/slazurin/maple-culvert-tracker
 
-toolchain go1.23.3
-
 go 1.23
 
 require (
 	github.com/bwmarrin/discordgo v0.28.1
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-jet/jet/v2 v2.12.0
+	github.com/go-jet/jet/v2 v2.13.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/golang-migrate/migrate/v4 v4.18.2
 	github.com/jedib0t/go-pretty/v6 v6.6.5
@@ -17,8 +15,8 @@ require (
 )
 
 require (
-	github.com/bytedance/sonic v1.12.8 // indirect
-	github.com/bytedance/sonic/loader v0.2.3 // indirect
+	github.com/bytedance/sonic v1.13.1 // indirect
+	github.com/bytedance/sonic/loader v0.2.4 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
