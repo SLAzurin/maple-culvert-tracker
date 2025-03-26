@@ -47,7 +47,7 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: fmt.Sprintf("This is your temporary login (4 hours): `%v`\n\n%v", tokenString, os.Getenv(data.EnvVarFrontendURL)),
+				Content: fmt.Sprintf("This is your temporary login (4 hours): ```\n%v\n```\n\n%v", tokenString, os.Getenv(data.EnvVarFrontendURL)),
 				Flags:   discordgo.MessageFlagsEphemeral,
 			},
 		})
