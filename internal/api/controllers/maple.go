@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
@@ -175,9 +176,24 @@ func (MapleController) POSTCulvert(c *gin.Context) {
 
 	if shouldNotifyScoreUpdated {
 		if DiscordSession != nil {
+			serverID := c.GetString("discord_server_id")
+			discordUsername := c.GetString("discord_username")
+			members, _ := DiscordSession.GuildMembersSearch(serverID, discordUsername, 1)
+			// If the user isn't found, error is not fatal.
+			var member *discordgo.Member
+			if len(members) > 0 {
+				member = members[0]
+			}
+
 			for _, key := range apiredis.MakeKeysSlice(apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID) {
 				if channelID := key.GetWithDefault(apiredis.RedisDB, ""); channelID != "" {
-					DiscordSession.ChannelMessageSend(channelID, "Culvert scores updated! ANY GAINS SINCE LAST WEEK?")
+					message := "DID YOU MAKE ANY GAINS SINCE LAST WEEK?"
+					if member != nil && member.User != nil && member.User.ID != "" {
+						message = fmt.Sprintf("Thank you <@%s> for entering the culvert scores! %s", member.User.ID, message)
+					} else {
+						message = "The culvert scores have been updated! " + message
+					}
+					DiscordSession.ChannelMessageSend(channelID, message)
 				}
 			}
 		} else {
