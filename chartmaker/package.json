@@ -30,6 +30,6 @@
     "@types/express": "^5.0.1",
     "chart.js": "^4.4.8",
     "chartjs-plugin-datalabels": "^2.2.0",
-    "express": "^4.21.2"
+    "express": "^5.1.0"
   }
 }
