@@ -38,7 +38,9 @@ func ExportCharactersData(db *sql.DB, weeks int, asOf time.Time) ([]struct {
 	thisWeek := cmdhelpers.GetCulvertResetDate(asOf)
 	asOf = thisWeek
 	weeksDate := []Expression{}
+	weeksDateRaw := []time.Time{}
 	for i := 0; i < weeks; i++ {
+		weeksDateRaw = append(weeksDateRaw, thisWeek)
 		weeksDate = append(weeksDate, DateT(thisWeek))
 		thisWeek = cmdhelpers.GetCulvertPreviousDate(thisWeek)
 	}
@@ -94,6 +96,7 @@ func ExportCharactersData(db *sql.DB, weeks int, asOf time.Time) ([]struct {
 		PreviousBest int
 	}{}
 
+	mScoresOnly := map[string]map[string]int{}
 	for _, v := range dest {
 		if _, ok := m[v.MapleCharacterName]; !ok {
 			m[v.MapleCharacterName] = struct {
@@ -111,20 +114,34 @@ func ExportCharactersData(db *sql.DB, weeks int, asOf time.Time) ([]struct {
 				Average:      0,
 				PreviousBest: 0,
 			}
+			mScoresOnly[v.MapleCharacterName] = map[string]int{}
 		}
-		newData := m[v.MapleCharacterName]
-		newData.Scores = append(newData.Scores, struct {
-			Label string `json:"label"`
-			Score int    `json:"score"`
-		}{
-			Label: v.CulvertDate[:10],
-			Score: int(v.Score),
-		})
-		m[v.MapleCharacterName] = newData
+		newData := mScoresOnly[v.MapleCharacterName]
+		newData[v.CulvertDate[:10]] = int(v.Score)
+		mScoresOnly[v.MapleCharacterName] = newData
 	}
 
 	for name, data := range m {
-		stats, err := cmdhelpers.GetCharacterStatistics(db, name, data.Scores[len(data.Scores)-1].Label, data.Scores)
+		for _, date := range weeksDateRaw {
+			if _, ok := mScoresOnly[name][date.Format("2006-01-02")]; !ok {
+				data.Scores = append(data.Scores, struct {
+					Label string `json:"label"`
+					Score int    `json:"score"`
+				}{
+					Label: date.Format("2006-01-02"),
+					Score: 0,
+				})
+			} else {
+				data.Scores = append(data.Scores, struct {
+					Label string `json:"label"`
+					Score int    `json:"score"`
+				}{
+					Label: date.Format("2006-01-02"),
+					Score: mScoresOnly[name][date.Format("2006-01-02")],
+				})
+			}
+		}
+		stats, err := cmdhelpers.GetCharacterStatistics(db, name, asOf.Format("2006-01-02"), data.Scores)
 		if err != nil {
 			panic(err)
 		}
