@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"fmt"
 	"io"
 	"math/rand/v2"
 	"os"
@@ -10,23 +11,33 @@ import (
 )
 
 var randomFluffDuelText = []string{
-	"It's just a hands diff",
-	"Are you sure you popped everything?",
-	"Skill issue",
-	"🤏 Close",
-	"Gears in #flex but scores at #fails",
-	"Too much grass touching will do that to your score",
-	"This your bossing mule?",
-	"How long does your party wait for you to blue dot",
-	"Too much janus. Should've sent it on 2nd mastery",
+	// "It's just a hands diff",
+	// "Are you sure you popped everything?",
+	// "Skill issue",
+	// "🤏 Close",
+	// "Gears in #flex but scores at #fails",
+	// "Too much grass touching will do that to your score",
+	// "This your bossing mule?",
+	// "How long does your party wait for you to blue dot",
+	// "Too much janus. Should've sent it on 2nd mastery",
+	"Not even bonus potential will save you from disgrace %s",
+	"Shoulda bought the bought the cash title, oh wait you're broke %s",
+	"No wonder your party min-clears with you in it %s",
+	"You better main a wild hunter instead of %s",
+	"At this rate, you can't even win with a 4L m/atk libbed weapon %s",
+	"Did you forget to get a pottable badge? Oh you weren't even born yet %s",
+	"Might as well migrate to Hyperion %s",
+	"Who would even want you in a party %s?",
+	"Even my boss mule is stronger than %s",
+	"You're so weak I can't even find you on MapleRanks %s",
 }
 
 func getRandomFluffDuelText(yourWin bool, yourChar string, theirChar string) string {
 	randomNum := rand.IntN(len(randomFluffDuelText) - 1)
 	if yourWin {
-		return randomFluffDuelText[randomNum] + " " + theirChar
+		return fmt.Sprintf(randomFluffDuelText[randomNum], theirChar)
 	}
-	return randomFluffDuelText[randomNum] + " " + yourChar
+	return fmt.Sprintf(randomFluffDuelText[randomNum], yourChar)
 }
 
 func GenerateDiscordCulvertDuelOutput(chartImageBinData io.ReadCloser, yourWin bool, yourCharName string, theirCharName string, otherStatsStruct any) (*discordgo.InteractionResponseData, *os.File) {
