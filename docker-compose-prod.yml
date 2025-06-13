@@ -72,6 +72,8 @@ services:
     init: true
     entrypoint: sh
     command: ["-c", "/usr/sbin/crond -f -c /etc/cron"]
+    volumes:
+      - mapleculverttracker_valkey_data:/valkey_data
   watchtower:
     image: containrrr/watchtower
     restart: unless-stopped

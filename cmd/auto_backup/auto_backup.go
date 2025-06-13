@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"log"
 	"os"
 	"os/exec"
@@ -32,12 +33,35 @@ func startBackup(s *discordgo.Session, stopChan chan struct{}) {
 	}
 
 	_, err = s.ChannelMessageSendComplex(apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, os.Getenv("DISCORD_REMINDER_CHANNEL_ID")), &discordgo.MessageSend{
-		Content: "Automatic Database backup " + time.Now().Format("2006-01-02"),
+		Content: "Automatic PostgreSQL Database backup " + time.Now().Format("2006-01-02"),
 		Files:   []*discordgo.File{{Name: "dump_" + time.Now().Format("2006-01-02") + ".sql", Reader: strings.NewReader(stdout.String())}},
 	})
 	if err != nil {
+		s.ChannelMessageSend(apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, os.Getenv("DISCORD_REMINDER_CHANNEL_ID")), "Failed to backup PostgreSQL database")
+		log.Println(err)
+	}
+
+	status := apiredis.RedisDB.Save(context.Background())
+	if status.Err() != nil {
+		panic(status.Err())
+	}
+
+	f, err := os.Open("/valkey_data/dump.rdb")
+	if err != nil {
 		panic(err)
 	}
+	defer f.Close()
+
+	_, err = s.ChannelMessageSendComplex(apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, os.Getenv("DISCORD_REMINDER_CHANNEL_ID")), &discordgo.MessageSend{
+		Content: "Automatic Valkey Database backup " + time.Now().Format("2006-01-02"),
+		Files:   []*discordgo.File{{Name: "dump_" + time.Now().Format("2006-01-02") + ".rdb", Reader: f}},
+	})
+
+	if err != nil {
+		s.ChannelMessageSend(apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, os.Getenv("DISCORD_REMINDER_CHANNEL_ID")), "Failed to backup Valkey database")
+		log.Println(err)
+	}
+
 	stopChan <- struct{}{}
 }
 
