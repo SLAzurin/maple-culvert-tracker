@@ -5,8 +5,8 @@
         "build": "pnpm -r run build"
     },
     "devDependencies": {
-        "esbuild": "^0.25.2",
-        "typescript": "^5.8.2"
+        "esbuild": "^0.25.9",
+        "typescript": "^5.9.2"
     },
     "engines": {
         "node": ">=22",
