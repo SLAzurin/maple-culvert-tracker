@@ -1,9 +1,10 @@
-FROM node:22-alpine AS base
+FROM node:24-alpine AS base
 RUN apk add --no-cache 'libcrypto3>=3.3.2-r1'
 
 FROM base AS skia-deps
+ARG TARGETARCH
 RUN apk add --no-cache wget
-RUN wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.59/skia.linux-x64-musl.node
+RUN if [[ "${TARGETARCH}" = 'arm64' ]]; then wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.78/skia.linux-arm64-musl.node && sha256sum skia.linux-arm64-musl.node | cut -d' ' -f1 | grep f22687e529e34c2b641f8e1fc8d61d756d4cf0ba1c5e0a3d67acb9bafee77c3e >/dev/null; elif [[ "${TARGETARCH}" = 'amd64' ]]; then wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.78/skia.linux-x64-musl.node && sha256sum skia.linux-x64-musl.node | cut -d' ' -f1 | grep 3eb5527e72e4cbed7fecb70b220321a3ae83924c8e91bd9306c2d71a4dfa68da >/dev/null; else false; fi
 
 FROM base AS builder
 WORKDIR /app
@@ -37,7 +38,7 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodeuser
 
 COPY --from=builder /app/chartmaker/dist ./dist/
-COPY --from=skia-deps /skia.linux-x64-musl.node ./node_modules/@napi-rs/canvas/
+COPY --from=skia-deps /skia.linux-*-musl.node ./node_modules/@napi-rs/canvas/
 COPY --from=prod-deps /app/chartmaker/node_modules_prod ./node_modules/
 USER nodeuser
 
