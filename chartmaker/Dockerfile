@@ -1,9 +1,9 @@
-FROM node:22-alpine AS base
+FROM node:24-alpine AS base
 RUN apk add --no-cache 'libcrypto3>=3.3.2-r1'
 
 FROM base AS skia-deps
 RUN apk add --no-cache wget
-RUN wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.59/skia.linux-x64-musl.node
+RUN wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.78/skia.linux-x64-musl.node && sha256sum skia.linux-x64-musl.node | cut -d' ' -f1 | grep 3eb5527e72e4cbed7fecb70b220321a3ae83924c8e91bd9306c2d71a4dfa68da >/dev/null
 
 FROM base AS builder
 WORKDIR /app

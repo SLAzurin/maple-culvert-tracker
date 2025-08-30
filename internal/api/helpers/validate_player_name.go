@@ -13,7 +13,7 @@ func FetchCharacterData(name string, region string) (*data.PlayerRank, error) {
 	if region != "na" && region != "eu" {
 		region = "na"
 	}
-	req, err := http.NewRequest("GET", "https://www.nexon.com/api/maplestory/no-auth/v1/ranking/"+region, nil)
+	req, err := http.NewRequest("GET", "https://www.nexon.com/api/maplestory/no-auth/ranking/v2/"+region, nil)
 	if err != nil {
 		return nil, err
 	}
