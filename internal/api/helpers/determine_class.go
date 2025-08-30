@@ -1,7 +1,5 @@
 package helpers
 
-// Inspired from determineClass function here: https://github.com/willsunnn/ms-tracker/blob/8b00613ff22a1cea8f93f5081d92cd54284fb4a8/library/src/api/AdditionalCharacterInfoFirebaseApi.ts#L120
-
 func DetermineClass(jobID int, jobDetail int) string {
 	switch jobID {
 	case 0:
