@@ -200,4 +200,8 @@ var Commands = []*discordgo.ApplicationCommand{
 			},
 		},
 	},
+	{
+		Name:        "list-characters",
+		Description: "List all characters being tracked in the guild",
+	},
 }

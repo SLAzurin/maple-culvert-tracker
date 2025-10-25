@@ -103,6 +103,12 @@ Bot out!`,
 				Content: `I did something else. Hehe.`,
 			},
 		},
+		{
+			// 9 add list-characters command
+			ComplexMessage: &discordgo.MessageSend{
+				Content: "Added a new command `/list-characters`. It is the same as clicking `Copy maple character names to clipboard` from the web admin panel, but as a command.",
+			},
+		},
 	}
 	return announcements
 }
