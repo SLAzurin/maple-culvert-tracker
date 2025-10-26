@@ -109,6 +109,12 @@ Bot out!`,
 				Content: "Added a new command `/list-characters`. It is the same as clicking `Copy maple character names to clipboard` from the web admin panel, but as a command.",
 			},
 		},
+		{
+			// 10 add submit-scores command
+			ComplexMessage: &discordgo.MessageSend{
+				Content: "Added a new command `/submit-scores`. It is the same as clicking `Submit` from the web admin panel as a command, but make sure you fill in the command options properly!",
+			},
+		},
 	}
 	return announcements
 }

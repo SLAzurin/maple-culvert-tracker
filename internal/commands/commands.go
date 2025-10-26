@@ -204,4 +204,28 @@ var Commands = []*discordgo.ApplicationCommand{
 		Name:        "list-characters",
 		Description: "List all characters being tracked in the guild",
 	},
+	{
+		Name:        "submit-scores",
+		Description: "Submit culvert scores via a discord message attachment as .txt or .json file",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionAttachment,
+				Name:        "scores-attachment",
+				Description: "The attachment containing the culvert scores in .txt or .json format (copy-pasted from the OCR app)",
+				Required:    true,
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "Culvert date in YYYY-MM-DD format. If not provided, defaults to the most recent Wednesday.",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "overwrite-existing",
+				Description: "Overwrite existing scores for characters that already have a score for the specified date.",
+			},
+		},
+	},
 }
