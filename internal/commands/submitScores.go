@@ -22,6 +22,11 @@ import (
 
 func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var err error
+
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+	})
+
 	options := i.ApplicationCommandData().Options
 
 	isDefaultCulvertWeek := true
@@ -30,29 +35,25 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	overwriteExisting := false
 	attachmentMap := map[string]int{}
 
+	content := new(string)
+
 	for _, v := range options {
 		if v.Name == "culvert-date" {
 			isDefaultCulvertWeek = false
 			culvertDateStr = strings.Trim(v.StringValue(), " ")
 			culvertDate, err = time.Parse(culvertDateStr, "2006-01-02")
 			if err != nil {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "Invalid date format provided! Please use YYYY-MM-DD.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-					},
+				*content = "Invalid date format provided! Please use YYYY-MM-DD."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: content,
 				})
 				return
 			}
 
 			if culvertDate.Weekday() != helpers.GetCulvertResetDay(time.Now()) {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "The provided date is not a Wednesday! Culvert resets occur on Wednesdays.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-					},
+				*content = "The provided date is not a Wednesday! Culvert resets occur on Wednesdays."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: content,
 				})
 				return
 			}
@@ -61,72 +62,54 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			attachmentID := v.Value.(string)
 			attachment, ok := i.ApplicationCommandData().Resolved.Attachments[attachmentID]
 			if !ok {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "Failed to get attachment details! Please try again.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-					},
+				*content = "Failed to get attachment details! Please try again."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: content,
 				})
 				return
 			}
 			// log.Printf("Received attachment: %s (URL: %s, Size: %d bytes)\n", attachment.Filename, attachment.URL, attachment.Size)
 			if attachment.Size > 2048*1024 {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "Attachment size exceeds 2MB limit! Please upload a smaller file.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-					},
+				*content = "Attachment size exceeds 2MB limit! Please upload a smaller file."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: content,
 				})
 				return
 			}
 
 			if !strings.HasSuffix(attachment.Filename, ".txt") && !strings.HasSuffix(attachment.Filename, ".json") {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "Invalid attachment format! Please upload a .txt or .json file.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-					},
+				*content = "Invalid attachment format! Please upload a .txt or .json file."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: content,
 				})
 				return
 			}
 
 			resp, err := http.Get(attachment.URL)
 			if err != nil || resp.StatusCode != http.StatusOK {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "Failed to download your attachment! Please try again.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-					},
+				*content = "Failed to download your attachment! Please try again."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: content,
 				})
 				return
 			}
 
-			content, err := io.ReadAll(resp.Body)
+			bodyContent, err := io.ReadAll(resp.Body)
 			if err != nil {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "Error reading attachment content! Please try again.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-					},
+				*content = "Error reading attachment content! Please try again."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: content,
 				})
 				return
 			}
 
 			defer resp.Body.Close()
 
-			err = json.Unmarshal(content, &attachmentMap)
+			err = json.Unmarshal(bodyContent, &attachmentMap)
 			if err != nil {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "Failed to parse attachment content! Please ensure it's valid JSON format of { \"character-name\": 123, \"character-name-2\": 456 }.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-					},
+				*content = "Failed to parse attachment content! Please ensure it's valid JSON format of { \"character-name\": 123, \"character-name-2\": 456 }."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: content,
 				})
 				return
 			}
@@ -152,19 +135,16 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	err = stmt.Query(db.DB, &trackedCharacterScores)
 	if err != nil {
 		log.Println("submitScores: Error querying tracked character scores:", err)
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Internal server error while querying existing scores. Please try again later.",
-				Flags:   discordgo.MessageFlagsEphemeral,
-			},
+		*content = "Internal server error while querying existing scores. Please try again later."
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: content,
 		})
 		return
 	}
 
-	log.Println(overwriteExisting, isDefaultCulvertWeek)
-	log.Println(attachmentMap)
-	log.Println(trackedCharacterScores)
+	log.Println("submitScores: overwriteExisting", overwriteExisting, "isDefaultCulvertWeek", isDefaultCulvertWeek)
+	log.Println("submitScores: attachmentMap", attachmentMap)
+	log.Println("submitScores: trackedCharacterScores", trackedCharacterScores)
 
 	// validate overwriteExisting
 	// check if there are any scores
@@ -189,12 +169,9 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if _, ok := attachmentMap[v.MapleCharacterName]; ok {
 			// break if overwriteExisting is not allowed and score exists
 			if v.Score != nil && attachmentMap[v.MapleCharacterName] > 0 && !overwriteExisting {
-				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-					Type: discordgo.InteractionResponseChannelMessageWithSource,
-					Data: &discordgo.InteractionResponseData{
-						Content: "Existing scores found, Set the 'overwrite-existing' option to `True` to overwrite them. No changes were made.",
-						Flags:   discordgo.MessageFlagsEphemeral,
-					},
+				*content = "Existing scores found, Set the 'overwrite-existing' option to `True` to overwrite them. No changes were made."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: content,
 				})
 				return
 			}
@@ -220,7 +197,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 			// done processing this character, delete from attachmentMap
 			delete(attachmentMap, v.MapleCharacterName)
-			// the remaining entries in attachmentMap are untracked characters, which are missing in database, we need to send s.InteractionRespond and return early later
+			// the remaining entries in attachmentMap are untracked characters, which are missing in database, we need to send s.InteractionResponseEdit and return early later
 		} else {
 			// character exists in database, character not in attachment, meaning score this week is zero and isNew
 			newMapIsNew.Payload = append(newMapIsNew.Payload, struct {
@@ -242,17 +219,14 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			untrackedNames = append(untrackedNames, k)
 		}
 		untrackedNamesJSON, _ := json.Marshal(untrackedNames)
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Failed to submit scores. Correct their name or track these new characters before submitting their scores.",
-				Flags:   discordgo.MessageFlagsEphemeral,
-				Files: []*discordgo.File{{
-					Name:        "names.json",
-					ContentType: "application/json",
-					Reader:      strings.NewReader(string(untrackedNamesJSON)),
-				}},
-			},
+		*content = "Failed to submit scores. Correct their name or track these new characters before submitting their scores."
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: content,
+			Files: []*discordgo.File{{
+				Name:        "names.json",
+				ContentType: "application/json",
+				Reader:      strings.NewReader(string(untrackedNamesJSON)),
+			}},
 		})
 		return
 	}
@@ -296,11 +270,10 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	if newMapIsNewSuccess && newMapIsNotNewSuccess {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Scores submitted successfully for culvert week of " + culvertDateStr + ".",
-			},
+		time.Sleep(2 * time.Second)
+		*content = "Scores submitted successfully for culvert week of " + culvertDateStr + "."
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: content,
 		})
 		return
 	}
@@ -309,11 +282,8 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	log.Println("submitScores: One of the score submissions failed. newMapIsNewSuccess", newMapIsNewSuccess, "newMapIsNotNewSuccess", newMapIsNotNewSuccess)
 	log.Println("submitScores: len(newMapIsNew.Payload)", len(newMapIsNew.Payload), "len(newMapIsNotNew.Payload)", len(newMapIsNotNew.Payload))
 
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: "Scores submission failed. See server logs for details.",
-			Flags:   discordgo.MessageFlagsEphemeral,
-		},
+	*content = "Scores submission failed. See server logs for details."
+	s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content: content,
 	})
 }
