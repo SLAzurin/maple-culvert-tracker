@@ -29,7 +29,6 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	options := i.ApplicationCommandData().Options
 
-	isDefaultCulvertWeek := true
 	culvertDate := helpers.GetCulvertResetDate(time.Now())
 	culvertDateStr := culvertDate.Format("2006-01-02")
 	overwriteExisting := false
@@ -38,10 +37,9 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	content := new(string)
 
 	for _, v := range options {
-		if v.Name == "culvert-date" {
-			isDefaultCulvertWeek = false
+		if v.Name == "date" {
 			culvertDateStr = strings.Trim(v.StringValue(), " ")
-			culvertDate, err = time.Parse(culvertDateStr, "2006-01-02")
+			culvertDate, err = time.Parse("2006-01-02", culvertDateStr)
 			if err != nil {
 				*content = "Invalid date format provided! Please use YYYY-MM-DD."
 				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
@@ -142,10 +140,6 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	log.Println("submitScores: overwriteExisting", overwriteExisting, "isDefaultCulvertWeek", isDefaultCulvertWeek)
-	log.Println("submitScores: attachmentMap", attachmentMap)
-	log.Println("submitScores: trackedCharacterScores", trackedCharacterScores)
-
 	// validate overwriteExisting
 	// check if there are any scores
 
@@ -169,7 +163,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if _, ok := attachmentMap[v.MapleCharacterName]; ok {
 			// break if overwriteExisting is not allowed and score exists
 			if v.Score != nil && attachmentMap[v.MapleCharacterName] > 0 && !overwriteExisting {
-				*content = "Existing scores found, Set the 'overwrite-existing' option to `True` to overwrite them. No changes were made."
+				*content = "Existing scores found, Set the `overwrite-existing` option to `True` to overwrite them. No changes were made."
 				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 					Content: content,
 				})
@@ -270,7 +264,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	if newMapIsNewSuccess && newMapIsNotNewSuccess {
-		time.Sleep(2 * time.Second)
+		time.Sleep(2 * time.Second) // ensures we do not run in the discord throttling
 		*content = "Scores submitted successfully for culvert week of " + culvertDateStr + "."
 		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 			Content: content,
