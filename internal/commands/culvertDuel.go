@@ -96,7 +96,7 @@ func culvertDuel(anyone bool) func(*discordgo.Session, *discordgo.InteractionCre
 		}
 
 		// query theirs
-		activeChars, err := helpers.GetAcviveCharacters(apiredis.RedisDB, db.DB)
+		activeChars, err := helpers.GetActiveCharacters(apiredis.RedisDB, db.DB)
 
 		// Count # of chars
 		if err != nil {

@@ -22,7 +22,7 @@ import (
 )
 
 func getSandbaggers() *discordgo.InteractionResponse {
-	chars, err := cmdhelpers.GetAcviveCharacters(apiredis.RedisDB, db.DB)
+	chars, err := cmdhelpers.GetActiveCharacters(apiredis.RedisDB, db.DB)
 	if err != nil {
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,

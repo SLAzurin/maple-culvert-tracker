@@ -67,7 +67,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		rawDate = helpers.GetCulvertPreviousDate(rawDate)
 	}
 
-	chars, err := helpers.GetAcviveCharacters(apiredis.RedisDB, db.DB)
+	chars, err := helpers.GetActiveCharacters(apiredis.RedisDB, db.DB)
 	if err != nil {
 		log.Println("export csv get active chars failed", err)
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
