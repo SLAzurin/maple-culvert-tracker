@@ -3,6 +3,7 @@ package commands
 //lint:file-ignore ST1001 Dot imports by jet
 
 import (
+	"database/sql"
 	"encoding/json"
 	"io"
 	"log"
@@ -15,6 +16,7 @@ import (
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 	apihelpers "github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
@@ -122,12 +124,28 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// done parsing options
 
 	// query all scores for culvert date to see if any exist
-	stmt := SELECT(Characters.ID.AS("id"), Characters.MapleCharacterName.AS("maple_character_name"), CharacterCulvertScores.Score.AS("score")).FROM(Characters.LEFT_JOIN(CharacterCulvertScores, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.CulvertDate.EQ(DateT(culvertDate)).AND(Characters.DiscordUserID.NOT_EQ(String(data.INTERNAL_DISCORD_ID_UNTRACKED))))
+	// get all active tracked characters
+	characters, err := helpers.GetActiveCharacters(apiredis.RedisDB, db.DB)
+	if err != nil {
+		log.Println("submitScores: Error querying active characters:", err)
+		*content = "Internal server error while querying active characters. Please try again later."
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: content,
+		})
+		return
+	}
+
+	characterIDs := []Expression{}
+	for _, v := range *characters {
+		characterIDs = append(characterIDs, Int64(v.ID))
+	}
+
+	stmt := SELECT(Characters.ID.AS("id"), Characters.MapleCharacterName.AS("maple_character_name"), CharacterCulvertScores.Score.AS("score")).FROM(Characters.LEFT_JOIN(CharacterCulvertScores, Characters.ID.EQ(CharacterCulvertScores.CharacterID).AND(CharacterCulvertScores.CulvertDate.EQ(DateT(culvertDate))))).WHERE(Characters.ID.IN(characterIDs...))
 
 	trackedCharacterScores := []struct {
 		ID                 int
 		MapleCharacterName string
-		Score              *int
+		Score              sql.NullInt64
 	}{}
 
 	err = stmt.Query(db.DB, &trackedCharacterScores)
@@ -162,7 +180,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	for _, v := range trackedCharacterScores {
 		if _, ok := attachmentMap[v.MapleCharacterName]; ok {
 			// break if overwriteExisting is not allowed and score exists
-			if v.Score != nil && attachmentMap[v.MapleCharacterName] > 0 && !overwriteExisting {
+			if v.Score.Valid && attachmentMap[v.MapleCharacterName] > 0 && !overwriteExisting {
 				*content = "Existing scores found, Set the `overwrite-existing` option to `True` to overwrite them. No changes were made."
 				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 					Content: content,
@@ -171,7 +189,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			}
 
 			// character found in attachment map, score is nil = isNew: true, add to newMapIsNew
-			if v.Score == nil {
+			if !v.Score.Valid { // score is null, must insert
 				newMapIsNew.Payload = append(newMapIsNew.Payload, struct {
 					CharacterID int64 `json:"character_id"`
 					Score       int   `json:"score"`
@@ -180,28 +198,42 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					Score:       attachmentMap[v.MapleCharacterName],
 				})
 			} else {
-				newMapIsNotNew.Payload = append(newMapIsNotNew.Payload, struct {
-					CharacterID int64 `json:"character_id"`
-					Score       int   `json:"score"`
-				}{
-					CharacterID: int64(v.ID),
-					Score:       attachmentMap[v.MapleCharacterName],
-				})
+				if v.Score.Valid && attachmentMap[v.MapleCharacterName] != int(v.Score.Int64) { // score exists, must update if different
+					newMapIsNotNew.Payload = append(newMapIsNotNew.Payload, struct {
+						CharacterID int64 `json:"character_id"`
+						Score       int   `json:"score"`
+					}{
+						CharacterID: int64(v.ID),
+						Score:       attachmentMap[v.MapleCharacterName],
+					})
+				}
 			}
 
 			// done processing this character, delete from attachmentMap
 			delete(attachmentMap, v.MapleCharacterName)
 			// the remaining entries in attachmentMap are untracked characters, which are missing in database, we need to send s.InteractionResponseEdit and return early later
 		} else {
-			// character exists in database, character not in attachment, meaning score this week is zero and isNew
-			newMapIsNew.Payload = append(newMapIsNew.Payload, struct {
-				CharacterID int64 `json:"character_id"`
-				Score       int   `json:"score"`
-			}{
-				CharacterID: int64(v.ID),
-				Score:       0,
-			})
-
+			// character exists in database, character not in attachment, meaning score this week must edit
+			if !v.Score.Valid {
+				// score is null, must insert
+				newMapIsNew.Payload = append(newMapIsNew.Payload, struct {
+					CharacterID int64 `json:"character_id"`
+					Score       int   `json:"score"`
+				}{
+					CharacterID: int64(v.ID),
+					Score:       0,
+				})
+			}
+			if v.Score.Valid && v.Score.Int64 > 0 {
+				// score exists, and not 0, must update to 0
+				newMapIsNotNew.Payload = append(newMapIsNotNew.Payload, struct {
+					CharacterID int64 `json:"character_id"`
+					Score       int   `json:"score"`
+				}{
+					CharacterID: int64(v.ID),
+					Score:       0,
+				})
+			}
 		}
 	}
 	// done processing all tracked characters
@@ -263,6 +295,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 
+	log.Println("submitScores: len(newMapIsNew.Payload)", len(newMapIsNew.Payload), "len(newMapIsNotNew.Payload)", len(newMapIsNotNew.Payload))
 	if newMapIsNewSuccess && newMapIsNotNewSuccess {
 		time.Sleep(2 * time.Second) // ensures we do not run in the discord throttling
 		*content = "Scores submitted successfully for culvert week of " + culvertDateStr + "."
@@ -273,8 +306,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	// not normal past this point
-	log.Println("submitScores: One of the score submissions failed. newMapIsNewSuccess", newMapIsNewSuccess, "newMapIsNotNewSuccess", newMapIsNotNewSuccess)
-	log.Println("submitScores: len(newMapIsNew.Payload)", len(newMapIsNew.Payload), "len(newMapIsNotNew.Payload)", len(newMapIsNotNew.Payload))
+	log.Println("submitScores: One or both of the score submissions failed. submit-new-scores", newMapIsNewSuccess, "update-existing-scores", newMapIsNotNewSuccess)
 
 	*content = "Scores submission failed. See server logs for details."
 	s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
