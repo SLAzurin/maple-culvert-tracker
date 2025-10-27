@@ -70,3 +70,9 @@ You can pick any cpu size, but I'd suggest a minimum of 1gb of ram and 40gb of s
    - Drop and re-create $POSTGRES_DB: `drop database mapleculverttrackerdb; create database mapleculverttrackerdb;` then `exit` the db connection
    - Run the sql backup: `psql -U $POSTGRES_USER -d $POSTGRES_DB </root/sqlfiles/dump.sql`
    - You are done restoring the backup.
+
+# Developer notes
+Internally used discord id `1` means unlinked and not in guild anymore  
+Internally used discord id `2` means unlinked but still in guild  
+
+I never delete characters in case they ever return to the guild. This has happened before and the culvert-score will be kept.

@@ -63,4 +63,5 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	"culvert-mega-chart":  culvertMegaChart,
 	"culvert-summary":     culvertSummary,
 	"list-characters":     listCharacters,
+	"submit-scores":       submitScores,
 }

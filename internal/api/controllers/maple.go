@@ -32,14 +32,6 @@ type linkDiscordBody struct {
 	Link            bool   `json:"link"`
 	BypassNameCheck bool   `json:"bypass_name_check"`
 }
-type postCulvertBody struct {
-	IsNew   bool   `json:"isNew"`
-	Week    string `json:"week"`
-	Payload []struct {
-		CharacterID int64 `json:"character_id"`
-		Score       int   `json:"score"`
-	} `json:"payload"`
-}
 
 func (MapleController) GETCharacters(c *gin.Context) {
 	discordIDs, err := apiredis.DATA_DISCORD_MEMBERS.Get(apiredis.RedisDB)
@@ -97,7 +89,7 @@ func (MapleController) GETCharacters(c *gin.Context) {
 }
 
 func (MapleController) POSTCulvert(c *gin.Context) {
-	body := postCulvertBody{}
+	body := data.POSTCulvertBody{}
 	if err := c.BindJSON(&body); err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
 		return

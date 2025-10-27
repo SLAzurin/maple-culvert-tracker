@@ -14,7 +14,7 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
-func GetAcviveCharacters(r *redis.Client, db *sql.DB) (*[]model.Characters, error) {
+func GetActiveCharacters(r *redis.Client, db *sql.DB) (*[]model.Characters, error) {
 	discordIDsFullRaw, err := apiredis.DATA_DISCORD_MEMBERS.Get(r)
 	if err != nil {
 		return nil, err
