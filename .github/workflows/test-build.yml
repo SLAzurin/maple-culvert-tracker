@@ -5,6 +5,18 @@ on:
     branches: [master, staging]
 
 jobs:
+  go-test:
+    name: Go test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.3
+      - name: Run tests
+        run: |
+          go test -v ./{cmd,internal}/...
   test-build:
     name: Test build docker
     runs-on: ubuntu-latest

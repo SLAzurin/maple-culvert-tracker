@@ -11,7 +11,7 @@ func TestFetchCharacterData(t *testing.T) {
 	gotVal, gotErr := FetchCharacterData("Niru", "na")
 
 	if gotErr != nil {
-		t.Errorf("got error " + gotErr.Error())
+		t.Errorf("got error %s", gotErr.Error())
 		return
 	}
 	if gotVal == nil {

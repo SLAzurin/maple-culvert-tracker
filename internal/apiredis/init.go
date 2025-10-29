@@ -18,7 +18,7 @@ func init() {
 	})
 	if err != nil {
 		log.Println("Failed to initialize Redis Client", err)
-		panic(err)
+		log.Println("Ensure you will pass the preflight check later on!")
 	}
 	RedisDB = &redisDB
 }
