@@ -4,7 +4,7 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/redis/go-redis/v9"
+	redis "github.com/valkey-io/valkey-go"
 )
 
 const CurrentVersion = 1

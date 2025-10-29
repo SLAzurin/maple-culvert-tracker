@@ -11,7 +11,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	. "github.com/go-jet/jet/v2/postgres"
 	"github.com/jedib0t/go-pretty/v6/table"
-	"github.com/redis/go-redis/v9"
+	redis "github.com/valkey-io/valkey-go"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 )

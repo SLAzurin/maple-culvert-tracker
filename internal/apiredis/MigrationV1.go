@@ -4,14 +4,14 @@ import (
 	"context"
 	"os"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	redis "github.com/valkey-io/valkey-go"
 )
 
 func MigrationV1(rdb *redis.Client) error {
 	// wipe old data
 	oldDataDiscordMembersKey := "discord_members_" + os.Getenv(data.EnvVarDiscordGuildID)
-	err := rdb.Del(context.Background(), oldDataDiscordMembersKey).Err()
+	err := (*rdb).Do(context.Background(), (*rdb).B().Del().Key(oldDataDiscordMembersKey).Build()).Error()
 	if err != nil {
 		return err
 	}

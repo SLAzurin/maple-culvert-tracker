@@ -12,7 +12,7 @@ func PreflightTest() {
 	log.Println("Starting Main Process")
 	log.Println("Testing redis")
 	// Test Connection Redis first
-	if err := apiredis.RedisDB.Ping(context.Background()).Err(); err != nil {
+	if err := (*apiredis.RedisDB).Do(context.Background(), ((*apiredis.RedisDB).B().Ping().Build())).Error(); err != nil {
 		log.Println("Failed to Ping redis")
 		log.Fatal(err)
 	}

@@ -41,9 +41,9 @@ func startBackup(s *discordgo.Session, stopChan chan struct{}) {
 		log.Println(err)
 	}
 
-	status := apiredis.RedisDB.Save(context.Background())
-	if status.Err() != nil {
-		panic(status.Err())
+	status := (*apiredis.RedisDB).Do(context.Background(), ((*apiredis.RedisDB).B().Save().Build()))
+	if err := status.Error(); err != nil {
+		panic(err)
 	}
 
 	f, err := os.Open("/valkey_data/dump.rdb")

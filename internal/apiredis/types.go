@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/redis/go-redis/v9"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	redis "github.com/valkey-io/valkey-go"
 )
 
 type editableType string
@@ -29,10 +29,14 @@ func (k redisInternalKey) ToString() string {
 	return k.Name
 }
 func (k redisInternalKey) Get(rdb *redis.Client) (string, error) {
-	return rdb.Get(context.Background(), os.Getenv(data.EnvVarDiscordGuildID)+"_"+k.ToString()).Result()
+	q := (*rdb).Do(context.Background(), (*rdb).B().Get().Key(os.Getenv(data.EnvVarDiscordGuildID)+"_"+k.ToString()).Build())
+	if err := q.Error(); err != nil {
+		return "", err
+	}
+	return q.ToString()
 }
 func (k redisInternalKey) Set(rdb *redis.Client, v string) error {
-	return rdb.Set(context.Background(), os.Getenv(data.EnvVarDiscordGuildID)+"_"+k.ToString(), v, 0).Err()
+	return (*rdb).Do(context.Background(), (*rdb).B().Set().Key(os.Getenv(data.EnvVarDiscordGuildID)+"_"+k.ToString()).Value(v).Build()).Error()
 }
 func (k redisInternalKey) GetWithDefault(rdb *redis.Client, defaultVal string) string {
 	v, err := k.Get(rdb)
