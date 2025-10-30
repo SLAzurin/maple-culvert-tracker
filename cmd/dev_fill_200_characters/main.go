@@ -15,7 +15,6 @@ import (
 
 func main() {
 	helpers.EnvVarsTest()
-	helpers.PreflightTest()
 
 	// new http client
 	client := &http.Client{}

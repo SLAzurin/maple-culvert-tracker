@@ -16,7 +16,6 @@ import (
 
 func main() {
 	helpers.EnvVarsTest()
-	helpers.PreflightTest()
 	var err error
 	log.Println("Getting latest scores, only use this for development purposes...")
 
