@@ -8,15 +8,18 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
+/*
+GenerateAPIAuthToken generates a JWT token for API authentication
 
-func GenerateAPIAuthToken(appIdentifier string, expiry time.Time) string {
+discordMemberID: usually `i.Member.User.Username` or use `s.State.User.Username + "#" + s.State.User.Discriminator`
+*/
+func GenerateAPIAuthToken(discordMemberID string, expiry time.Time) string {
 	mode := 0 // not boolean because json takes 4 character width instead of 1 character width
 	if os.Getenv(gin.EnvGinMode) != gin.ReleaseMode {
 		mode = 1
 	}
-	displayName := "GenerateAPIAuthToken_" + appIdentifier
 	claims := &data.MCTClaims{
-		DiscordUsername: displayName,
+		DiscordUsername: discordMemberID,
 		DiscordServerID: os.Getenv(data.EnvVarDiscordGuildID),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiry),

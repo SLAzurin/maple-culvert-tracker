@@ -260,7 +260,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// done sorting isNew and isNotNew maps
 
 	// generate api auth token for internal api call
-	apiAuth := apihelpers.GenerateAPIAuthToken("discordSubmitScores", time.Now().Add(5*time.Minute))
+	apiAuth := apihelpers.GenerateAPIAuthToken(i.Member.User.Username, time.Now().Add(5*time.Minute))
 	newMapIsNewSuccess := true
 	newMapIsNotNewSuccess := true
 	port := os.Getenv("BACKEND_HTTP_PORT")
