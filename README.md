@@ -41,7 +41,7 @@ I suggest the following providers for competitive pricing:
 
 Requirements are relatively low spec. I'd suggest a minimum of 1cpu, 1gb of ram and 40gb of storage.
 
-# developer notes
+# developer setup notes
 
 1. Setup the discord bot and their permissions and make it join your test server.
 2. Setup the `.env` file according to `.env.template`.
@@ -55,6 +55,14 @@ Requirements are relatively low spec. I'd suggest a minimum of 1cpu, 1gb of ram 
    - Command: `pnpm i`
 6. Run the Website control panel and leave it in the background.
    - Command: `cd culvert-web ; pnpm run dev`
+
+# Developer codebase notes
+Internally used discord id `1` means unlinked and not in guild anymore  
+Internally used discord id `2` means unlinked but still in guild  
+
+I never delete characters in case they ever return to the guild. This has happened before and their culvert scores will be kept.  
+
+This culvert bot project started on April 11th 2023! :D
 
 # production deployment
 
@@ -82,8 +90,4 @@ Requirements are relatively low spec. I'd suggest a minimum of 1cpu, 1gb of ram 
    - Run the sql backup: `psql -U $POSTGRES_USER -d $POSTGRES_DB </root/sqlfiles/dump.sql`
    - You are done restoring the backup.
 
-# Developer notes
-Internally used discord id `1` means unlinked and not in guild anymore  
-Internally used discord id `2` means unlinked but still in guild  
 
-I never delete characters in case they ever return to the guild. This has happened before and their culvert scores will be kept.
