@@ -181,7 +181,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if _, ok := attachmentMap[v.MapleCharacterName]; ok {
 			// break if overwriteExisting is not allowed and score exists
 			if v.Score.Valid && attachmentMap[v.MapleCharacterName] > 0 && !overwriteExisting {
-				*content = "Existing scores found, Set the `overwrite-existing` option to `True` to overwrite them. No changes were made."
+				*content = "Existing scores found, Set the `overwrite-existing` option to `True` to overwrite them. No changes were made for " + culvertDateStr + "."
 				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 					Content: content,
 				})
