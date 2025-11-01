@@ -8,27 +8,38 @@ This software is best used in conjunction with my https://github.com/SLAzurin/gp
 
 Join the Discord server for update notifications! Here: Server under construction.
 
-A lot of work still needs to be done to be considered a well established Open Source software, so it is like Public Source instead.
+A lot of work still needs to be done to be considered a well established Open Source Software.  
+You should consider this codebase as Public Source instead.  
+
+Anyone is welcome to contribute by opening new issues and/or open PRs.  
+Please open issues to ask questions and open PRs for any code changes.  
+
+## This Culvert Tracker is used by these lovely guilds:  
+- Straw (Kronos)
+- Bloom (Kronos)
+- Beary (Kronos)
+- Thrones (Kronos)
 
 # Pre-requisites
 
 Install Docker Engine (Linux) or Docker Desktop (Linux/Windows/Mac) for development.  
-Install Golang 1.23.x or newer versions when developing.  
-Install Nodejs 20.x or newer even number LTS versions. (Using [nvm.sh](https://github.com/nvm-sh/nvm) is recommended)  
+Install Golang 1.25.x or newer versions when developing.  
+Install Nodejs 24.x or newer even number LTS versions. (Using [nvm.sh](https://github.com/nvm-sh/nvm) is recommended)  
 Enable `pnpm` with this command:
 
 - Command: `corepack enable && corepack prepare --activate`
 
-## Small note
+## Deployment note
 
+Although discouraged, hosting this at home is possible.  
 Hosting this on the Cloud is recommended to keep stable uptime.
 
 I suggest the following providers for competitive pricing:
 
-- [OVH Cloud](https://www.ovhcloud.com/en/vps/)
 - [Hetzner](https://www.hetzner.com/cloud/)
+- [OVH Cloud](https://www.ovhcloud.com/en/vps/)
 
-You can pick any cpu size, but I'd suggest a minimum of 1gb of ram and 40gb of storage.
+Requirements are relatively low spec. I'd suggest a minimum of 1cpu, 1gb of ram and 40gb of storage.
 
 # developer notes
 
@@ -75,4 +86,4 @@ You can pick any cpu size, but I'd suggest a minimum of 1gb of ram and 40gb of s
 Internally used discord id `1` means unlinked and not in guild anymore  
 Internally used discord id `2` means unlinked but still in guild  
 
-I never delete characters in case they ever return to the guild. This has happened before and the culvert-score will be kept.
+I never delete characters in case they ever return to the guild. This has happened before and their culvert scores will be kept.
