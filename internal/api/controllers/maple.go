@@ -170,11 +170,19 @@ func (MapleController) POSTCulvert(c *gin.Context) {
 		if DiscordSession != nil {
 			serverID := c.GetString("discord_server_id")
 			discordUsername := c.GetString("discord_username")
-			members, _ := DiscordSession.GuildMembersSearch(serverID, discordUsername, 1)
+			members, _ := DiscordSession.GuildMembersSearch(serverID, discordUsername, 1000)
 			// If the user isn't found, error is not fatal.
 			var member *discordgo.Member
 			if len(members) > 0 {
-				member = members[0]
+				for _, v := range members {
+					if v.User.Username == discordUsername {
+						member = v
+						break
+					}
+				}
+				if member == nil {
+					member = members[0]
+				}
 			}
 
 			for _, key := range apiredis.MakeKeysSlice(apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID) {
