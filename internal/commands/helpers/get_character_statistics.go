@@ -13,11 +13,11 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
+var patch2mDate, _ = time.Parse("2006-01-02", "2025-10-01")
+
 func GetCharacterStatistics(db *sql.DB, characterName string, date string, chartData []data.ChartMakerPoints) (*data.CharacterStatistics, error) {
 	r := data.CharacterStatistics{}
-	var dateRaw time.Time
-	var err error
-	dateRaw, err = time.Parse("2006-01-02", date)
+	dateRaw, err := time.Parse("2006-01-02", date)
 	if err != nil {
 		dateRaw, err = GetLatestResetDate(db)
 		if err != nil {
@@ -63,12 +63,22 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	}
 
 	for _, v := range chartData {
-		threshold := GetSandbagThreshold(lastKnownGoodScore)
-		if int64(v.Score) < threshold {
-			validCount -= 1
-		}
-		if int64(v.Score) > lastKnownGoodScore {
-			lastKnownGoodScore = int64(v.Score)
+		culvertDate, _ := time.Parse("2006-01-02", v.RawDate)
+		if culvertDate.Equal(patch2mDate) {
+			if v.Score <= 0 {
+				validCount -= 1
+				lastKnownGoodScore = int64(10)
+			} else {
+				lastKnownGoodScore = int64(v.Score)
+			}
+		} else {
+			threshold := GetSandbagThreshold(lastKnownGoodScore)
+			if int64(v.Score) < threshold {
+				validCount -= 1
+			}
+			if int64(v.Score) > lastKnownGoodScore {
+				lastKnownGoodScore = int64(v.Score)
+			}
 		}
 		avg += int64(v.Score)
 	}

@@ -161,6 +161,7 @@ func culvertDuel(anyone bool) func(*discordgo.Session, *discordgo.InteractionCre
 			for rows.Next() {
 				pt := data.ChartMakerPoints{}
 				rows.Scan(&pt.Label, &pt.Score)
+				// pt.RawDate = pt.Label[:10] // culvert-duel does not use RawDate because it does not fetch statistics
 				if currentChar == yourChar {
 					chartData.Labels = append(chartData.Labels, pt.Label[5:10])
 				}

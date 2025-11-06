@@ -1,6 +1,8 @@
 package helpers
 
-import "github.com/slazurin/maple-culvert-tracker/internal/data"
+import (
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
+)
 
 func GetSandbagThreshold(lastKnownGoodScore int64) int64 {
 	threshold := int64(float64(lastKnownGoodScore) * .7)

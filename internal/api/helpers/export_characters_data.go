@@ -8,6 +8,7 @@ import (
 	"time"
 
 	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
@@ -88,10 +89,7 @@ func ExportCharactersData(db *sql.DB, weeks int, asOf time.Time) ([]struct {
 	}
 
 	m := map[string]struct {
-		Scores []struct {
-			Label string `json:"label"`
-			Score int    `json:"score"`
-		}
+		Scores       []data.ChartMakerPoints
 		Average      int
 		PreviousBest int
 	}{}
@@ -100,17 +98,11 @@ func ExportCharactersData(db *sql.DB, weeks int, asOf time.Time) ([]struct {
 	for _, v := range dest {
 		if _, ok := m[v.MapleCharacterName]; !ok {
 			m[v.MapleCharacterName] = struct {
-				Scores []struct {
-					Label string `json:"label"`
-					Score int    `json:"score"`
-				}
+				Scores       []data.ChartMakerPoints
 				Average      int
 				PreviousBest int
 			}{
-				Scores: []struct {
-					Label string `json:"label"`
-					Score int    `json:"score"`
-				}{},
+				Scores:       []data.ChartMakerPoints{},
 				Average:      0,
 				PreviousBest: 0,
 			}
@@ -121,27 +113,23 @@ func ExportCharactersData(db *sql.DB, weeks int, asOf time.Time) ([]struct {
 		mScoresOnly[v.MapleCharacterName] = newData
 	}
 
-	for name, data := range m {
+	for name, mdata := range m {
 		for _, date := range weeksDateRaw {
 			if _, ok := mScoresOnly[name][date.Format("2006-01-02")]; !ok {
-				data.Scores = append(data.Scores, struct {
-					Label string `json:"label"`
-					Score int    `json:"score"`
-				}{
-					Label: date.Format("2006-01-02"),
-					Score: 0,
+				mdata.Scores = append(mdata.Scores, data.ChartMakerPoints{
+					Label:   date.Format("2006-01-02"),
+					Score:   0,
+					RawDate: date.Format("2006-01-02"),
 				})
 			} else {
-				data.Scores = append(data.Scores, struct {
-					Label string `json:"label"`
-					Score int    `json:"score"`
-				}{
-					Label: date.Format("2006-01-02"),
-					Score: mScoresOnly[name][date.Format("2006-01-02")],
+				mdata.Scores = append(mdata.Scores, data.ChartMakerPoints{
+					Label:   date.Format("2006-01-02"),
+					Score:   mScoresOnly[name][date.Format("2006-01-02")],
+					RawDate: date.Format("2006-01-02"),
 				})
 			}
 		}
-		stats, err := cmdhelpers.GetCharacterStatistics(db, name, asOf.Format("2006-01-02"), data.Scores)
+		stats, err := cmdhelpers.GetCharacterStatistics(db, name, asOf.Format("2006-01-02"), mdata.Scores)
 		if err != nil {
 			panic(err)
 		}
@@ -150,7 +138,7 @@ func ExportCharactersData(db *sql.DB, weeks int, asOf time.Time) ([]struct {
 			Date  string
 			Score int
 		}{}
-		for _, v := range data.Scores {
+		for _, v := range mdata.Scores {
 			scores = append(scores, struct {
 				Date  string
 				Score int
