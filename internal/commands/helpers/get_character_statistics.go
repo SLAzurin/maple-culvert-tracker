@@ -62,25 +62,33 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 		break
 	}
 
+	week1IsBefore2mPatch := false
+	if culvertDate, _ := time.Parse("2006-01-02", chartData[0].RawDate); culvertDate.Before(patch2mDate) || culvertDate.Equal(patch2mDate) {
+		week1IsBefore2mPatch = true
+	}
 	for _, v := range chartData {
-		culvertDate, _ := time.Parse("2006-01-02", v.RawDate)
-		if culvertDate.Equal(patch2mDate) {
-			if v.Score <= 0 {
-				validCount -= 1
-				lastKnownGoodScore = int64(10)
-			} else {
-				lastKnownGoodScore = int64(v.Score)
-			}
-		} else {
-			threshold := GetSandbagThreshold(lastKnownGoodScore)
-			if int64(v.Score) < threshold {
-				validCount -= 1
-			}
-			if int64(v.Score) > lastKnownGoodScore {
-				lastKnownGoodScore = int64(v.Score)
+		avg += int64(v.Score)
+		if week1IsBefore2mPatch {
+			culvertDate, _ := time.Parse("2006-01-02", v.RawDate)
+			if culvertDate.After(patch2mDate) || culvertDate.Equal(patch2mDate) {
+				week1IsBefore2mPatch = false // This ensures we fallback into the else block for the rest of the chartData, no need to re-parse the culvertDate again
+				if v.Score <= 0 {
+					validCount -= 1
+					lastKnownGoodScore = int64(10)
+				} else {
+					lastKnownGoodScore = int64(v.Score)
+				}
+				continue
 			}
 		}
-		avg += int64(v.Score)
+		threshold := GetSandbagThreshold(lastKnownGoodScore)
+		if int64(v.Score) < threshold {
+			validCount -= 1
+		}
+		if int64(v.Score) > lastKnownGoodScore {
+			lastKnownGoodScore = int64(v.Score)
+		}
+
 	}
 	avg /= int64(len(chartData))
 
