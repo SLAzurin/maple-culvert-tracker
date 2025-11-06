@@ -67,8 +67,10 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 		if culvertDate.Equal(patch2mDate) {
 			if v.Score <= 0 {
 				validCount -= 1
+				lastKnownGoodScore = int64(10)
+			} else {
+				lastKnownGoodScore = int64(v.Score)
 			}
-			lastKnownGoodScore = int64(1) // You better be able to score at least 1 culvert score...
 		} else {
 			threshold := GetSandbagThreshold(lastKnownGoodScore)
 			if int64(v.Score) < threshold {
