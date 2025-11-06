@@ -1,8 +1,9 @@
 package data
 
 type ChartMakerPoints = struct {
-	Label string `json:"label"`
-	Score int    `json:"score"`
+	Label   string `json:"label"`
+	Score   int    `json:"score"`
+	RawDate string `json:"-"`
 }
 
 type ChartMakeMultiplePoints = struct {
@@ -13,5 +14,4 @@ type ChartMakeMultiplePoints = struct {
 type DataPlot struct {
 	CharacterName string `json:"characterName"`
 	Scores        []int  `json:"scores"`
-	
 }

@@ -151,6 +151,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	for rows.Next() {
 		pt := data.ChartMakerPoints{}
 		rows.Scan(&pt.Label, &pt.Score)
+		pt.RawDate = pt.Label
 		pt.Label = pt.Label[5:10]
 		chartData = append(chartData, pt)
 	}
