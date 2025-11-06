@@ -115,6 +115,12 @@ Bot out!`,
 				Content: "Added a new command `/submit-scores`. It is the same as clicking `Submit` from the web admin panel as a command, but make sure you fill in the command options properly!",
 			},
 		},
+		{
+			// 11 fix 2m patch
+			ComplexMessage: &discordgo.MessageSend{
+				Content: "The formula for culvert participation has been adjusted. The previous best culvert score from October 1, 2025, will be reset to account for the two-minute patch damage adjustments.",
+			},
+		},
 	}
 	return announcements
 }
