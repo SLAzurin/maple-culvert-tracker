@@ -143,7 +143,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 			break
 		}
 		week1IsBefore2mPatch := false
-		if dest[0].CulvertDate.Before(data.Date2mPatch) || dest[0].CulvertDate.Equal(data.Date2mPatch) {
+		if len(dest) > 0 && (dest[0].CulvertDate.Before(data.Date2mPatch) || dest[0].CulvertDate.Equal(data.Date2mPatch)) {
 			week1IsBefore2mPatch = true
 		}
 		// sandbag algo: sandbagged scores are scores that fall below 70% of the lastKnownGoodScore or 10k difference as the threshold
