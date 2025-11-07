@@ -15,6 +15,7 @@ const initialState: LoginState = {
 		exp: "0",
 		discord_username: "",
 		discord_server_id: "",
+		discord_user_id: "",
 		dev_mode: 0,
 	},
 };

@@ -19,6 +19,7 @@ func main() {
 	displayName := "Backdoor user hehe ecksdee"
 	claims := &data.MCTClaims{
 		DiscordUsername: displayName,
+		DiscordUserID:   "",
 		DiscordServerID: os.Getenv(data.EnvVarDiscordGuildID),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(4 * time.Hour)),

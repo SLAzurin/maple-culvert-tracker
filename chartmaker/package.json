@@ -24,10 +24,10 @@
   },
   "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme",
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.80"
+    "@napi-rs/canvas": "^0.1.81"
   },
   "devDependencies": {
-    "@types/express": "^5.0.4",
+    "@types/express": "^5.0.5",
     "chart.js": "^4.5.1",
     "chartjs-plugin-datalabels": "^2.2.0",
     "express": "^5.1.0"
