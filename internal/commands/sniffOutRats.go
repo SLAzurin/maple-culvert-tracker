@@ -59,7 +59,6 @@ func sniffOutRats(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		})
 		return
 	}
-	log.Println("characters count", len(*characters))
 
 	foundYouYoureFucked := []struct {
 		SixSeven string
