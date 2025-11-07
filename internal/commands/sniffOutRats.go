@@ -13,6 +13,8 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
+// I was overcaffeinated when writing this
+
 func sniffOutRatsScoreIsSandbag(typeshit string, pbScore int64, score int64) bool {
 	if typeshit == "zero" {
 		return score == int64(0)
