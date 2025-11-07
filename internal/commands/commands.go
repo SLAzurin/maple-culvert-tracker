@@ -6,6 +6,7 @@ import (
 
 var culvertMinWeeks = float64(8)
 var exportCsvMinWeeks = float64(4)
+var minimumPercentageSniffOutRats = float64(0)
 
 var Commands = []*discordgo.ApplicationCommand{
 	{
@@ -58,7 +59,7 @@ var Commands = []*discordgo.ApplicationCommand{
 				Required:    false,
 				Type:        discordgo.ApplicationCommandOptionInteger,
 				MinValue:    &culvertMinWeeks,
-				MaxValue:    52,
+				MaxValue:    52 * 5,
 				Name:        "weeks",
 				Description: "Number of weeks to display in the graph",
 			},
@@ -225,6 +226,44 @@ var Commands = []*discordgo.ApplicationCommand{
 				Type:        discordgo.ApplicationCommandOptionBoolean,
 				Name:        "overwrite-existing",
 				Description: "Overwrite existing scores for characters that already have a score for the specified date.",
+			},
+		},
+	},
+	{
+		Name:        "sniff-out-rats",
+		Description: "Find members who culvert bi-weekly, or sandbag semi-consistently",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				MinValue:    &culvertMinWeeks,
+				MaxValue:    52 * 5,
+				Name:        "weeks",
+				Description: "Number of weeks to analyze",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				MinValue:    &minimumPercentageSniffOutRats,
+				MaxValue:    100,
+				Name:        "weeks-percentage-threshold",
+				Description: "Percentage of sandbagged weeks to consider character a repeat offenders. Default: 30%" + " of weeks",
+			},
+			{
+				Required: false,
+				Type:     discordgo.ApplicationCommandOptionString,
+				Name:     "value-as-offense",
+				Choices: []*discordgo.ApplicationCommandOptionChoice{
+					{
+						Name:  "Use 0 for sandbagged run",
+						Value: "zero",
+					},
+					{
+						Name:  "Use threshold value for sandbagged run (typical formula for calculating participation)",
+						Value: "threshold",
+					},
+				},
+				Description: "Treat 0 or weekly score below sandbag threshold as an offense. Default: 0",
 			},
 		},
 	},
