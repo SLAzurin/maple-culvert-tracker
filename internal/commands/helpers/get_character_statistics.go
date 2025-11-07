@@ -13,8 +13,6 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 )
 
-var patch2mDate, _ = time.Parse("2006-01-02", "2025-10-01")
-
 func GetCharacterStatistics(db *sql.DB, characterName string, date string, chartData []data.ChartMakerPoints) (*data.CharacterStatistics, error) {
 	r := data.CharacterStatistics{}
 	dateRaw, err := time.Parse("2006-01-02", date)
@@ -63,14 +61,14 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	}
 
 	week1IsBefore2mPatch := false
-	if culvertDate, _ := time.Parse("2006-01-02", chartData[0].RawDate); culvertDate.Before(patch2mDate) || culvertDate.Equal(patch2mDate) {
+	if culvertDate, _ := time.Parse("2006-01-02", chartData[0].RawDate); culvertDate.Before(data.Date2mPatch) || culvertDate.Equal(data.Date2mPatch) {
 		week1IsBefore2mPatch = true
 	}
 	for _, v := range chartData {
 		avg += int64(v.Score)
 		if week1IsBefore2mPatch {
 			culvertDate, _ := time.Parse("2006-01-02", v.RawDate)
-			if culvertDate.After(patch2mDate) || culvertDate.Equal(patch2mDate) {
+			if culvertDate.After(data.Date2mPatch) || culvertDate.Equal(data.Date2mPatch) {
 				week1IsBefore2mPatch = false // This ensures we fallback into the else block for the rest of the chartData, no need to re-parse the culvertDate again
 				if v.Score <= 0 {
 					validCount -= 1
