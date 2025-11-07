@@ -18,6 +18,7 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
@@ -141,9 +142,22 @@ func getSandbaggers() *discordgo.InteractionResponse {
 			lastKnownGoodScore = int64(v.Score)
 			break
 		}
-
+		week1IsBefore2mPatch := false
+		if dest[0].CulvertDate.Before(data.Date2mPatch) || dest[0].CulvertDate.Equal(data.Date2mPatch) {
+			week1IsBefore2mPatch = true
+		}
 		// sandbag algo: sandbagged scores are scores that fall below 70% of the lastKnownGoodScore or 10k difference as the threshold
 		for _, v := range dest {
+			if week1IsBefore2mPatch {
+				if v.CulvertDate.After(data.Date2mPatch) || v.CulvertDate.Equal(data.Date2mPatch) {
+					week1IsBefore2mPatch = false // This ensures we fallback into the else block for the rest of the chartData, no need to re-parse the culvertDate again
+					if v.Score <= 0 {
+						lastKnownGoodScore = int64(10)
+					} else {
+						lastKnownGoodScore = int64(v.Score)
+					}
+				}
+			}
 			threshold := cmdhelpers.GetSandbagThreshold(lastKnownGoodScore)
 			if int64(v.Score) <= threshold {
 				sandbaggedRuns.SandbaggedRunsCount += 1
