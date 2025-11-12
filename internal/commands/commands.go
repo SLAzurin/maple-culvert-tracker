@@ -4,7 +4,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var culvertMinWeeks = float64(8)
+var culvertMinWeeks = float64(4)
 var exportCsvMinWeeks = float64(4)
 var minimumPercentageSniffOutRats = float64(0)
 
@@ -264,6 +264,24 @@ var Commands = []*discordgo.ApplicationCommand{
 					},
 				},
 				Description: "Treat 0 or weekly score below sandbag threshold as an offense. Default: 0",
+			},
+		},
+	},
+	{
+		Name:        "weekly-sandbaggers",
+		Description: "Shows stats for all sandbaggers of a given week",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "Date in YYYY-MM-DD format, default latest week",
+			},
+			{
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "pb-diff-threshold",
+				MinValue:    &minimumPercentageSniffOutRats,
+				MaxValue:    100,
+				Description: "Shows all characters under threshold%" + " of their pb. Default: 70%",
 			},
 		},
 	},

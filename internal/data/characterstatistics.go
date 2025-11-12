@@ -6,4 +6,5 @@ type CharacterStatistics struct {
 	ParticipationPercentRatio int
 	GuildTopPlacement         int
 	Average                   int
+	Median                    int
 }
