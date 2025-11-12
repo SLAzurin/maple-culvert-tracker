@@ -165,15 +165,7 @@ func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return a.DiffPbPercentage - b.DiffPbPercentage
 	})
 
-	columnCount := 1
-	if len(bigboyCharacterStatsSecondary) > 65 {
-		columnCount = 2
-	}
-
-	if len(bigboyCharacterStatsSecondary) > 130 {
-		columnCount = 3
-	}
-	detailsTable := helpers.FormatNthColumnList(columnCount, bigboyCharacterStatsSecondary, table.Row{"", "Score", "Personal Best", "% of", "Median", "% of"}, func(data statsSecondary, idx int) table.Row {
+	detailsTable := helpers.FormatNthColumnList(1, bigboyCharacterStatsSecondary, table.Row{"", "Score", "Personal Best", "% of", "Median", "% of"}, func(data statsSecondary, idx int) table.Row {
 		diffpb := strconv.Itoa(data.DiffPbPercentage) + "%"
 		diffMd := strconv.Itoa(data.DiffMedianPercentage) + "%"
 		return table.Row{data.Name, data.Score, data.RawStats.PersonalBest, diffpb, data.RawStats.Median, diffMd}
