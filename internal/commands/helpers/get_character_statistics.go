@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"log"
 	"math"
+	"slices"
 	"strconv"
 	"time"
 
@@ -23,9 +24,17 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 			return nil, err
 		}
 	}
+
+	log.Println(dateRaw)
+
+	whereClause := LOWER(String(characterName)).EQ(LOWER(Characters.MapleCharacterName)).AND(CharacterCulvertScores.CulvertDate.LT_EQ(DateT(dateRaw)))
+	if dateRaw.After(data.Date2mPatch) || dateRaw.Equal(data.Date2mPatch) {
+		whereClause = whereClause.AND(CharacterCulvertScores.CulvertDate.GT_EQ(DateT(data.Date2mPatch)))
+	}
 	stmt := SELECT(MAX(CharacterCulvertScores.Score).AS("personal_best")).FROM(
 		CharacterCulvertScores.INNER_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID)),
-	).WHERE(LOWER(String(characterName)).EQ(LOWER(Characters.MapleCharacterName)).AND(CharacterCulvertScores.CulvertDate.LT_EQ(DateT(dateRaw))))
+	).WHERE(whereClause)
+
 	pb := struct {
 		PersonalBest int64 `sql:"personal_best"`
 	}{}
@@ -64,7 +73,9 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	if culvertDate, _ := time.Parse("2006-01-02", chartData[0].RawDate); culvertDate.Before(data.Date2mPatch) || culvertDate.Equal(data.Date2mPatch) {
 		week1IsBefore2mPatch = true
 	}
+	rawScoresSlice := []float64{}
 	for _, v := range chartData {
+		rawScoresSlice = append(rawScoresSlice, float64(v.Score))
 		avg += int64(v.Score)
 		if week1IsBefore2mPatch {
 			culvertDate, _ := time.Parse("2006-01-02", v.RawDate)
@@ -90,6 +101,7 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	}
 	avg /= int64(len(chartData))
 
+	r.Median = int(math.Round(calcMedianWithoutZero(rawScoresSlice)))
 	r.Average = int(avg)
 	r.ParticipationCountLabel = strconv.Itoa(validCount) + "/" + strconv.Itoa(len(chartData))
 	r.ParticipationPercentRatio = int(math.Round(float64(validCount) / float64(len(chartData)) * 100))
@@ -97,4 +109,27 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 	r.GuildTopPlacement = int(p.Placement)
 
 	return &r, nil
+}
+
+func calcMedianWithoutZero(data []float64) float64 {
+	dataCopyWithoutZeroScores := []float64{}
+
+	for _, v := range data {
+		if v > float64(0) {
+			dataCopyWithoutZeroScores = append(dataCopyWithoutZeroScores, v)
+		}
+	}
+	slices.Sort(dataCopyWithoutZeroScores)
+
+	var median float64
+	l := len(dataCopyWithoutZeroScores)
+	if l == 0 {
+		return 0
+	} else if l%2 == 0 {
+		median = (dataCopyWithoutZeroScores[l/2-1] + dataCopyWithoutZeroScores[l/2]) / 2
+	} else {
+		median = dataCopyWithoutZeroScores[l/2]
+	}
+
+	return median
 }
