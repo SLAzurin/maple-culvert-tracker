@@ -25,8 +25,6 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 		}
 	}
 
-	log.Println(dateRaw)
-
 	whereClause := LOWER(String(characterName)).EQ(LOWER(Characters.MapleCharacterName)).AND(CharacterCulvertScores.CulvertDate.LT_EQ(DateT(dateRaw)))
 	if dateRaw.After(data.Date2mPatch) || dateRaw.Equal(data.Date2mPatch) {
 		whereClause = whereClause.AND(CharacterCulvertScores.CulvertDate.GT_EQ(DateT(data.Date2mPatch)))

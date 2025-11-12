@@ -66,6 +66,14 @@ func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				})
 				return
 			}
+			rawDate = d.Format("2006-01-02")
+			if d.Weekday() != helpers.GetCulvertResetDay(d) {
+				content := "Date " + rawDate + " is not culvert reset day..."
+				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+					Content: &content,
+				})
+				return
+			}
 			date = d
 		}
 		if v.Name == "pb-diff-threshold" {
