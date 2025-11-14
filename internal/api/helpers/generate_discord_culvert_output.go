@@ -30,7 +30,7 @@ func GenerateDiscordCulvertOutput(chartImageBinData io.ReadCloser, charName stri
 	if err == nil {
 		embeddedData.Title = strings.Trim(charData.CharacterName+" "+date, " ")
 		embeddedData.Thumbnail = &discordgo.MessageEmbedThumbnail{URL: charData.CharacterImgURL}
-		embeddedData.Description = charName + " is a Level " + strconv.Itoa(charData.Level) + " " + DetermineClass(charData.JobID, charData.JobDetail)
+		embeddedData.Description = charName + " is a Level " + strconv.Itoa(charData.Level) + " " + charData.JobName
 
 		// For more embed examples, visit: https://discordjs.guide/popular-topics/embeds.html#using-the-embed-constructor
 	}
