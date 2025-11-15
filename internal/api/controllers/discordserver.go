@@ -1,15 +1,15 @@
 package controllers
 
 import (
-	"encoding/json"
+	"encoding/json/v2"
 	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	redis "github.com/valkey-io/valkey-go"
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	redis "github.com/valkey-io/valkey-go"
 )
 
 type DiscordServerController struct{}

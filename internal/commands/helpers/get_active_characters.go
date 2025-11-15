@@ -3,15 +3,15 @@ package helpers
 //lint:file-ignore ST1001 Dot imports by jet
 import (
 	"database/sql"
-	"encoding/json"
+	"encoding/json/v2"
 
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 
-	redis "github.com/valkey-io/valkey-go"
 	"github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/model"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	redis "github.com/valkey-io/valkey-go"
 )
 
 func GetActiveCharacters(r *redis.Client, db *sql.DB) (*[]model.Characters, error) {

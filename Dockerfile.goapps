@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.25.3-alpine AS build
+FROM golang:1.25.4-alpine AS build
 RUN apk --no-cache add tzdata
 
 WORKDIR /src/
@@ -13,7 +13,7 @@ COPY .gen /src/.gen
 
 ARG APPNAME=main
 COPY cmd/${APPNAME} /src/cmd/${APPNAME}
-RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=linux go build -o /src/main .
+RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=linux GOEXPERIMENT=jsonv2 go build -o /src/main .
 
 # culvert-web specific
 FROM node:24-slim AS culvert-web-builder

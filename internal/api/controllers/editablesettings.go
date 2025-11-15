@@ -7,9 +7,9 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/gin-gonic/gin"
-	redis "github.com/valkey-io/valkey-go"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	redis "github.com/valkey-io/valkey-go"
 )
 
 type EditableSettingsController struct{}

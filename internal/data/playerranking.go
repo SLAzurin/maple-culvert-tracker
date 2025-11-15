@@ -6,7 +6,7 @@ type PlayerRank struct {
 	Level           int    `json:"level"`
 	// JobID           int    `json:"jobID"`
 	// JobDetail       int    `json:"jobDetail"`
-	JobName         string `json:"jobName"`
+	JobName string `json:"jobName"`
 }
 
 type PlayerRankingResponse struct {

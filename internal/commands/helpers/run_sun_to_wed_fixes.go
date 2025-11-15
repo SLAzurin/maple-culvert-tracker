@@ -7,9 +7,9 @@ import (
 	"time"
 
 	. "github.com/go-jet/jet/v2/postgres"
-	redis "github.com/valkey-io/valkey-go"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
+	redis "github.com/valkey-io/valkey-go"
 )
 
 func RunSunToWedFixes(db *sql.DB, rdb *redis.Client) error {

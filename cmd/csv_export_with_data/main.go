@@ -19,7 +19,7 @@ func main() {
 	date, _ := time.Parse("2006-01-02", dateRaw)
 
 	/*
-	This func call is broken, it does not handle the case when there is 1 or 2 of the 3 weeks without data
+		This func call is broken, it does not handle the case when there is 1 or 2 of the 3 weeks without data
 	*/
 	data, err := apihelpers.ExportCharactersData(db.DB, 3, date)
 	if err != nil {
