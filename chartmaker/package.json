@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme",
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.81"
+    "@napi-rs/canvas": "^0.1.82"
   },
   "devDependencies": {
     "@types/express": "^5.0.5",
