@@ -13,6 +13,7 @@ var confReadableNameAndDescriptions = map[redisInternalKey]HumanReadableDescript
 	OPTIONAL_CONF_MAPLE_REGION:                   {"Optional Maple Region", "Optional region of the server. Must be 'na' or 'eu', empty defaults to 'na'"},
 	OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL:     {"Optional Culvert Duel Thumbnail URL", "The URL of the thumbnail of the duel image"},
 	OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS: {"Optional Show sandbaggers after submitting scores", "Toggle yes/no if the bot should show sandbaggers after submitting weekly scores"},
+	OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS:        {"Optional Show rats after submitting scores", "Toggle 6/7 if the bot should show rats after submitting weekly scores"},
 }
 
 func GetHumanReadableDescriptions(k redisInternalKey) *HumanReadableDescriptions {

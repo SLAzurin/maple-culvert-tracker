@@ -12,6 +12,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	. "github.com/go-jet/jet/v2/postgres"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/model"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
@@ -32,9 +33,10 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	lastWeek := cmdhelpers.GetCulvertResetDate(submittedDate.Add(time.Hour * -24 * 7))
 
 	// query all summary of current character scores
-	stmt := SELECT(Characters.MapleCharacterName.AS("name"), CharacterCulvertScores.Score.AS("score"), CharacterCulvertScores.CulvertDate.AS("culvert_date")).FROM(CharacterCulvertScores.LEFT_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.CulvertDate.IN(DateT(lastWeek), DateT(submittedDate))).ORDER_BY(CharacterCulvertScores.CulvertDate.DESC(), CharacterCulvertScores.Score.DESC(), Characters.MapleCharacterName.ASC())
+	stmt := SELECT(Characters.ID.AS("id"), Characters.MapleCharacterName.AS("name"), CharacterCulvertScores.Score.AS("score"), CharacterCulvertScores.CulvertDate.AS("culvert_date")).FROM(CharacterCulvertScores.LEFT_JOIN(Characters, Characters.ID.EQ(CharacterCulvertScores.CharacterID))).WHERE(CharacterCulvertScores.CulvertDate.IN(DateT(lastWeek), DateT(submittedDate))).ORDER_BY(CharacterCulvertScores.CulvertDate.DESC(), CharacterCulvertScores.Score.DESC(), Characters.MapleCharacterName.ASC())
 
 	rawData := []struct {
+		ID          int64
 		Name        string
 		Score       int
 		CulvertDate time.Time
@@ -51,10 +53,12 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	noLongerExistsFromLastWeek := []string{}
 	cutoffPos := -1
 	characters := []string{}
+	charactersModel := []model.Characters{}
 
 	for curPos, v := range rawData {
 		if submittedDate.Format("2006-01-02") == v.CulvertDate.Format("2006-01-02") {
 			characters = append(characters, v.Name)
+			charactersModel = append(charactersModel, model.Characters{MapleCharacterName: v.Name, ID: v.ID})
 		}
 		if _, ok := nameToIdxMap[v.Name]; !ok && cutoffPos == -1 {
 			nameToIdxMap[v.Name] = curPos
@@ -101,7 +105,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 
 	// get optional conf from valkey
 	showSandbaggersRaw := apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.GetWithDefault(apiredis.RedisDB, "false")
-	err = json.Unmarshal([]byte(showSandbaggersRaw), &shouldShowWeeklySandbaggers)
+	json.Unmarshal([]byte(showSandbaggersRaw), &shouldShowWeeklySandbaggers)
 	// if it is not "true", always treat false, so ignore error
 
 	if shouldShowWeeklySandbaggers {
@@ -121,6 +125,21 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 		sandbaggersZeroScoreList = &detailsZeroScoreCharas
 	}
 
+	shouldShowWeeklyRats := false
+	showRatsRaw := apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS.GetWithDefault(apiredis.RedisDB, "false")
+	json.Unmarshal([]byte(showRatsRaw), &shouldShowWeeklyRats)
+	// if it is not "true", always treat false, so ignore error
+
+	rats := []struct {
+		SixSeven string
+		LWeeks   int
+		WWeeks   int
+	}{}
+	calculateRatWeeks := 12
+	if shouldShowWeeklyRats {
+		rats, err = cmdhelpers.GetStinkyRats(db, charactersModel, submittedDate.Format("2006-01-02"), calculateRatWeeks, float64(4)/float64(12), "zero")
+	}
+
 	for _, v := range channelID {
 		s.ChannelMessageSendComplex(v, &discordgo.MessageSend{
 			Content: "Culvert scores updated! These are the changes from " + lastWeek.Format("2006-01-02") + " to " + submittedDate.Format("2006-01-02"),
@@ -137,6 +156,23 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 				Content: "Sandbaggers for " + submittedDate.Format("2006-01-02") + ", median over " + strconv.Itoa(medianWeeks) + " weeks",
 				Files:   []*discordgo.File{{Name: "sandbaggers.txt", Reader: strings.NewReader(*sandbaggersTable)}, {Name: "zero-scores.txt", Reader: strings.NewReader(*sandbaggersZeroScoreList)}},
 			})
+		}
+
+		if shouldShowWeeklyRats {
+			if len(rats) > 0 {
+				contentInner := ""
+				for _, v := range rats {
+					contentInner += v.SixSeven + " has a high amount roller coaster pattern count! " + strconv.Itoa(v.LWeeks) + "/" + strconv.Itoa(v.WWeeks) + "\n"
+				}
+				s.ChannelMessageSendComplex(v, &discordgo.MessageSend{
+					Content: "Rats for " + submittedDate.Format("2006-01-02") + ", calculated over " + strconv.Itoa(calculateRatWeeks) + " weeks",
+					Files:   []*discordgo.File{{Name: "stinky-rats.txt", Reader: strings.NewReader(contentInner)}},
+				})
+			} else {
+				s.ChannelMessageSendComplex(v, &discordgo.MessageSend{
+					Content: "Squeaky clean! No rats this week!",
+				})
+			}
 		}
 	}
 

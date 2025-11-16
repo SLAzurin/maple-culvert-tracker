@@ -277,6 +277,12 @@ func (EditableSettingsController) GETEditable(s *discordgo.Session) func(c *gin.
 				EditableType:             string(apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.EditableType),
 				Multiple:                 apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.Multiple,
 			},
+			apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS.ToString(): EditableSetting{
+				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS),
+				Value:                    apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS.GetWithDefault(apiredis.RedisDB, ""),
+				EditableType:             string(apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS.EditableType),
+				Multiple:                 apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS.Multiple,
+			},
 		})
 	}
 }
