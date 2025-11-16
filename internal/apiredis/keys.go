@@ -1,24 +1,25 @@
 package apiredis
 
 var (
-	CONF_DISCORD_ADMIN_CHANNEL_ID                         = redisInternalKey{"CONF_DISCORD_ADMIN_CHANNEL_ID", EditableTypeDiscordChannel, false}
-	CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID redisInternalKey = redisInternalKey{"CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID", EditableTypeDiscordChannel, false}
-	CONF_DISCORD_GUILD_ROLE_IDS          redisInternalKey = redisInternalKey{"CONF_DISCORD_GUILD_ROLE_IDS", EditableTypeDiscordRole, true}
+	CONF_DISCORD_ADMIN_CHANNEL_ID        = redisInternalKey{"CONF_DISCORD_ADMIN_CHANNEL_ID", EditableTypeDiscordChannel, false}
+	CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID = redisInternalKey{"CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID", EditableTypeDiscordChannel, false}
+	CONF_DISCORD_GUILD_ROLE_IDS          = redisInternalKey{"CONF_DISCORD_GUILD_ROLE_IDS", EditableTypeDiscordRole, true}
 
-	OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX        redisInternalKey = redisInternalKey{"OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX", EditableTypeString, false}
-	OPTIONAL_CONF_MAPLE_REGION                   redisInternalKey = redisInternalKey{"OPTIONAL_CONF_MAPLE_REGION", EditableTypeSelection, false} // default "na"
-	OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL     redisInternalKey = redisInternalKey{"OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL", EditableTypeString, false}
-	OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS redisInternalKey = redisInternalKey{"OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS", EditableTypeBool, false}
+	OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX        = redisInternalKey{"OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX", EditableTypeString, false}
+	OPTIONAL_CONF_MAPLE_REGION                   = redisInternalKey{"OPTIONAL_CONF_MAPLE_REGION", EditableTypeSelection, false} // default "na"
+	OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL     = redisInternalKey{"OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL", EditableTypeString, false}
+	OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS = redisInternalKey{"OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS", EditableTypeBool, false}
+	OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS        = redisInternalKey{"OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS", EditableTypeBool, false}
 
 	// Internal keys below this line
-	DATA_REDIS_VERSION redisInternalKey = redisInternalKey{"DATA_REDIS_VERSION", EditableTypeNone, false}
-	DATA_DB_VERSION    redisInternalKey = redisInternalKey{"DATA_DB_VERSION", EditableTypeNone, false}
+	DATA_REDIS_VERSION = redisInternalKey{"DATA_REDIS_VERSION", EditableTypeNone, false}
+	DATA_DB_VERSION    = redisInternalKey{"DATA_DB_VERSION", EditableTypeNone, false}
 
-	DATA_FIXES_SUN_TO_WED redisInternalKey = redisInternalKey{"DATA_FIXES_SUN_TO_WED", EditableTypeNone, false}
+	DATA_FIXES_SUN_TO_WED = redisInternalKey{"DATA_FIXES_SUN_TO_WED", EditableTypeNone, false}
 
-	DATA_DISCORD_MEMBERS redisInternalKey = redisInternalKey{"DATA_DISCORD_MEMBERS", EditableTypeNone, false}
+	DATA_DISCORD_MEMBERS = redisInternalKey{"DATA_DISCORD_MEMBERS", EditableTypeNone, false}
 
-	DATA_DISCORD_NEW_FEATURES_ANNOUNCEMENT_VERSION redisInternalKey = redisInternalKey{"DATA_DISCORD_NEW_FEATURES_ANNOUNCEMENT_VERSION", EditableTypeNone, false}
+	DATA_DISCORD_NEW_FEATURES_ANNOUNCEMENT_VERSION = redisInternalKey{"DATA_DISCORD_NEW_FEATURES_ANNOUNCEMENT_VERSION", EditableTypeNone, false}
 )
 
 var KeysMap = map[string]redisInternalKey{}
@@ -35,6 +36,7 @@ func init() {
 	KeysMap[OPTIONAL_CONF_MAPLE_REGION.Name] = OPTIONAL_CONF_MAPLE_REGION
 	KeysMap[OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL.Name] = OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL
 	KeysMap[OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.Name] = OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS
+	KeysMap[OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS.Name] = OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS
 	KeysMap[DATA_REDIS_VERSION.Name] = DATA_REDIS_VERSION
 	KeysMap[DATA_DB_VERSION.Name] = DATA_DB_VERSION
 	KeysMap[DATA_FIXES_SUN_TO_WED.Name] = DATA_FIXES_SUN_TO_WED

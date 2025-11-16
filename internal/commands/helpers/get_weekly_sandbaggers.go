@@ -75,6 +75,7 @@ func GetWeeklySandbaggers(characters []string, rawDate string, weeks int, thresh
 		return a.DiffPbPercentage - b.DiffPbPercentage
 	})
 
+	err = nil
 	return
 }
 
