@@ -7,7 +7,7 @@ import (
 	redis "github.com/valkey-io/valkey-go"
 )
 
-const CurrentVersion = 2
+const CurrentVersion = 3
 
 var migrationTable = map[int]func(rdb *redis.Client) error{
 	1: MigrationV1, // Standardized naming
