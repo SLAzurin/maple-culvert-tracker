@@ -5,9 +5,10 @@ var (
 	CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID redisInternalKey = redisInternalKey{"CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID", EditableTypeDiscordChannel, false}
 	CONF_DISCORD_GUILD_ROLE_IDS          redisInternalKey = redisInternalKey{"CONF_DISCORD_GUILD_ROLE_IDS", EditableTypeDiscordRole, true}
 
-	OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX    redisInternalKey = redisInternalKey{"OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX", EditableTypeString, false}
-	OPTIONAL_CONF_MAPLE_REGION               redisInternalKey = redisInternalKey{"OPTIONAL_CONF_MAPLE_REGION", EditableTypeSelection, false} // default "na"
-	OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL redisInternalKey = redisInternalKey{"OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL", EditableTypeString, false}
+	OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX        redisInternalKey = redisInternalKey{"OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX", EditableTypeString, false}
+	OPTIONAL_CONF_MAPLE_REGION                   redisInternalKey = redisInternalKey{"OPTIONAL_CONF_MAPLE_REGION", EditableTypeSelection, false} // default "na"
+	OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL     redisInternalKey = redisInternalKey{"OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL", EditableTypeString, false}
+	OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS redisInternalKey = redisInternalKey{"OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS", EditableTypeBool, false}
 
 	// Internal keys below this line
 	DATA_REDIS_VERSION redisInternalKey = redisInternalKey{"DATA_REDIS_VERSION", EditableTypeNone, false}
@@ -33,6 +34,7 @@ func init() {
 	KeysMap[OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX.Name] = OPTIONAL_CONF_DISCORD_REMINDER_SUFFIX
 	KeysMap[OPTIONAL_CONF_MAPLE_REGION.Name] = OPTIONAL_CONF_MAPLE_REGION
 	KeysMap[OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL.Name] = OPTIONAL_CONF_CULVERT_DUEL_THUMBNAIL_URL
+	KeysMap[OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.Name] = OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS
 	KeysMap[DATA_REDIS_VERSION.Name] = DATA_REDIS_VERSION
 	KeysMap[DATA_DB_VERSION.Name] = DATA_DB_VERSION
 	KeysMap[DATA_FIXES_SUN_TO_WED.Name] = DATA_FIXES_SUN_TO_WED

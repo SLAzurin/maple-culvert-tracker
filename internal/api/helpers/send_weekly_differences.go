@@ -3,6 +3,7 @@ package helpers
 //lint:file-ignore ST1001 Dot imports by jet
 import (
 	"database/sql"
+	"encoding/json/v2"
 	"log"
 	"strconv"
 	"strings"
@@ -12,11 +13,14 @@ import (
 	. "github.com/go-jet/jet/v2/postgres"
 	"github.com/jedib0t/go-pretty/v6/table"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
+	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
+	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	redis "github.com/valkey-io/valkey-go"
 )
 
-type differenceStruct struct {
+type weeklyDiffScores struct {
 	Name    string
 	Prev    int
 	Current int
@@ -43,10 +47,15 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	}
 
 	nameToIdxMap := map[string]int{}
-	diffs := []differenceStruct{}
+	diffs := []weeklyDiffScores{}
 	noLongerExistsFromLastWeek := []string{}
 	cutoffPos := -1
+	characters := []string{}
+
 	for curPos, v := range rawData {
+		if submittedDate.Format("2006-01-02") == v.CulvertDate.Format("2006-01-02") {
+			characters = append(characters, v.Name)
+		}
 		if _, ok := nameToIdxMap[v.Name]; !ok && cutoffPos == -1 {
 			nameToIdxMap[v.Name] = curPos
 		}
@@ -61,7 +70,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 				noLongerExistsFromLastWeek = append(noLongerExistsFromLastWeek, v.Name)
 			}
 		} else {
-			diffs = append(diffs, differenceStruct{
+			diffs = append(diffs, weeklyDiffScores{
 				Name:    v.Name,
 				Prev:    -1,
 				Current: v.Score,
@@ -80,9 +89,37 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 		columnCount = 3
 	}
 
-	rawStr := cmdhelpers.FormatNthColumnList(columnCount, diffs, table.Row{"Character", "Score", "Position"}, func(data differenceStruct, idx int) table.Row {
+	rawStr := cmdhelpers.FormatNthColumnList(columnCount, diffs, table.Row{"Character", "Score", "Position"}, func(data weeklyDiffScores, idx int) table.Row {
 		return table.Row{data.Name, strconv.Itoa(data.Prev) + " -> " + strconv.Itoa(data.Current), strconv.Itoa(data.Oldpos) + " -> " + strconv.Itoa(idx+1)}
 	})
+
+	// display weekly sandbaggers
+	shouldShowWeeklySandbaggers := false
+	var sandbaggersTable *string
+	var sandbaggersZeroScoreList *string
+	const medianWeeks = 12
+
+	// get optional conf from valkey
+	showSandbaggersRaw := apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.GetWithDefault(apiredis.RedisDB, "false")
+	err = json.Unmarshal([]byte(showSandbaggersRaw), &shouldShowWeeklySandbaggers)
+	// if it is not "true", always treat false, so ignore error
+
+	if shouldShowWeeklySandbaggers {
+		sandbaggers, err := cmdhelpers.GetWeeklySandbaggers(characters, submittedDate.Format("2006-01-02"), medianWeeks, cmdhelpers.SandbagThreshold)
+		if err != nil {
+			log.Println("send_weekly_differences:GetWeeklySandbaggers", err)
+			return
+		}
+		detailsTable := helpers.FormatNthColumnList(1, sandbaggers.NewSandbaggers, table.Row{"", "Score", "Personal Best", "% of", "Median", "% of"}, func(data data.WeeklySandbaggersStats, idx int) table.Row {
+			diffpb := strconv.Itoa(data.DiffPbPercentage) + "%"
+			diffMd := strconv.Itoa(data.DiffMedianPercentage) + "%"
+			return table.Row{data.Name, data.Score, data.RawStats.PersonalBest, diffpb, data.RawStats.Median, diffMd}
+		})
+		sandbaggersTable = &detailsTable
+
+		detailsZeroScoreCharas := strings.Join(sandbaggers.ZeroScoreSandbaggers, ",")
+		sandbaggersZeroScoreList = &detailsZeroScoreCharas
+	}
 
 	for _, v := range channelID {
 		s.ChannelMessageSendComplex(v, &discordgo.MessageSend{
@@ -92,6 +129,13 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 		if len(noLongerExistsFromLastWeek) > 0 {
 			s.ChannelMessageSendComplex(v, &discordgo.MessageSend{
 				Content: "These characters no longer exist in the last week: " + strings.Join(noLongerExistsFromLastWeek, ", "),
+			})
+		}
+
+		if shouldShowWeeklySandbaggers {
+			s.ChannelMessageSendComplex(v, &discordgo.MessageSend{
+				Content: "Sandbaggers for " + submittedDate.Format("2006-01-02") + ", median over " + strconv.Itoa(medianWeeks) + " weeks",
+				Files:   []*discordgo.File{{Name: "sandbaggers.txt", Reader: strings.NewReader(*sandbaggersTable)}, {Name: "zero-scores.txt", Reader: strings.NewReader(*sandbaggersZeroScoreList)}},
 			})
 		}
 	}

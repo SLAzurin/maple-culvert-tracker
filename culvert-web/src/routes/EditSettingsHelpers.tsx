@@ -46,6 +46,8 @@ export const getHumanValue = (editableValues: any, key: string) => {
 				);
 		case "string":
 			return editableValues[key].value;
+		case "bool":
+			return editableValues[key].value === "true" ? "yes" : "no";
 		case "selection":
 			return (
 				editableValues[key].available_selections.find(

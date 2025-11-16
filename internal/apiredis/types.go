@@ -17,6 +17,7 @@ const (
 	EditableTypeDiscordChannel editableType = "discord_channel"
 	EditableTypeSelection      editableType = "selection"
 	EditableTypeNone           editableType = "none"
+	EditableTypeBool           editableType = "bool"
 )
 
 type redisInternalKey struct {
