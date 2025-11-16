@@ -45,6 +45,9 @@ jobs:
           docker push -a ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}
   promote-stable:
     if: github.event_name == 'push' && github.ref_name == 'master'
+    permissions:
+      contents: read
+      packages: write
     environment: promote-stable
     runs-on: ubuntu-latest
     needs: publish
