@@ -41,6 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatalln(err)
 	}
+	defer f.Close()
 	jsonRaw, err := io.ReadAll(f)
 	if err != nil {
 		log.Fatalln(err)
