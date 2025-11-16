@@ -12,5 +12,6 @@ package table
 func UseSchema(schema string) {
 	CharacterCulvertScores = CharacterCulvertScores.FromSchema(schema)
 	Characters = Characters.FromSchema(schema)
+	DiscordPbAnnounecments = DiscordPbAnnounecments.FromSchema(schema)
 	SchemaMigrations = SchemaMigrations.FromSchema(schema)
 }

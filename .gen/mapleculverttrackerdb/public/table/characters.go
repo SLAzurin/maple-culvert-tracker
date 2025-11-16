@@ -23,6 +23,7 @@ type charactersTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type CharactersTable struct {
@@ -65,6 +66,7 @@ func newCharactersTableImpl(schemaName, tableName, alias string) charactersTable
 		DiscordUserIDColumn      = postgres.StringColumn("discord_user_id")
 		allColumns               = postgres.ColumnList{IDColumn, MapleCharacterNameColumn, DiscordUserIDColumn}
 		mutableColumns           = postgres.ColumnList{MapleCharacterNameColumn, DiscordUserIDColumn}
+		defaultColumns           = postgres.ColumnList{IDColumn}
 	)
 
 	return charactersTable{
@@ -77,5 +79,6 @@ func newCharactersTableImpl(schemaName, tableName, alias string) charactersTable
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }
