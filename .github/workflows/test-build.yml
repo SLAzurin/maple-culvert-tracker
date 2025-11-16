@@ -20,6 +20,8 @@ jobs:
         run: |
           GOEXPERIMENT=jsonv2 go test -v ./{cmd,internal}/...
   test-build:
+    permissions:
+      contents: read
     name: Test build docker
     runs-on: ubuntu-latest
     strategy:
