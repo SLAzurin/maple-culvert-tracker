@@ -7,10 +7,11 @@ import (
 	redis "github.com/valkey-io/valkey-go"
 )
 
-const CurrentVersion = 1
+const CurrentVersion = 2
 
 var migrationTable = map[int]func(rdb *redis.Client) error{
 	1: MigrationV1,
+	2: MigrationV2,
 }
 
 func Migrate(rdb *redis.Client) error {

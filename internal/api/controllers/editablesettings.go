@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json/v2"
 	"net/http"
 	"os"
 	"strings"
@@ -187,6 +188,24 @@ func (EditableSettingsController) PatchEditable(s *discordgo.Session) func(c *gi
 				}
 				c.JSON(http.StatusOK, gin.H{})
 				return
+			case apiredis.EditableTypeBool:
+				b := false
+				err = json.Unmarshal([]byte(body.Value), &b)
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+						"error": "Invalid value",
+					})
+					return
+				}
+				err = rdbKey.Set(apiredis.RedisDB, body.Value)
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+						"error": "failed to set key, internal valkey connection error",
+					})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{})
+				return
 			default:
 				c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 					"error": "Uneditable type detected",
@@ -251,6 +270,12 @@ func (EditableSettingsController) GETEditable(s *discordgo.Session) func(c *gin.
 				EditableType:             string(apiredis.OPTIONAL_CONF_MAPLE_REGION.EditableType),
 				AvailableSelections:      apiredis.EditableSelectionsMap[apiredis.OPTIONAL_CONF_MAPLE_REGION],
 				Multiple:                 apiredis.OPTIONAL_CONF_MAPLE_REGION.Multiple,
+			},
+			apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.ToString(): EditableSetting{
+				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS),
+				Value:                    apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.GetWithDefault(apiredis.RedisDB, ""),
+				EditableType:             string(apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.EditableType),
+				Multiple:                 apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS.Multiple,
 			},
 		})
 	}

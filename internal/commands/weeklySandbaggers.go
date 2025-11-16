@@ -3,8 +3,6 @@ package commands
 //lint:file-ignore ST1001 Dot imports by jet
 import (
 	"log"
-	"math"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -18,14 +16,6 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
-type statsSecondary = struct {
-	Name                 string
-	Score                int
-	RawStats             *data.CharacterStatistics
-	DiffPbPercentage     int
-	DiffMedianPercentage int
-}
-
 func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var err error
 
@@ -37,7 +27,7 @@ func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	stmt := SELECT(MAX(CharacterCulvertScores.CulvertDate).AS("max")).FROM(CharacterCulvertScores)
 	rawDateOut := struct {
-		Max string
+		Max time.Time
 	}{}
 	err = stmt.Query(db.DB, &rawDateOut)
 	if err != nil {
@@ -49,9 +39,9 @@ func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	rawDate := rawDateOut.Max[:10]
+	rawDate := rawDateOut.Max.Format("2006-01-02")
 
-	date, _ := time.Parse("2006-01-02", rawDate)
+	date := rawDateOut.Max
 
 	threshold := float64(7) / float64(10) // inverse 30%
 	weeks := 12
@@ -100,78 +90,24 @@ func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	zeroScoreCharacters := []string{}
-	bigboyCharacterStatsSecondary := []statsSecondary{}
-
-	// Build all Secondary stats
-	for _, v := range characters {
-		stmt = SELECT(CharacterCulvertScores.CulvertDate.AS("culvert_date"), CharacterCulvertScores.Score.AS("score")).FROM(Characters.INNER_JOIN(CharacterCulvertScores, CharacterCulvertScores.CharacterID.EQ(Characters.ID))).WHERE(Characters.MapleCharacterName.EQ(String(v))).LIMIT(int64(weeks)).ORDER_BY(CharacterCulvertScores.CulvertDate.DESC())
-
-		scoresRawDb := []struct {
-			Score       int
-			CulvertDate string
-		}{}
-		err = stmt.Query(db.DB, &scoresRawDb)
-		if err != nil {
-			content := "Fatal error, failed to fetch scores for " + v
-			s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-				Content: &content,
-			})
-			return
-		}
-
-		if scoresRawDb[0].Score <= 0 {
-			zeroScoreCharacters = append(zeroScoreCharacters, v)
-			continue
-		}
-
-		chartData := []data.ChartMakerPoints{}
-		for _, v := range scoresRawDb {
-			d := data.ChartMakerPoints{
-				Label:   v.CulvertDate[:10],
-				RawDate: v.CulvertDate[:10],
-				Score:   v.Score,
-			}
-			chartData = append(chartData, d)
-		}
-		slices.Reverse(chartData)
-
-		charaStats, err := helpers.GetCharacterStatistics(db.DB, v, rawDate, chartData)
-		if err != nil {
-			content := "Fatal error, failed to fetch statistics for " + v
-			s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-				Content: &content,
-			})
-			return
-		}
-
-		latestWeekScore := chartData[len(chartData)-1].Score
-
-		diffPbRatio := float64(latestWeekScore) / float64(charaStats.PersonalBest)
-		if diffPbRatio <= threshold {
-			secondaryStats := statsSecondary{
-				Name:                 v,
-				RawStats:             charaStats,
-				Score:                latestWeekScore,
-				DiffPbPercentage:     diffPercentage(latestWeekScore, charaStats.PersonalBest),
-				DiffMedianPercentage: diffPercentage(latestWeekScore, charaStats.Median),
-			}
-			bigboyCharacterStatsSecondary = append(bigboyCharacterStatsSecondary, secondaryStats)
-		}
-
+	// Build sandbaggers stats
+	sandbaggers, err := helpers.GetWeeklySandbaggers(characters, rawDate, weeks, threshold)
+	if err != nil {
+		log.Println("weeklySandbaggers.go:GetWeeklySandbaggers:", err)
+		content := "Failed to get weekly sandbaggers data, see server logs..."
+		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+			Content: &content,
+		})
+		return
 	}
 
-	slices.SortStableFunc(bigboyCharacterStatsSecondary, func(a statsSecondary, b statsSecondary) int {
-		return a.DiffPbPercentage - b.DiffPbPercentage
-	})
-
-	detailsTable := helpers.FormatNthColumnList(1, bigboyCharacterStatsSecondary, table.Row{"", "Score", "Personal Best", "% of", "Median", "% of"}, func(data statsSecondary, idx int) table.Row {
+	detailsTable := helpers.FormatNthColumnList(1, sandbaggers.NewSandbaggers, table.Row{"", "Score", "Personal Best", "% of", "Median", "% of"}, func(data data.WeeklySandbaggersStats, idx int) table.Row {
 		diffpb := strconv.Itoa(data.DiffPbPercentage) + "%"
 		diffMd := strconv.Itoa(data.DiffMedianPercentage) + "%"
 		return table.Row{data.Name, data.Score, data.RawStats.PersonalBest, diffpb, data.RawStats.Median, diffMd}
 	})
 
-	detailsZeroScoreCharas := strings.Join(zeroScoreCharacters, ",")
+	detailsZeroScoreCharas := strings.Join(sandbaggers.ZeroScoreSandbaggers, ",")
 
 	content := "Here are the weekly sandbaggers details for " + rawDate + " over " + strconv.Itoa(weeks) + " weeks"
 	s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
@@ -187,13 +123,4 @@ func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
-}
-
-func diffPercentage(v int, against int) int {
-	if against == 0 {
-		return 0
-	}
-	ratio := float64(v) / float64(against)
-	ratio *= 100
-	return int(math.Round(ratio))
 }
