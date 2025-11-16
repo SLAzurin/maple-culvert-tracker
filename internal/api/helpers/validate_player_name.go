@@ -1,7 +1,7 @@
 package helpers
 
 import (
-	"encoding/json/v2"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"

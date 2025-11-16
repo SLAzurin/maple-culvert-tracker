@@ -4,7 +4,7 @@ package commands
 
 import (
 	"database/sql"
-	"encoding/json/v2"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"

@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"encoding/json/v2"
+	"encoding/json"
 	"log"
 	"strings"
 

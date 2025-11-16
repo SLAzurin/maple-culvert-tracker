@@ -3,7 +3,7 @@ package helpers
 //lint:file-ignore ST1001 Dot imports by jet
 import (
 	"database/sql"
-	"encoding/json/v2"
+	"encoding/json"
 	"log"
 	"strconv"
 	"strings"

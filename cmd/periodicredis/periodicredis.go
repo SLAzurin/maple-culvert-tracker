@@ -1,7 +1,7 @@
 package main
 
 import (
-	"encoding/json/v2"
+	"encoding/json"
 	"log"
 	"os"
 	"os/signal"

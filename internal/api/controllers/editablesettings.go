@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"encoding/json/v2"
+	"encoding/json"
 	"net/http"
 	"os"
 	"strings"

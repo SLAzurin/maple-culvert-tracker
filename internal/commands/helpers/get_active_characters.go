@@ -3,7 +3,7 @@ package helpers
 //lint:file-ignore ST1001 Dot imports by jet
 import (
 	"database/sql"
-	"encoding/json/v2"
+	"encoding/json"
 
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"

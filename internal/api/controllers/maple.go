@@ -3,7 +3,7 @@ package controllers
 import (
 	"context"
 	"database/sql"
-	"encoding/json/v2"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"

@@ -2,7 +2,7 @@ package commands
 
 import (
 	"bytes"
-	"encoding/json/v2"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"

@@ -3,7 +3,7 @@ package commands
 //lint:file-ignore ST1001 Dot imports by jet
 import (
 	"bytes"
-	"encoding/json/v2"
+	"encoding/json"
 	"log"
 	"net/http"
 	"os"

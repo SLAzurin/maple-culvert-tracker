@@ -2,7 +2,7 @@ package main
 
 //lint:file-ignore ST1001 Dot imports by jet
 import (
-	"encoding/json/v2"
+	"encoding/json"
 	"log"
 	"time"
 

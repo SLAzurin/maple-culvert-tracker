@@ -13,7 +13,7 @@ COPY .gen /src/.gen
 
 ARG APPNAME=main
 COPY cmd/${APPNAME} /src/cmd/${APPNAME}
-RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=linux GOEXPERIMENT=jsonv2 go build -o /src/main .
+RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=linux go build -o /src/main .
 
 # culvert-web specific
 FROM node:24-slim AS culvert-web-builder
@@ -48,7 +48,7 @@ ENTRYPOINT [ "/main" ]
 FROM build AS cron-specific-build
 # main arg already built auto_backup
 COPY cmd/culvert_score_update_reminder /src/cmd/culvert_score_update_reminder
-RUN cd /src/cmd/culvert_score_update_reminder && CGO_ENABLED=0 GOOS=linux GOEXPERIMENT=jsonv2 go build -o /src/culvert_score_update_reminder .
+RUN cd /src/cmd/culvert_score_update_reminder && CGO_ENABLED=0 GOOS=linux go build -o /src/culvert_score_update_reminder .
 
 FROM postgres:16-alpine AS cron
 COPY --from=build /src/main /usr/local/bin/auto_backup
