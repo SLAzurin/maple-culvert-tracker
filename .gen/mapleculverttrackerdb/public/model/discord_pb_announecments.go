@@ -12,6 +12,8 @@ import (
 )
 
 type DiscordPbAnnounecments struct {
-	Week      time.Time `sql:"primary_key"`
-	MessageID string
+	Week       time.Time `sql:"primary_key"`
+	MessageID  string
+	Part       int32 `sql:"primary_key"`
+	TotalParts int32
 }

@@ -17,8 +17,10 @@ type discordPbAnnounecmentsTable struct {
 	postgres.Table
 
 	// Columns
-	Week      postgres.ColumnDate
-	MessageID postgres.ColumnString
+	Week       postgres.ColumnDate
+	MessageID  postgres.ColumnString
+	Part       postgres.ColumnInteger
+	TotalParts postgres.ColumnInteger
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
@@ -60,19 +62,23 @@ func newDiscordPbAnnounecmentsTable(schemaName, tableName, alias string) *Discor
 
 func newDiscordPbAnnounecmentsTableImpl(schemaName, tableName, alias string) discordPbAnnounecmentsTable {
 	var (
-		WeekColumn      = postgres.DateColumn("week")
-		MessageIDColumn = postgres.StringColumn("message_id")
-		allColumns      = postgres.ColumnList{WeekColumn, MessageIDColumn}
-		mutableColumns  = postgres.ColumnList{MessageIDColumn}
-		defaultColumns  = postgres.ColumnList{}
+		WeekColumn       = postgres.DateColumn("week")
+		MessageIDColumn  = postgres.StringColumn("message_id")
+		PartColumn       = postgres.IntegerColumn("part")
+		TotalPartsColumn = postgres.IntegerColumn("total_parts")
+		allColumns       = postgres.ColumnList{WeekColumn, MessageIDColumn, PartColumn, TotalPartsColumn}
+		mutableColumns   = postgres.ColumnList{MessageIDColumn, TotalPartsColumn}
+		defaultColumns   = postgres.ColumnList{}
 	)
 
 	return discordPbAnnounecmentsTable{
 		Table: postgres.NewTable(schemaName, tableName, alias, allColumns...),
 
 		//Columns
-		Week:      WeekColumn,
-		MessageID: MessageIDColumn,
+		Week:       WeekColumn,
+		MessageID:  MessageIDColumn,
+		Part:       PartColumn,
+		TotalParts: TotalPartsColumn,
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
