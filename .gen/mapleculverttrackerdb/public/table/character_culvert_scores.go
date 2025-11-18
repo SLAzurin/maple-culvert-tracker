@@ -24,6 +24,7 @@ type characterCulvertScoresTable struct {
 
 	AllColumns     postgres.ColumnList
 	MutableColumns postgres.ColumnList
+	DefaultColumns postgres.ColumnList
 }
 
 type CharacterCulvertScoresTable struct {
@@ -67,6 +68,7 @@ func newCharacterCulvertScoresTableImpl(schemaName, tableName, alias string) cha
 		ScoreColumn       = postgres.IntegerColumn("score")
 		allColumns        = postgres.ColumnList{IDColumn, CulvertDateColumn, CharacterIDColumn, ScoreColumn}
 		mutableColumns    = postgres.ColumnList{CulvertDateColumn, CharacterIDColumn, ScoreColumn}
+		defaultColumns    = postgres.ColumnList{IDColumn}
 	)
 
 	return characterCulvertScoresTable{
@@ -80,5 +82,6 @@ func newCharacterCulvertScoresTableImpl(schemaName, tableName, alias string) cha
 
 		AllColumns:     allColumns,
 		MutableColumns: mutableColumns,
+		DefaultColumns: defaultColumns,
 	}
 }
