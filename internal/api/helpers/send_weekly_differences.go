@@ -253,7 +253,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 
 		congratzMsgPart := 0
 		congratsMsgs := []string{""}
-		congratsMsgs[congratzMsgPart] = "Congratulations to the following members for achieving a new personal best this week of " + submittedDate.Format("2006-01-02") + "!\n```"
+		congratsMsgs[congratzMsgPart] = "Congratulations to the following members for achieving a new personal best this week of " + submittedDate.Format("2006-01-02") + "! :partying_face: :tada:\n```"
 
 		// sort characterIDsNewPb by new pb
 		slices.SortStableFunc(characterIDsNewPb, func(a, b int) int {
