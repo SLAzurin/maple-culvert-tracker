@@ -192,7 +192,7 @@ func (MapleController) POSTCulvert(c *gin.Context) {
 		}
 	}
 
-	go helpers.SendWeeklyDifferences(DiscordSession, db.DB, apiredis.RedisDB, thisWeek, apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, ""))
+	go helpers.SendWeeklyDifferences(DiscordSession, db.DB, apiredis.RedisDB, thisWeek, apiredis.CONF_DISCORD_ADMIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, ""), apiredis.CONF_DISCORD_MEMBERS_MAIN_CHANNEL_ID.GetWithDefault(apiredis.RedisDB, ""))
 
 	c.AbortWithStatusJSON(http.StatusOK, gin.H{})
 }
