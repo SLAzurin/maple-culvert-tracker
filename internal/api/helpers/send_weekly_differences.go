@@ -126,7 +126,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	}
 	hasNewPB := false
 	for _, v := range prevBests {
-		if v.MaxScore < culvertScoresByCharacterID[v.CharacterID].ThisScore {
+		if v.MaxScore > 0 && v.MaxScore < culvertScoresByCharacterID[v.CharacterID].ThisScore {
 			// This is a new personal best
 			culvertScoresByCharacterID[v.CharacterID] = struct {
 				Name      string
