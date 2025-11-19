@@ -110,7 +110,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	for k := range culvertScoresByCharacterID {
 		characterIds = append(characterIds, Int(int64(k)))
 	}
-	whereClause := CharacterCulvertScores.CharacterID.IN(characterIds...).AND(CharacterCulvertScores.CulvertDate.LT(DateT(submittedDate)))
+	whereClause := CharacterCulvertScores.CharacterID.IN(characterIds...).AND(CharacterCulvertScores.CulvertDate.LT(DateT(submittedDate))).AND(CharacterCulvertScores.Score.GT(Int(0)))
 	if submittedDate.After(data.Date2mPatch) {
 		whereClause = whereClause.AND(CharacterCulvertScores.CulvertDate.GT_EQ(DateT(data.Date2mPatch)))
 	}
@@ -126,7 +126,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	}
 	hasNewPB := false
 	for _, v := range prevBests {
-		if v.MaxScore > 0 && v.MaxScore < culvertScoresByCharacterID[v.CharacterID].ThisScore {
+		if v.MaxScore < culvertScoresByCharacterID[v.CharacterID].ThisScore {
 			// This is a new personal best
 			culvertScoresByCharacterID[v.CharacterID] = struct {
 				Name      string
