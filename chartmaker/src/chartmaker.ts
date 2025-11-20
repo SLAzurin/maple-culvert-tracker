@@ -4,8 +4,13 @@ import Chart from "chart.js/auto"
 import ChartDataLabels from "chartjs-plugin-datalabels"
 import { fontFamily } from "./fontfamily"
 
+interface AdditionalChartOptions {
+  yAxisStartAt0?: boolean
+}
+
 export const chartmaker = (
   data: { label: string; score: number }[],
+  { yAxisStartAt0 }: AdditionalChartOptions,
 ): Buffer => {
   const width = data.length <= 8 ? 1000 : 125 * data.length
   const height = 600
@@ -55,6 +60,11 @@ export const chartmaker = (
           padding: 6,
         },
       },
+      scales: {
+        y: {
+          beginAtZero: yAxisStartAt0 ?? false,
+        },
+      }
     },
   })
   const b = chartJSNodeCanvas.toBuffer("image/png")
