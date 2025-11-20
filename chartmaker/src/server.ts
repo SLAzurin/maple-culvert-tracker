@@ -65,9 +65,17 @@ app.post("/chartmaker", (req, res) => {
     res.send('"Invalid input data format"')
     return
   }
+
+  // check http query for yAxisStartAt0
+  const yAxisStartAt0Query = req.query["y-axis-start-at-0"]
+  let yAxisStartAt0 = false
+  if (yAxisStartAt0Query === "true") {
+    yAxisStartAt0 = true
+  }
+
   res.statusCode = 200
   res.type("png")
-  res.send(chartmaker(req.body))
+  res.send(chartmaker(req.body, { yAxisStartAt0 }))
 })
 
 app.listen(port, () => {

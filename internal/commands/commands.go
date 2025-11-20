@@ -37,6 +37,12 @@ var Commands = []*discordgo.ApplicationCommand{
 				Name:        "weeks",
 				Description: "Number of weeks to display in the graph",
 			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "y-axis-start-at-0",
+				Description: "Start the Y axis at 0 for better visualization",
+			},
 		},
 	},
 	{
@@ -62,6 +68,12 @@ var Commands = []*discordgo.ApplicationCommand{
 				MaxValue:    52 * 5,
 				Name:        "weeks",
 				Description: "Number of weeks to display in the graph",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "y-axis-start-at-0",
+				Description: "Start the Y axis at 0 for better visualization",
 			},
 		},
 	},

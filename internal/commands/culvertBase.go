@@ -23,6 +23,8 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	charName := ""
 	date := ""
 	weeks := int64(8)
+	yAxisStartAt0 := false
+
 	options := i.ApplicationCommandData().Options
 	for _, v := range options {
 		if v.Name == "character-name" {
@@ -33,6 +35,9 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 		if v.Name == "weeks" {
 			weeks = v.IntValue()
+		}
+		if v.Name == "y-axis-start-at-0" {
+			yAxisStartAt0 = v.BoolValue()
 		}
 	}
 
@@ -187,7 +192,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Sample below
 	// jsonData := []byte(`[{"label":"2/26","score":0},{"label":"3/5","score":1233},{"label":"3/12","score":8000},{"label":"3/19","score":8100},{"label":"3/26","score":5600},{"label":"4/2","score":5500},{"label":"4/9","score":25000}]`)
-	r, err := http.Post("http://"+os.Getenv(data.EnvVarChartMakerHost)+"/chartmaker", "application/json", bytes.NewBuffer(jsonData))
+	r, err := http.Post("http://"+os.Getenv(data.EnvVarChartMakerHost)+"/chartmaker?y-axis-start-at-0="+strconv.FormatBool(yAxisStartAt0), "application/json", bytes.NewBuffer(jsonData))
 	if err != nil || r.StatusCode != http.StatusOK {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
