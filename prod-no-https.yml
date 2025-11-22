@@ -1,8 +1,11 @@
 # Apply this config to run with no TLS, without traefik
 services:
   traefik:
-    restart: unless-stopped
+    depends_on:
+      - web
+      - bot
     image: nginx:stable-alpine-slim
+    restart: unless-stopped
     volumes:
       - ./nginx/conf.d/:/etc/nginx/conf.d/
     ports: !override
