@@ -68,7 +68,6 @@ jobs:
           username: ${{ env.CR_OWNER }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          set -x
           docker buildx imagetools create \
             -t "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}:latest" \
             "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}:${{ github.sha }}"
