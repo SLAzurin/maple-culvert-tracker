@@ -30,7 +30,7 @@ jobs:
         uses: ./actions/validate-build-services
   publish:
     name: Publish Docker - ${{ matrix.service.name }} ${{ matrix.platform.manifest-name }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.platform.runner }}
     permissions:
       contents: read
       packages: write
