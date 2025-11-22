@@ -2,16 +2,12 @@
     {
         "name": "bot",
         "target": "final-with-server-assets",
-        "buildArgs": [
-            "APPNAME=main"
-        ]
+        "buildArgs": "APPNAME=main"
     },
     {
         "name": "web",
         "target": "culvert-web-final",
-        "buildArgs": [
-            "APPNAME=staticserve"
-        ]
+        "buildArgs": "APPNAME=staticserve"
     },
     {
         "name": "chartmaker",
@@ -21,22 +17,16 @@
     {
         "name": "periodicredis",
         "target": "final",
-        "buildArgs": [
-            "APPNAME=periodicredis"
-        ]
+        "buildArgs": "APPNAME=periodicredis"
     },
     {
         "name": "autofill_characters",
         "target": "final",
-        "buildArgs": [
-            "APPNAME=autofill_characters"
-        ]
+        "buildArgs": "APPNAME=autofill_characters"
     },
     {
         "name": "cron",
         "target": "cron",
-        "buildArgs": [
-            "APPNAME=auto_backup"
-        ]
+        "buildArgs": "APPNAME=auto_backup"
     }
 ]

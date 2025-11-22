@@ -5,5 +5,5 @@ export const buildServicesSchema = array(object({
     dockerfile: string().optional().default("Dockerfile.goapps"),
     context: string().optional().default("."),
     target: string(),
-    buildArgs: array(string()).optional().default([]),
+    buildArgs: string().optional().default(''),
 }));
