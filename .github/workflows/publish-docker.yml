@@ -1,4 +1,4 @@
-name: Publish Docker
+name: Release
 
 on:
   push:
@@ -8,68 +8,67 @@ concurrency:
   cancel-in-progress: true
   group: ${{ github.repository_id }}-publish-docker
 
+env:
+  CR_HOST: ghcr.io
+  CR_OWNER: slazurin
+  IMAGE_NAME_PREFIX: ghcr.io/slazurin/maple-culvert-tracker
+
 jobs:
-  publish:
+  validate-services:
+    name: Validate Services List
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      build-services: ${{ steps.set-services-list.outputs.build-services }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          sparse-checkout: |
+            workflow-build-services.json
+            actions/validate-build-services/dist
+            actions/validate-build-services/action.yml
+      - id: set-services-list
+        uses: ./actions/validate-build-services
+  publish-services:
+    uses: ./.github/workflows/build-service.yml
+    strategy:
+      matrix:
+        service:
+          ${{ fromJson(needs.validate-services.outputs.build-services) }}
     permissions:
       contents: read
       packages: write
-    name: Publish Docker
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [
-            bot,
-            web,
-            chartmaker,
-            periodicredis,
-            autofill_characters,
-            cron,
-          ] # Dont forget to make sure this array is identical to what is promoted to stable!
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
-      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
-      - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
-          cp .env.template .env
-          docker compose -f base.yml -f docker-compose-autofill_characters.yml build --pull "${{matrix.service}}"
-
-          docker image tag maple-culvert-tracker-${{matrix.service}} ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:${{github.sha}}
-          docker image tag maple-culvert-tracker-${{matrix.service}} ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:HEAD
-          docker image rm maple-culvert-tracker-${{matrix.service}}:latest
-      - run: |
-          docker push -a ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}
+    needs:
+      - validate-services
+    secrets: inherit
+    with:
+      service-name: ${{ matrix.service.name }}
+      service-dockerfile: ${{ matrix.service.dockerfile }}
+      service-context: ${{ matrix.service.context }}
+      service-target: ${{ matrix.service.target }}
+      service-build-args: ${{ matrix.service.buildArgs }}
   promote-stable:
-    if: github.event_name == 'push' && github.ref_name == 'master'
+    name: Promote Stable - ${{ matrix.service.name }}
     permissions:
       contents: read
       packages: write
     environment: promote-stable
     runs-on: ubuntu-latest
-    needs: publish
+    needs:
+      - publish-services
+      - validate-services
     strategy:
       matrix:
-        service: [
-            bot,
-            web,
-            chartmaker,
-            periodicredis,
-            autofill_characters,
-            cron,
-          ] # Dont forget to make sure this array is identical to the above!
+        service: ${{ fromJson(needs.validate-services.outputs.build-services) }}
     steps:
-      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
-      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
       - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          registry: ${{ env.CR_HOST }}
+          username: ${{ env.CR_OWNER }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          docker image pull ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:${{github.sha}}
-          docker image tag ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:${{github.sha}} ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:latest
-          docker push ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:latest
+          docker buildx imagetools create \
+            -t "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}:latest" \
+            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}:${{ github.sha }}"
+            
