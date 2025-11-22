@@ -8,26 +8,51 @@ concurrency:
   cancel-in-progress: true
   group: ${{ github.repository_id }}-publish-docker
 
+env:
+  CR_HOST: ghcr.io
+  CR_OWNER: azuridayo
+  IMAGE_NAME_PREFIX: ghcr.io/azuridayo/maple-culvert-tracker
+
 jobs:
+  validate-services:
+    name: Validate Services List
+    runs-on: ubuntu-latest
+    outputs:
+      build-services: ${{ steps.set-services-list.outputs.build-services }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          sparse-checkout: |
+            /workflow-build-services.json
+            /actions/validate-build-services/dist
+            /actions/validate-build-services/action.yml
+      - id: set-services-list
+        uses: ./actions/validate-build-services
   publish:
+    name: Publish Docker - ${{ matrix.service.name }} ${{ matrix.platform.manifest-name }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-    name: Publish Docker
-    runs-on: ubuntu-latest
+    needs:
+      - validate-services
     strategy:
       matrix:
-        service: [
-            bot,
-            web,
-            chartmaker,
-            periodicredis,
-            autofill_characters,
-            cron,
-          ] # Dont forget to make sure this array is identical to what is promoted to stable!
+        service:
+          ${{ fromJson(needs.validate-services.outputs.build-services) }}
+          # Dont forget to make sure this array is identical to what is promoted to stable!
+        platform:
+          - name: linux/amd64
+            runner: ubuntu-latest
+            manifest-name: x64
+          - name: linux/arm64
+            runner: ubuntu-24.04-arm
+            manifest-name: arm64
+          - name: linux/arm/v7
+            runner: ubuntu-24.04-arm
+            manifest-name: armv7
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
       - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
         with:
@@ -36,40 +61,40 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: |
           cp .env.template .env
-          docker compose -f base.yml -f docker-compose-autofill_characters.yml build --pull "${{matrix.service}}"
-
-          docker image tag maple-culvert-tracker-${{matrix.service}} ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:${{github.sha}}
-          docker image tag maple-culvert-tracker-${{matrix.service}} ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:HEAD
-          docker image rm maple-culvert-tracker-${{matrix.service}}:latest
-      - run: |
-          docker push -a ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          tags: ${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}
+          platforms: ${{ matrix.platform.name }}
+          outputs: type=image,push-by-digest=true,push=true
+      - name: Write image sha to output
+        id: write-image-sha
+        run: |
+          echo "${{ steps.build.outputs.digest }}"
+          echo "${{ matrix.service.name }}_${{ matrix.platform.manifest-name }}_sha=${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
   promote-stable:
+    name: Promote Stable - ${{ matrix.service.name }}
     if: github.event_name == 'push' && github.ref_name == 'master'
     permissions:
       contents: read
       packages: write
     environment: promote-stable
     runs-on: ubuntu-latest
-    needs: publish
+    needs:
+      - publish
+      - validate-services
     strategy:
       matrix:
-        service: [
-            bot,
-            web,
-            chartmaker,
-            periodicredis,
-            autofill_characters,
-            cron,
-          ] # Dont forget to make sure this array is identical to the above!
+        service: ${{ fromJson(needs.validate-services.outputs.build-services) }}
     steps:
-      - uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
-      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
       - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
+          registry: ${{ env.CR_HOST }}
+          username: ${{ env.CR_OWNER }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: |
-          docker image pull ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:${{github.sha}}
-          docker image tag ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:${{github.sha}} ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:latest
-          docker push ghcr.io/slazurin/maple-culvert-tracker/${{matrix.service}}:latest
+          docker buildx imagetools create -t "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}:latest" \
+            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}@${{ needs.publish.outputs[format('{0}_x64_sha', matrix.service.name)] }}" \
+            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}@${{ needs.publish.outputs[format('{0}_arm64_sha', matrix.service.name)] }}" \
+            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}@${{ needs.publish.outputs[format('{0}_armv7_sha', matrix.service.name)] }}"
