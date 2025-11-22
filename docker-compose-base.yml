@@ -78,10 +78,6 @@ services:
     command: ["-c", "/usr/sbin/crond -f -c /etc/cron"]
     volumes:
       - mapleculverttracker_valkey_data:/valkey_data
-  watchtower:
-    image: containrrr/watchtower
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
 volumes:
   mapleculverttracker_pg16_data:
   mapleculverttracker_valkey_data:
