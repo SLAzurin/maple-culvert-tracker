@@ -36,7 +36,7 @@ jobs:
       - id: set-services-list
         uses: ./actions/validate-build-services
   test-build:
-    name: Test build image - ${{ matrix.service.name }}
+    name: "Test build image: ${{ matrix.service.name }} - ${{ matrix.platform.manifest-name }}"
     needs:
       - validate-services-for-test-build
     permissions:
