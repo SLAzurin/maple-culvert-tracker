@@ -17,6 +17,8 @@ jobs:
   validate-services:
     name: Validate Services List
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       build-services: ${{ steps.set-services-list.outputs.build-services }}
     steps:
@@ -29,7 +31,7 @@ jobs:
       - id: set-services-list
         uses: ./actions/validate-build-services
   publish-services:
-    uses: ./.github/workflows/publish-service-pre-release.yml
+    uses: ./.github/workflows/build-service.yml
     strategy:
       matrix:
         service:

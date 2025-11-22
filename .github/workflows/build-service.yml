@@ -1,9 +1,14 @@
-name: Publish Docker image (generic)
+name: Build container image (generic)
 # Generic workflow to build and publish Docker images for arm64 and x64 platforms
 
 on:
   workflow_call:
     inputs:
+      publish:
+        description: 'Whether to publish the built image'
+        required: false
+        type: boolean
+        default: true
       service-name:
         description: 'Service name'
         required: true
@@ -67,12 +72,13 @@ jobs:
         with:
           tags: ${{ inputs.image-name-prefix }}/${{ inputs.service-name }}
           platforms: ${{ matrix.platform.name }}
-          outputs: type=image,push-by-digest=true,push=true
+          outputs: ${{ inputs.publish && 'type=image,push-by-digest=true,push=true' || 'type=image,push-by-digest=true,push=false' }}
           file: ${{ inputs.service-dockerfile }}
           context: ${{ inputs.service-context }}
           target: ${{ inputs.service-target }}
           build-args: ${{ inputs.service-build-args }}
       - name: Write image sha to output
+        if: ${{ inputs.publish }}
         id: write-image-sha
         run: |
           echo "${{ steps.build.outputs.digest }}"
@@ -81,6 +87,7 @@ jobs:
       x64_sha: ${{ steps.write-image-sha.outputs.x64_sha }}
       arm64_sha: ${{ steps.write-image-sha.outputs.arm64_sha }}
   publish:
+    if: ${{ inputs.publish }}
     name: Publish build - ${{ inputs.service-name }}
     permissions:
       contents: read
