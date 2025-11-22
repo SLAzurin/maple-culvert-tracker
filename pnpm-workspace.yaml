@@ -1,6 +1,7 @@
 packages:
   - chartmaker
   - culvert-web
+  - actions/validate-build-services
 
 onlyBuiltDependencies:
   - esbuild

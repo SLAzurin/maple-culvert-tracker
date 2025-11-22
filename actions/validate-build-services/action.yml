@@ -1,0 +1,12 @@
+name: Validate Build Services
+description: validates the build services json file which the publish workflow file depends on
+author: SLAzurin
+
+# Define your outputs here.
+outputs:
+  build-services:
+    description: The validated build services JSON data, sanitized and ready for toJSON usage.
+
+runs:
+  using: node24
+  main: dist/index.js

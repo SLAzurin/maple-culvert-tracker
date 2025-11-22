@@ -1,0 +1,10 @@
+{
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "workflow-build-services.json"
+            ],
+            "url": "./actions/validate-build-services/out/build-services.schema.json"
+        }
+    ]
+}

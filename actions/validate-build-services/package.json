@@ -1,0 +1,12 @@
+{
+    "name": "validate-build-services",
+    "private": true,
+    "scripts": {
+        "gen": "tsc && esbuild --bundle --platform=node --format=cjs --packages=external src/generate-json-schema.ts | node",
+        "build": "tsc && pnpm run gen && node validateBuildServicesBuilder.cjs"
+    },
+    "devDependencies": {
+        "@actions/core": "^1.11.1",
+        "zod": "^4.1.12"
+    }
+}

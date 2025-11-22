@@ -3,7 +3,6 @@ node_modules
 build/**
 dist/**
 .next/**
-.vscode/settings.json
 culvert-web2
 /*.sql
 /sqlfiles/dump*.sql
