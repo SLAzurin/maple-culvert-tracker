@@ -1,0 +1,101 @@
+name: Publish Docker image (generic)
+# Generic workflow to build and publish Docker images for arm64 and x64 platforms
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        description: 'Service name'
+        required: true
+        type: string
+      service-dockerfile:
+        description: 'Service Dockerfile'
+        required: true
+        type: string
+      service-context:
+        description: 'Service context'
+        required: true
+        type: string
+      service-target:
+        description: 'Service target'
+        required: true
+        type: string
+      service-build-args:
+        description: 'Service build args'
+        required: true
+        type: string
+      container-registry-host:
+        description: 'Container registry host'
+        default: 'ghcr.io'
+        type: string
+      container-registry-owner:
+        description: 'Container registry owner'
+        default: 'azuridayo'
+        type: string
+      image-name-prefix:
+        description: 'Image name prefix'
+        default: 'ghcr.io/azuridayo/maple-culvert-tracker'
+        type: string
+
+jobs:
+  publish-pre-release:
+    name: "Publish pre-release: ${{ inputs.service-name }} - ${{ matrix.platform.manifest-name }}"
+    runs-on: ${{ matrix.platform.runner }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        platform:
+          - name: linux/amd64
+            runner: ubuntu-latest
+            manifest-name: x64
+          - name: linux/arm64
+            runner: ubuntu-24.04-arm
+            manifest-name: arm64
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
+      - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          tags: ${{ inputs.image-name-prefix }}/${{ inputs.service-name }}
+          platforms: ${{ matrix.platform.name }}
+          outputs: type=image,push-by-digest=true,push=true
+          file: ${{ inputs.service-dockerfile }}
+          context: ${{ inputs.service-context }}
+          target: ${{ inputs.service-target }}
+          build-args: ${{ inputs.service-build-args }}
+      - name: Write image sha to output
+        id: write-image-sha
+        run: |
+          echo "${{ steps.build.outputs.digest }}"
+          echo "${{ matrix.platform.manifest-name }}_sha=${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
+    outputs:
+      x64_sha: ${{ steps.write-image-sha.outputs.x64_sha }}
+      arm64_sha: ${{ steps.write-image-sha.outputs.arm64_sha }}
+  publish:
+    name: Publish build - ${{ inputs.service-name }}
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    needs:
+      - publish-pre-release
+    steps:
+      - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
+        with:
+          registry: ${{ inputs.container-registry-host }}
+          username: ${{ inputs.container-registry-owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          docker buildx imagetools create -t "${{ inputs.image-name-prefix }}/${{ inputs.service-name }}:HEAD" \
+            -t "${{ inputs.image-name-prefix }}/${{ inputs.service-name }}:${{ github.sha }}" \
+            "${{ inputs.image-name-prefix }}/${{ inputs.service-name }}@${{ needs.publish-pre-release.outputs.x64_sha }}" \
+            "${{ inputs.image-name-prefix }}/${{ inputs.service-name }}@${{ needs.publish-pre-release.outputs.arm64_sha }}"

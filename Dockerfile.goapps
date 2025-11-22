@@ -17,7 +17,7 @@ RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=linux go build -o /src/main .
 
 # culvert-web specific
 FROM node:24-slim AS culvert-web-builder
-ENV NODE_ENV dev
+ENV NODE_ENV=dev
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY culvert-web/package.json culvert-web/

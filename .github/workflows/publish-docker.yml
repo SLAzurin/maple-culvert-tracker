@@ -1,4 +1,4 @@
-name: Publish Docker
+name: Release
 
 on:
   push:
@@ -28,62 +28,33 @@ jobs:
             actions/validate-build-services/action.yml
       - id: set-services-list
         uses: ./actions/validate-build-services
-  publish:
-    name: Publish Docker - ${{ matrix.service.name }} ${{ matrix.platform.manifest-name }}
-    runs-on: ${{ matrix.platform.runner }}
+  publish-services:
+    uses: ./.github/workflows/publish-service-pre-release.yml
+    strategy:
+      matrix:
+        service:
+          ${{ fromJson(needs.validate-services.outputs.build-services) }}
     permissions:
       contents: read
       packages: write
     needs:
       - validate-services
-    strategy:
-      matrix:
-        service:
-          ${{ fromJson(needs.validate-services.outputs.build-services) }}
-          # Dont forget to make sure this array is identical to what is promoted to stable!
-        platform:
-          - name: linux/amd64
-            runner: ubuntu-latest
-            manifest-name: x64
-          - name: linux/arm64
-            runner: ubuntu-24.04-arm
-            manifest-name: arm64
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
-      - uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
-          cp .env.template .env
-      - name: Build and push by digest
-        id: build
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
-        with:
-          tags: ${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}
-          platforms: ${{ matrix.platform.name }}
-          outputs: type=image,push-by-digest=true,push=true
-          file: ${{ matrix.service.dockerfile }}
-          context: ${{ matrix.service.context }}
-          target: ${{ matrix.service.target }}
-          build-args: ${{ matrix.service.buildArgs }}
-      - name: Write image sha to output
-        id: write-image-sha
-        run: |
-          echo "${{ steps.build.outputs.digest }}"
-          echo "${{ matrix.service.name }}_${{ matrix.platform.manifest-name }}_sha=${{ steps.build.outputs.digest }}" >> "$GITHUB_OUTPUT"
+    secrets: inherit
+    with:
+      service-name: ${{ matrix.service.name }}
+      service-dockerfile: ${{ matrix.service.dockerfile }}
+      service-context: ${{ matrix.service.context }}
+      service-target: ${{ matrix.service.target }}
+      service-build-args: ${{ matrix.service.build-args }}
   promote-stable:
     name: Promote Stable - ${{ matrix.service.name }}
-    if: github.event_name == 'push' && github.ref_name == 'master'
     permissions:
       contents: read
       packages: write
     environment: promote-stable
     runs-on: ubuntu-latest
     needs:
-      - publish
+      - publish-services
       - validate-services
     strategy:
       matrix:
@@ -96,6 +67,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - run: |
           set -x
-          docker buildx imagetools create -t "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}:latest" \
-            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}@${{ needs.publish.outputs[format('{0}_x64_sha', matrix.service.name)] }}" \
-            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}@${{ needs.publish.outputs[format('{0}_arm64_sha', matrix.service.name)] }}"
+          docker buildx imagetools create \
+            -t "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}:latest" \
+            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}:${{ github.sha }}"
+            
