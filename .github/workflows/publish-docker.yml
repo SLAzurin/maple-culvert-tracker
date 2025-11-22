@@ -23,9 +23,9 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           sparse-checkout: |
-            /workflow-build-services.json
-            /actions/validate-build-services/dist
-            /actions/validate-build-services/action.yml
+            workflow-build-services.json
+            actions/validate-build-services/dist
+            actions/validate-build-services/action.yml
       - id: set-services-list
         uses: ./actions/validate-build-services
   publish:
