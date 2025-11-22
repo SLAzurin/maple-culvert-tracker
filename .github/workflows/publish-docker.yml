@@ -47,7 +47,7 @@ jobs:
       service-dockerfile: ${{ matrix.service.dockerfile }}
       service-context: ${{ matrix.service.context }}
       service-target: ${{ matrix.service.target }}
-      service-build-args: ${{ matrix.service.build-args }}
+      service-build-args: ${{ matrix.service.buildArgs }}
   promote-stable:
     name: Promote Stable - ${{ matrix.service.name }}
     permissions:
