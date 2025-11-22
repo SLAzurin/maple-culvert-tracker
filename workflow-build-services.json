@@ -5,14 +5,14 @@
         "buildArgs": "APPNAME=main"
     },
     {
-        "name": "web",
-        "target": "culvert-web-final",
-        "buildArgs": "APPNAME=staticserve"
-    },
-    {
         "name": "chartmaker",
         "dockerfile": "chartmaker/Dockerfile",
         "target": "runner"
+    },
+    {
+        "name": "web",
+        "target": "culvert-web-final",
+        "buildArgs": "APPNAME=staticserve"
     },
     {
         "name": "periodicredis",
@@ -20,13 +20,13 @@
         "buildArgs": "APPNAME=periodicredis"
     },
     {
-        "name": "autofill_characters",
-        "target": "final",
-        "buildArgs": "APPNAME=autofill_characters"
-    },
-    {
         "name": "cron",
         "target": "cron",
         "buildArgs": "APPNAME=auto_backup"
+    },
+    {
+        "name": "autofill_characters",
+        "target": "final",
+        "buildArgs": "APPNAME=autofill_characters"
     }
 ]
