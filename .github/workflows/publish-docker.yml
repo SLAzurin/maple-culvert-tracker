@@ -68,6 +68,11 @@ jobs:
           tags: ${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}
           platforms: ${{ matrix.platform.name }}
           outputs: type=image,push-by-digest=true,push=true
+          file: ${{ matrix.service.dockerfile }}
+          context: ${{ matrix.service.context }}
+          target: ${{ matrix.service.target }}
+          build-args: ${{ matrix.service.buildArgs }}
+            
       - name: Write image sha to output
         id: write-image-sha
         run: |
