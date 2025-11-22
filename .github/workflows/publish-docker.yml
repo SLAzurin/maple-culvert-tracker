@@ -69,7 +69,6 @@ jobs:
           context: ${{ matrix.service.context }}
           target: ${{ matrix.service.target }}
           build-args: ${{ matrix.service.buildArgs }}
-            
       - name: Write image sha to output
         id: write-image-sha
         run: |
@@ -95,16 +94,8 @@ jobs:
           registry: ${{ env.CR_HOST }}
           username: ${{ env.CR_OWNER }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set outputs as env
-        id: service-sha
-        run: |
-          cat << EOF | tee outputs.json
-          ${{ toJson(needs.publish.outputs) }}
-          EOF
-          echo "arm64_sha=$(jq .[\"${{ matrix.service.name }}_arm64_sha\"] outputs.json)" >> "$GITHUB_OUTPUT"
-          echo "amd64_sha=$(jq .[\"${{ matrix.service.name }}_amd64_sha\"] outputs.json)" >> "$GITHUB_OUTPUT"
       - run: |
           set -x
           docker buildx imagetools create -t "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}:latest" \
-            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}@${{ steps.service-sha.outputs.arm64_sha }}" \
-            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}@${{ steps.service-sha.outputs.amd64_sha }}"
+            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}@${{ needs.publish.outputs[format('{0}_x64_sha', matrix.service.name)] }}" \
+            "${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }}@${{ needs.publish.outputs[format('{0}_arm64_sha', matrix.service.name)] }}"
