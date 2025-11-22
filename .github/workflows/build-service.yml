@@ -35,11 +35,11 @@ on:
         type: string
       container-registry-owner:
         description: 'Container registry owner'
-        default: 'azuridayo'
+        default: 'slazurin'
         type: string
       image-name-prefix:
         description: 'Image name prefix'
-        default: 'ghcr.io/azuridayo/maple-culvert-tracker'
+        default: 'ghcr.io/slazurin/maple-culvert-tracker'
         type: string
 
 jobs:

@@ -10,8 +10,8 @@ concurrency:
 
 env:
   CR_HOST: ghcr.io
-  CR_OWNER: azuridayo
-  IMAGE_NAME_PREFIX: ghcr.io/azuridayo/maple-culvert-tracker
+  CR_OWNER: slazurin
+  IMAGE_NAME_PREFIX: ghcr.io/slazurin/maple-culvert-tracker
 
 jobs:
   validate-services:
