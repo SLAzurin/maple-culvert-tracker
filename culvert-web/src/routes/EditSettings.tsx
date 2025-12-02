@@ -52,13 +52,13 @@ const EditSettings = () => {
 				setDisabled(false);
 				setStatus(
 					"Failed to save value: " +
-					editableValues[key].human_readable_description.name +
-					" Status: " +
-					res.status +
-					" " +
-					res.statusText +
-					"\n" +
-					json?.error,
+						editableValues[key].human_readable_description.name +
+						" Status: " +
+						res.status +
+						" " +
+						res.statusText +
+						"\n" +
+						json?.error,
 				);
 				setStatusColor("red");
 				return;
@@ -67,8 +67,8 @@ const EditSettings = () => {
 			setDisabled(false);
 			setStatus(
 				"Saved " +
-				editableValues[key].human_readable_description.name +
-				" successfully!",
+					editableValues[key].human_readable_description.name +
+					" successfully!",
 			);
 			setStatusColor("green");
 
@@ -83,9 +83,9 @@ const EditSettings = () => {
 			setDisabled(false);
 			setStatus(
 				"Failed to save value: " +
-				editableValues[key].human_readable_description.name +
-				"\n" +
-				e.toString(),
+					editableValues[key].human_readable_description.name +
+					"\n" +
+					e.toString(),
 			);
 			setStatusColor("red");
 		}
@@ -195,21 +195,15 @@ const EditSettings = () => {
 														});
 													}}
 												>
-													<option
-														key={"t_bool_" + key}
-														value={"true"}
-													>
+													<option key={"t_bool_" + key} value={"true"}>
 														yes
 													</option>
-													<option
-														key={"f_bool_" + key}
-														value={"false"}
-													>
+													<option key={"f_bool_" + key} value={"false"}>
 														no
 													</option>
 												</select>
 											</div>
-										)
+										);
 									}
 								case "discord_channel":
 									if (editableValues[key].multiple) {
