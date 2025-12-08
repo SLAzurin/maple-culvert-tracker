@@ -13,6 +13,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
@@ -186,7 +187,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	statistics, _ := cmdhelpers.GetCharacterStatistics(db.DB, lastSeenCharName, date, chartData)
+	statistics, _ := cmdhelpers.GetCharacterStatistics(db.DB, apiredis.RedisDB, lastSeenCharName, date, chartData)
 	// Code below handles statistics nil value
 	// Error here does not break execution
 

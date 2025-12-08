@@ -13,6 +13,7 @@ type editableType string
 const (
 	EditableTypeString         editableType = "string"
 	EditableTypeUInt           editableType = "uint"
+	EditableTypeFloat64        editableType = "float64"
 	EditableTypeDiscordRole    editableType = "discord_role"
 	EditableTypeDiscordChannel editableType = "discord_channel"
 	EditableTypeSelection      editableType = "selection"

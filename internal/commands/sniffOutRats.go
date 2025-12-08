@@ -52,7 +52,7 @@ func sniffOutRats(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	foundYouYoureFucked, err := helpers.GetStinkyRats(db.DB, *characters, date, weeks, threshold, typeshit)
+	foundYouYoureFucked, err := helpers.GetStinkyRats(db.DB, apiredis.RedisDB, *characters, date, weeks, threshold, typeshit)
 	if err != nil {
 		content := "Error finding rats, see server logs"
 		log.Println("sniffOutRats.go", err)

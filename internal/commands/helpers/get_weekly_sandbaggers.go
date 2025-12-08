@@ -8,6 +8,7 @@ import (
 
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
@@ -51,7 +52,7 @@ func GetWeeklySandbaggers(characters []string, rawDate string, weeks int, thresh
 		slices.Reverse(chartData)
 
 		var charaStats *data.CharacterStatistics
-		charaStats, err = GetCharacterStatistics(db.DB, v, rawDate, chartData)
+		charaStats, err = GetCharacterStatistics(db.DB, apiredis.RedisDB, v, rawDate, chartData)
 		if err != nil {
 			return
 		}

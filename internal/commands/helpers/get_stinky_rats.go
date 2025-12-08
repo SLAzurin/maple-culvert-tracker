@@ -8,11 +8,12 @@ import (
 
 	"github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/model"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	"github.com/valkey-io/valkey-go"
 )
 
 // I was overcaffeinated when writing this
 
-func GetStinkyRats(db *sql.DB, characters []model.Characters, date string, weeks int, threshold float64, typeshit string) (foundYouYoureFucked []struct {
+func GetStinkyRats(db *sql.DB, vk *valkey.Client, characters []model.Characters, date string, weeks int, threshold float64, typeshit string) (foundYouYoureFucked []struct {
 	SixSeven string
 	LWeeks   int
 	WWeeks   int
@@ -78,7 +79,7 @@ func GetStinkyRats(db *sql.DB, characters []model.Characters, date string, weeks
 
 			if lastKnownGoodScore <= 10 {
 				lastKnownGoodScore = score
-				if sniffOutRatsScoreIsSandbag(typeshit, lastKnownGoodScore, score) {
+				if sniffOutRatsScoreIsSandbag(vk, typeshit, lastKnownGoodScore, score) {
 					scoreAtFloor = true
 				}
 			}
@@ -97,7 +98,7 @@ func GetStinkyRats(db *sql.DB, characters []model.Characters, date string, weeks
 				}
 			}
 
-			if sniffOutRatsScoreIsSandbag(typeshit, lastKnownGoodScore, score) {
+			if sniffOutRatsScoreIsSandbag(vk, typeshit, lastKnownGoodScore, score) {
 				sandbaggedScores++
 				if !scoreAtFloor {
 					scoreAtFloor = true
@@ -136,9 +137,9 @@ func GetStinkyRats(db *sql.DB, characters []model.Characters, date string, weeks
 	return
 }
 
-func sniffOutRatsScoreIsSandbag(typeshit string, pbScore int64, score int64) bool {
+func sniffOutRatsScoreIsSandbag(vk *valkey.Client, typeshit string, pbScore int64, score int64) bool {
 	if typeshit == "zero" {
 		return score == int64(0)
 	}
-	return score < GetSandbagThreshold(pbScore)
+	return score < GetSandbagThresholdScore(vk, pbScore)
 }

@@ -9,12 +9,13 @@ import (
 
 	cmdhelpers "github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	"github.com/valkey-io/valkey-go"
 
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 )
 
-func ExportCharactersData(db *sql.DB, weeks int, asOf time.Time) ([]struct {
+func ExportCharactersData(db *sql.DB, vk *valkey.Client, weeks int, asOf time.Time) ([]struct {
 	Name   string
 	Scores []struct {
 		Date  string
@@ -129,7 +130,7 @@ func ExportCharactersData(db *sql.DB, weeks int, asOf time.Time) ([]struct {
 				})
 			}
 		}
-		stats, err := cmdhelpers.GetCharacterStatistics(db, name, asOf.Format("2006-01-02"), mdata.Scores)
+		stats, err := cmdhelpers.GetCharacterStatistics(db, vk, name, asOf.Format("2006-01-02"), mdata.Scores)
 		if err != nil {
 			panic(err)
 		}
