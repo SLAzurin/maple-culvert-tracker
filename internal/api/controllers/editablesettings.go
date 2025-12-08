@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -178,6 +179,23 @@ func (EditableSettingsController) PatchEditable(s *discordgo.Session) func(c *gi
 					c.JSON(http.StatusOK, gin.H{})
 					return
 				}
+			case apiredis.EditableTypeFloat64:
+				_, err = strconv.ParseFloat(body.Value, 10)
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+						"error": "invalid floating point number",
+					})
+					return
+				}
+				err = rdbKey.Set(apiredis.RedisDB, body.Value)
+				if err != nil {
+					c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+						"error": "failed to set key, internal valkey connection error",
+					})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{})
+				return
 			case apiredis.EditableTypeString:
 				err = rdbKey.Set(apiredis.RedisDB, body.Value)
 				if err != nil {
@@ -282,6 +300,12 @@ func (EditableSettingsController) GETEditable(s *discordgo.Session) func(c *gin.
 				Value:                    apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS.GetWithDefault(apiredis.RedisDB, ""),
 				EditableType:             string(apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS.EditableType),
 				Multiple:                 apiredis.OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS.Multiple,
+			},
+			apiredis.OPTIONAL_CONF_SANDBAG_THRESHOLD.ToString(): EditableSetting{
+				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.OPTIONAL_CONF_SANDBAG_THRESHOLD),
+				Value:                    apiredis.OPTIONAL_CONF_SANDBAG_THRESHOLD.GetWithDefault(apiredis.RedisDB, ""),
+				EditableType:             string(apiredis.OPTIONAL_CONF_SANDBAG_THRESHOLD.EditableType),
+				Multiple:                 apiredis.OPTIONAL_CONF_SANDBAG_THRESHOLD.Multiple,
 			},
 		})
 	}

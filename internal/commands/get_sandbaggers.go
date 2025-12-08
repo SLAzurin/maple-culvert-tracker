@@ -158,7 +158,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 					}
 				}
 			}
-			threshold := cmdhelpers.GetSandbagThreshold(lastKnownGoodScore)
+			threshold := cmdhelpers.GetSandbagThresholdScore(apiredis.RedisDB, lastKnownGoodScore)
 			if int64(v.Score) <= threshold {
 				sandbaggedRuns.SandbaggedRunsCount += 1
 				sandbaggedRuns.SandbaggedRuns = append(sandbaggedRuns.SandbaggedRuns, struct {

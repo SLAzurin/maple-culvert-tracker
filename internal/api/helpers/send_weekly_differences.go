@@ -169,7 +169,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	// if it is not "true", always treat false, so ignore error
 
 	if shouldShowWeeklySandbaggers {
-		sandbaggers, err := cmdhelpers.GetWeeklySandbaggers(characters, submittedDate.Format("2006-01-02"), medianWeeks, cmdhelpers.SandbagThreshold)
+		sandbaggers, err := cmdhelpers.GetWeeklySandbaggers(characters, submittedDate.Format("2006-01-02"), medianWeeks, float64(cmdhelpers.GetSandbagThresholdMultiplier(apiredis.RedisDB)))
 		if err != nil {
 			log.Println("send_weekly_differences:GetWeeklySandbaggers", err)
 			return
@@ -197,7 +197,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	}{}
 	calculateRatWeeks := 12
 	if shouldShowWeeklyRats {
-		rats, err = cmdhelpers.GetStinkyRats(db, charactersModel, submittedDate.Format("2006-01-02"), calculateRatWeeks, float64(4)/float64(12), "zero")
+		rats, err = cmdhelpers.GetStinkyRats(db, rdb, charactersModel, submittedDate.Format("2006-01-02"), calculateRatWeeks, float64(4)/float64(12), "zero")
 	}
 
 	s.ChannelMessageSendComplex(adminsTextChannel, &discordgo.MessageSend{

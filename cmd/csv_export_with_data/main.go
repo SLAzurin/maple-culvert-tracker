@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 	apihelpers "github.com/slazurin/maple-culvert-tracker/internal/api/helpers"
+	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
@@ -21,7 +22,7 @@ func main() {
 	/*
 		This func call is broken, it does not handle the case when there is 1 or 2 of the 3 weeks without data
 	*/
-	data, err := apihelpers.ExportCharactersData(db.DB, 3, date)
+	data, err := apihelpers.ExportCharactersData(db.DB, apiredis.RedisDB, 3, date)
 	if err != nil {
 		panic(err)
 	}

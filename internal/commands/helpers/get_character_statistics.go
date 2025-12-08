@@ -12,9 +12,10 @@ import (
 	. "github.com/go-jet/jet/v2/postgres"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	"github.com/valkey-io/valkey-go"
 )
 
-func GetCharacterStatistics(db *sql.DB, characterName string, date string, chartData []data.ChartMakerPoints) (*data.CharacterStatistics, error) {
+func GetCharacterStatistics(db *sql.DB, vk *valkey.Client, characterName string, date string, chartData []data.ChartMakerPoints) (*data.CharacterStatistics, error) {
 	r := data.CharacterStatistics{}
 	dateRaw, err := time.Parse("2006-01-02", date)
 	if err != nil {
@@ -88,7 +89,7 @@ func GetCharacterStatistics(db *sql.DB, characterName string, date string, chart
 				continue
 			}
 		}
-		threshold := GetSandbagThreshold(lastKnownGoodScore)
+		threshold := GetSandbagThresholdScore(vk, lastKnownGoodScore)
 		if int64(v.Score) < threshold {
 			validCount -= 1
 		}

@@ -52,13 +52,13 @@ const EditSettings = () => {
 				setDisabled(false);
 				setStatus(
 					"Failed to save value: " +
-						editableValues[key].human_readable_description.name +
-						" Status: " +
-						res.status +
-						" " +
-						res.statusText +
-						"\n" +
-						json?.error,
+					editableValues[key].human_readable_description.name +
+					" Status: " +
+					res.status +
+					" " +
+					res.statusText +
+					"\n" +
+					json?.error,
 				);
 				setStatusColor("red");
 				return;
@@ -67,8 +67,8 @@ const EditSettings = () => {
 			setDisabled(false);
 			setStatus(
 				"Saved " +
-					editableValues[key].human_readable_description.name +
-					" successfully!",
+				editableValues[key].human_readable_description.name +
+				" successfully!",
 			);
 			setStatusColor("green");
 
@@ -83,9 +83,9 @@ const EditSettings = () => {
 			setDisabled(false);
 			setStatus(
 				"Failed to save value: " +
-					editableValues[key].human_readable_description.name +
-					"\n" +
-					e.toString(),
+				editableValues[key].human_readable_description.name +
+				"\n" +
+				e.toString(),
 			);
 			setStatusColor("red");
 		}
@@ -137,6 +137,30 @@ const EditSettings = () => {
 						</p>
 						{(() => {
 							switch (editableValues[key].editable_type) {
+								case "float64":
+									return (
+										<div>
+											<span style={{ color: "red" }}>New value: </span>
+											<input
+												type="number"
+												step={".01"}
+												name={key}
+												onChange={(e) => {
+													let newval = 0.0;
+													try {
+														newval = Number(e.target.value)
+													} catch (e) {
+														return
+													}
+													setNewValuesMap({
+														...newValuesMap,
+														[key]: String(newval),
+													});
+												}}
+												value={Number(newValuesMap[key]) ?? Number(editableValues[key].value)}
+											/>
+										</div>
+									);
 								case "string":
 									return (
 										<div>
