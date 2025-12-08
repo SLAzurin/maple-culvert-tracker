@@ -146,7 +146,7 @@ const EditSettings = () => {
 												step={".01"}
 												name={key}
 												onChange={(e) => {
-													let newval = 0.0;
+													let newval = Number(newValuesMap[key] ?? editableValues[key].value);
 													try {
 														newval = Number(e.target.value)
 													} catch (e) {
@@ -157,7 +157,7 @@ const EditSettings = () => {
 														[key]: String(newval),
 													});
 												}}
-												value={Number(newValuesMap[key]) ?? Number(editableValues[key].value)}
+												value={Number(newValuesMap[key] ?? editableValues[key].value)}
 											/>
 										</div>
 									);
