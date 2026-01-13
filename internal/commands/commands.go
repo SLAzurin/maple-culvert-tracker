@@ -304,4 +304,24 @@ var Commands = []*discordgo.ApplicationCommand{
 			},
 		},
 	},
+	{
+		Name:        "participation",
+		Description: "Show participation for members, %, full weeks",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionInteger,
+				MinValue:    &exportCsvMinWeeks,
+				MaxValue:    52,
+				Name:        "weeks",
+				Description: "Number of weeks to export",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "Date in YYYY-MM-DD format to export historical data",
+			},
+		},
+	},
 }
