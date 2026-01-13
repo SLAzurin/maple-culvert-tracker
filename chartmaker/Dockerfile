@@ -4,7 +4,7 @@ RUN apk add --no-cache 'libcrypto3>=3.3.2-r1'
 FROM base AS skia-deps
 ARG TARGETARCH
 RUN apk add --no-cache wget
-RUN if [[ "${TARGETARCH}" = 'arm64' ]]; then wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.78/skia.linux-arm64-musl.node && sha256sum skia.linux-arm64-musl.node | cut -d' ' -f1 | grep f22687e529e34c2b641f8e1fc8d61d756d4cf0ba1c5e0a3d67acb9bafee77c3e >/dev/null; elif [[ "${TARGETARCH}" = 'amd64' ]]; then wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.78/skia.linux-x64-musl.node && sha256sum skia.linux-x64-musl.node | cut -d' ' -f1 | grep 3eb5527e72e4cbed7fecb70b220321a3ae83924c8e91bd9306c2d71a4dfa68da >/dev/null; else false; fi
+RUN if [[ "${TARGETARCH}" = 'arm64' ]]; then wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.88/skia.linux-arm64-musl.node && sha256sum skia.linux-arm64-musl.node | cut -d' ' -f1 | grep 4c38b291396174db3119b603f9afc9e509409932c204fbf149ae898aed5d82bf >/dev/null; elif [[ "${TARGETARCH}" = 'amd64' ]]; then wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.88/skia.linux-x64-musl.node && sha256sum skia.linux-x64-musl.node | cut -d' ' -f1 | grep 77d3e61915484011331e3f1c50322f4fae54040911072393e26e159b71130595 >/dev/null; else false; fi
 
 FROM base AS builder
 WORKDIR /app

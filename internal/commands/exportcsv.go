@@ -145,7 +145,11 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		d := v.Format("2006-01-02")
 		row := []string{d}
 		for _, c := range *chars {
-			row = append(row, strconv.Itoa(m[d][c.MapleCharacterName]))
+			score := -1
+			if s, ok := m[d][c.MapleCharacterName]; ok {
+				score = s
+			}
+			row = append(row, strconv.Itoa(score))
 		}
 		culvertData = append(culvertData, row)
 	}
