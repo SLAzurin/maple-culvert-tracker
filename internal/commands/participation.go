@@ -46,18 +46,18 @@ func participation(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	// Validate date format
 	if date != "" {
-		rawDate, err = time.Parse(time.DateOnly, date) // YYYY-MM-DD
-		if err != nil {
+		newDate, err := time.Parse(time.DateOnly, date) // YYYY-MM-DD
+		if err != nil || newDate.After(rawDate) {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
-					Content: "Invalid date format, should be YYYY-MM-DD",
+					Content: "Invalid date format, should be YYYY-MM-DD or past culvert date",
 					Flags:   discordgo.MessageFlagsEphemeral,
 				},
 			})
 			return
 		}
-		rawDate = helpers.GetCulvertResetDate(rawDate)
+		rawDate = helpers.GetCulvertResetDate(newDate)
 	}
 
 	allDates := []Expression{}
@@ -186,6 +186,7 @@ func participation(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
+			Content: "Participation for " + strconv.Itoa(int(weeks)) + " weeks on " + rawDate.Format(time.DateOnly),
 			Files: []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(cmdhelpers.FormatNthColumnList(columnCount, participationList, table.Row{"Name", "Weeks", "%"}, func(data struct {
 				Name       string
 				TotalWeeks int
