@@ -59,6 +59,7 @@ func participation(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 		rawDate = helpers.GetCulvertResetDate(newDate)
 	}
+	date = rawDate.Format(time.DateOnly)
 
 	allDates := []Expression{}
 	allDatesRaw := []time.Time{} // newer to older
@@ -186,7 +187,7 @@ func participation(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "Participation for " + strconv.Itoa(int(weeks)) + " weeks on " + rawDate.Format(time.DateOnly),
+			Content: "Participation for " + strconv.Itoa(int(weeks)) + " weeks on " + date,
 			Files: []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(cmdhelpers.FormatNthColumnList(columnCount, participationList, table.Row{"Name", "Weeks", "%"}, func(data struct {
 				Name       string
 				TotalWeeks int
