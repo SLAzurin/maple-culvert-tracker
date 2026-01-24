@@ -1,4 +1,3 @@
-import express from "express"
 import { chartmaker } from "./chartmaker"
 import { chartmakerMultiple } from "./chartmaker-multiple"
 import ChartDataLabels from "chartjs-plugin-datalabels"
@@ -18,66 +17,73 @@ Chart.register(ChartDataLabels, {
 
 Chart.defaults.font.family = fontFamily
 
-const app = express()
-const port = process.env.PORT || 3000
-
-app.use(express.json())
-
-app.get("/chartmaker/ping", (req, res) => {
-  res.statusCode = 200
-  res.type("json")
-  res.send('"Alive!"')
+const server = Bun.serve({
+  routes: {
+    "/chartmaker/ping": Response.json("Alive!"),
+    "/chartmaker-multiple": {
+      POST: async req => {
+        let body: any
+        try {
+          body = await req.json()
+        } catch (e) {}
+        if (
+          typeof body !== "object" ||
+          !Array.isArray(body.labels) ||
+          !body.labels.every((label: string) => typeof label === "string") ||
+          !Array.isArray(body.dataPlots) ||
+          !body.dataPlots.every(
+            (plot: { characterName: string; scores: number[] }) =>
+              typeof plot.characterName === "string" &&
+              Array.isArray(plot.scores) &&
+              plot.scores.every(score => typeof score === "number") &&
+              body.labels.length === plot.scores.length,
+          )
+        ) {
+          return Response.json("Invalid input data format", {
+            status: 400,
+          })
+        }
+        return new Response(chartmakerMultiple(body) as any, {
+          headers: {
+            "Content-Type": "image/png",
+          },
+          status: 200,
+        })
+      },
+    },
+    "/chartmaker": {
+      POST: async req => {
+        let body: any
+        try {
+          body = await req.json()
+        } catch (e) {}
+        if (
+          !Array.isArray(body) ||
+          !body.every(
+            row =>
+              typeof row.label === "string" && typeof row.score === "number",
+          )
+        ) {
+          return Response.json("Invalid input data format", {
+            status: 400,
+          })
+        }
+        // check http query for yAxisStartAt0
+        const url = new URL(req.url)
+        const yAxisStartAt0Query = url.searchParams.get("y-axis-start-at-0")
+        let yAxisStartAt0 = false
+        if (yAxisStartAt0Query === "true") {
+          yAxisStartAt0 = true
+        }
+        return new Response(chartmaker(body, { yAxisStartAt0 }) as any, {
+          headers: {
+            "Content-Type": "image/png",
+          },
+          status: 200,
+        })
+      },
+    },
+  },
 })
 
-app.post("/chartmaker-multiple", (req, res) => {
-  if (
-    typeof req.body !== "object" ||
-    !Array.isArray(req.body.labels) ||
-    !req.body.labels.every((label: string) => typeof label === "string") ||
-    !Array.isArray(req.body.dataPlots) ||
-    !req.body.dataPlots.every(
-      (plot: { characterName: string; scores: number[] }) =>
-        typeof plot.characterName === "string" &&
-        Array.isArray(plot.scores) &&
-        plot.scores.every(score => typeof score === "number") &&
-        req.body.labels.length === plot.scores.length,
-    )
-  ) {
-    res.statusCode = 400
-    res.type("json")
-    res.send('"Invalid input data format"')
-    return
-  }
-  res.statusCode = 200
-  res.type("png")
-  res.send(chartmakerMultiple(req.body))
-})
-
-app.post("/chartmaker", (req, res) => {
-  if (
-    !Array.isArray(req.body) ||
-    !req.body.every(
-      row => typeof row.label === "string" && typeof row.score === "number",
-    )
-  ) {
-    res.statusCode = 400
-    res.type("json")
-    res.send('"Invalid input data format"')
-    return
-  }
-
-  // check http query for yAxisStartAt0
-  const yAxisStartAt0Query = req.query["y-axis-start-at-0"]
-  let yAxisStartAt0 = false
-  if (yAxisStartAt0Query === "true") {
-    yAxisStartAt0 = true
-  }
-
-  res.statusCode = 200
-  res.type("png")
-  res.send(chartmaker(req.body, { yAxisStartAt0 }))
-})
-
-app.listen(port, () => {
-  console.log(`Chartmaker server listening on port ${port}`)
-})
+console.log(`Chartmaker server running at ${server.url}`)
