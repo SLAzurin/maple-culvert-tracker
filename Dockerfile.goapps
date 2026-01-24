@@ -1,5 +1,7 @@
 # syntax=docker/dockerfile:1
-FROM golang:1.25.4-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.25.4-alpine AS build
+ARG TARGETOS
+ARG TARGETARCH
 RUN apk --no-cache add tzdata
 
 WORKDIR /src/
@@ -13,10 +15,10 @@ COPY .gen /src/.gen
 
 ARG APPNAME=main
 COPY cmd/${APPNAME} /src/cmd/${APPNAME}
-RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=linux go build -o /src/main .
+RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /src/main .
 
 # culvert-web specific
-FROM node:24-slim AS culvert-web-builder
+FROM --platform=$BUILDPLATFORM node:24-slim AS culvert-web-builder
 ENV NODE_ENV=dev
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
