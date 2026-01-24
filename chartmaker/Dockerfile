@@ -1,49 +1,28 @@
-FROM node:24-alpine AS base
-RUN apk add --no-cache 'libcrypto3>=3.3.2-r1'
-
-FROM base AS skia-deps
-ARG TARGETARCH
-RUN apk add --no-cache wget
-RUN if [[ "${TARGETARCH}" = 'arm64' ]]; then wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.88/skia.linux-arm64-musl.node && sha256sum skia.linux-arm64-musl.node | cut -d' ' -f1 | grep 4c38b291396174db3119b603f9afc9e509409932c204fbf149ae898aed5d82bf >/dev/null; elif [[ "${TARGETARCH}" = 'amd64' ]]; then wget https://github.com/Brooooooklyn/canvas/releases/download/v0.1.88/skia.linux-x64-musl.node && sha256sum skia.linux-x64-musl.node | cut -d' ' -f1 | grep 77d3e61915484011331e3f1c50322f4fae54040911072393e26e159b71130595 >/dev/null; else false; fi
+FROM oven/bun:1-alpine AS base
 
 FROM base AS builder
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json ./
-COPY chartmaker/tsconfig.json chartmaker/package.json chartmaker/chartmakerBuilder.cjs chartmaker/
+COPY chartmaker/tsconfig.json chartmaker/package.json chartmaker/
 COPY chartmaker/src chartmaker/src/
-RUN corepack enable && \
-    corepack prepare --activate && \
-    pnpm i && \
+COPY culvert-web/package.json culvert-web/
+RUN bun install && \
     cd chartmaker && \
-    pnpm run build && \
-    rm -rf /app/{package.json,pnpm-lock.yaml,pnpm-workspace.yaml,tsconfig.json} /app/chartmaker/{tsconfig.json,package.json,chartmakerBuilder.cjs,node_modules,src} $(pnpm store path)
+    bun run build && \
+    rm -rf /app/{package.json,pnpm-lock.yaml,pnpm-workspace.yaml,tsconfig.json} /app/chartmaker/{tsconfig.json,package.json,node_modules,src}
 
-FROM base AS prod-deps
-WORKDIR /app/chartmaker
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml /app/
-COPY chartmaker/package.json /app/chartmaker/
-RUN cd /app && \
-    corepack enable && \
-    corepack prepare --activate && \
-    pnpm i -P && \
-    cp -rL ./chartmaker/node_modules ./chartmaker/node_modules_prod && \
-    rm -rf /app/{package.json,pnpm-lock.yaml,pnpm-workspace.yaml} /app/chartmaker/{package.json,node_modules} $(pnpm store path)
-
-
-FROM base AS runner
+FROM oven/bun:1-alpine AS runner
 RUN apk add --no-cache font-roboto
 WORKDIR /chartmaker/
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nodeuser
+RUN addgroup --system --gid 1001 ovenbun
+RUN adduser --system --uid 1001 bunuser
 
-COPY --from=builder /app/chartmaker/dist ./dist/
-COPY --from=skia-deps /skia.linux-*-musl.node ./node_modules/@napi-rs/canvas/
-COPY --from=prod-deps /app/chartmaker/node_modules_prod ./node_modules/
-USER nodeuser
+COPY --from=builder /app/chartmaker/dist/chartmaker ./chartmaker
+USER bunuser
 
 EXPOSE 3000
 
 ENV PORT="3000"
 
-CMD ["node", "dist/server.js"]
+CMD ["./chartmaker"]

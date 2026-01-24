@@ -2,8 +2,8 @@
     "name": "validate-build-services",
     "private": true,
     "scripts": {
-        "gen": "tsc && esbuild --bundle --platform=node --format=cjs --packages=external src/generate-json-schema.ts | node",
-        "build": "tsc && pnpm run gen && node validateBuildServicesBuilder.cjs"
+        "gen": "tsc && bun run src/generate-json-schema.ts",
+        "build": "tsc && pnpm run gen"
     },
     "devDependencies": {
         "@actions/core": "^1.11.1",
