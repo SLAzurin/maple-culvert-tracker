@@ -1,5 +1,5 @@
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { RootState } from "../../app/store";
+import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { type RootState } from "../../app/store";
 import updateCulvertScores from "../../helpers/updateCulvertScores";
 
 type character_id = number;

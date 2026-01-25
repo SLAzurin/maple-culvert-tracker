@@ -1,4 +1,4 @@
-interface GuildMemberCharacter {
+export interface GuildMemberCharacter {
 	[key: string]: {
 		// key: character name
 		discord_user_id: string;
@@ -6,5 +6,3 @@ interface GuildMemberCharacter {
 		currentWeek?: number;
 	};
 }
-
-export default GuildMemberCharacter;

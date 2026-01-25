@@ -26,6 +26,7 @@ export const getHumanValue = (editableValues: any, key: string) => {
 							channelData.type === 0,
 					)?.name || editableValues[key].value
 				);
+			break;
 		case "discord_role":
 			if (editableValues[key].multiple) {
 				const rs = editableValues[key].value.split(",");

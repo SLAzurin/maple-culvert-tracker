@@ -40,7 +40,7 @@ import { selectMembersByID } from "./features/members/membersSlice";
 import renameCharacter from "./helpers/renameCharacter";
 import { useNavigate } from "react-router-dom";
 import linkDiscordMaple from "./helpers/linkDiscordMaple";
-import GuildMember from "./types/GuildMember";
+import { type GuildMember } from "./types/GuildMember";
 interface ImportedData {
 	[key: string]: number;
 }

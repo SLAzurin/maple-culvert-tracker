@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-import { RootState } from "../../app/store";
-import MCTClaims from "../../types/MCTClaims";
+import { type RootState } from "../../app/store";
+import { type MCTClaims } from "../../types/MCTClaims";
 import validateJWT from "../../helpers/validateJWT";
 
 export interface LoginState {

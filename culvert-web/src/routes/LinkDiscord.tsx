@@ -9,7 +9,7 @@ import { selectMembers, setMembers } from "../features/members/membersSlice";
 import { selectToken } from "../features/login/loginSlice";
 import linkDiscordMaple from "../helpers/linkDiscordMaple";
 import { store } from "../app/store";
-import GuildMember from "../types/GuildMember";
+import { type GuildMember } from "../types/GuildMember";
 
 const LinkDiscord = () => {
 	const navigate = useNavigate();

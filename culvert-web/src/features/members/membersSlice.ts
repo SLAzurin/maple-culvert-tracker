@@ -1,6 +1,6 @@
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import GuildMember from "../../types/GuildMember";
-import { RootState } from "../../app/store";
+import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { type GuildMember } from "../../types/GuildMember";
+import { type RootState } from "../../app/store";
 
 interface MembersState {
 	members: GuildMember[];

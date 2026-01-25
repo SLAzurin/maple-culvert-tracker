@@ -1,4 +1,4 @@
-import FetchResult from "../types/FetchResult";
+import { type FetchResult } from "../types/FetchResult";
 
 const linkDiscordMaple = async (
 	auth: string,

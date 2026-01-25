@@ -1,4 +1,4 @@
-import GuildMember from "../types/GuildMember";
+import { type GuildMember } from "../types/GuildMember";
 
 const fetchMembers = async (auth: string): Promise<GuildMember[] | number> => {
 	try {

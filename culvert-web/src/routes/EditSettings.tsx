@@ -233,6 +233,7 @@ const EditSettings = () => {
 											</div>
 										);
 									}
+									break;
 								case "discord_channel":
 									if (editableValues[key].multiple) {
 										// Not implemented cuz it is not yet possible
@@ -273,6 +274,7 @@ const EditSettings = () => {
 											</div>
 										);
 									}
+									break;
 								case "discord_role":
 									if (editableValues[key].multiple) {
 										return (
