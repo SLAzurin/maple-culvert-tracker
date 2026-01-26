@@ -177,7 +177,9 @@ export const charactersSlice = createSlice({
 				week: state.selectedWeek !== null ? state.selectedWeek : "",
 			};
 
-			for (const [charID, { current }] of Object.entries(state.characterScores)) {
+			for (const [charID, { current }] of Object.entries(
+				state.characterScores,
+			)) {
 				if (
 					typeof state.characterScoresOriginal[Number(charID)] ===
 						"undefined" ||
