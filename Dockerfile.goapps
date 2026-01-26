@@ -50,9 +50,11 @@ COPY --from=culvert-web-builder /app/culvert-web/build /www/
 ENTRYPOINT [ "/main" ]
 
 FROM build AS cron-specific-build
+ARG TARGETOS
+ARG TARGETARCH
 # main arg already built auto_backup
 COPY cmd/culvert_score_update_reminder /src/cmd/culvert_score_update_reminder
-RUN cd /src/cmd/culvert_score_update_reminder && CGO_ENABLED=0 GOOS=linux go build -o /src/culvert_score_update_reminder .
+RUN cd /src/cmd/culvert_score_update_reminder && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /src/culvert_score_update_reminder .
 
 FROM postgres:16-alpine AS cron
 COPY --from=build /src/main /usr/local/bin/auto_backup
