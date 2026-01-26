@@ -7,6 +7,7 @@ COPY package.json bun.lock bunfig.toml tsconfig.json ./
 COPY chartmaker/tsconfig.json chartmaker/package.json chartmaker/
 COPY chartmaker/src chartmaker/src/
 COPY culvert-web/package.json culvert-web/
+COPY actions/validate-build-services/package.json actions/validate-build-services/
 RUN bun install --filter maple-culvert-tracker --filter chartmaker --frozen-lockfile
 RUN cd chartmaker && \
     bun run build --target=bun-${TARGETOS}-${TARGETARCH/amd/x}-musl && \

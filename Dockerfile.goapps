@@ -24,6 +24,7 @@ WORKDIR /app
 COPY package.json bun.lock bunfig.toml ./
 COPY chartmaker/package.json chartmaker/
 COPY culvert-web/package.json culvert-web/
+COPY actions/validate-build-services/package.json actions/validate-build-services/
 RUN bun i --filter maple-culvert-tracker --filter culvert-web --frozen-lockfile
 COPY culvert-web/index.html culvert-web/tsconfig.json culvert-web/tsconfig.node.json culvert-web/tsconfig.app.json culvert-web/vite.config.ts culvert-web/
 COPY culvert-web/src culvert-web/src/
