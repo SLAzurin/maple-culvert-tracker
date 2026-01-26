@@ -1,6 +1,4 @@
-interface FetchResult {
+export interface FetchResult {
 	status: number;
 	payload: any;
 }
-
-export default FetchResult;

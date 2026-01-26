@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { selectToken } from "../features/login/loginSlice";
 import fetchEditableSettings from "../helpers/fetchEditableSettings";
@@ -233,6 +233,7 @@ const EditSettings = () => {
 											</div>
 										);
 									}
+									break;
 								case "discord_channel":
 									if (editableValues[key].multiple) {
 										// Not implemented cuz it is not yet possible
@@ -273,6 +274,7 @@ const EditSettings = () => {
 											</div>
 										);
 									}
+									break;
 								case "discord_role":
 									if (editableValues[key].multiple) {
 										return (

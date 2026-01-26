@@ -1,5 +1,5 @@
-import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { RootState } from "../../app/store";
+import { type PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { type RootState } from "../../app/store";
 import updateCulvertScores from "../../helpers/updateCulvertScores";
 
 type character_id = number;
@@ -64,7 +64,7 @@ export const charactersSlice = createSlice({
 		) => {
 			const newCharacters: { [key: number]: string } = {};
 			const newMembersCharacters: { [key: string]: number[] } = {};
-			for (let v of action.payload) {
+			for (const v of action.payload) {
 				newCharacters[v.character_id] = v.character_name;
 				if (!newMembersCharacters[v.discord_user_id])
 					newMembersCharacters[v.discord_user_id] = [];
@@ -116,7 +116,7 @@ export const charactersSlice = createSlice({
 				state.scoresFetched = true;
 			}
 
-			for (let v of action.payload.data) {
+			for (const v of action.payload.data) {
 				if (typeof state.characters[v.character_id] === "undefined") {
 					continue;
 				}
@@ -177,7 +177,9 @@ export const charactersSlice = createSlice({
 				week: state.selectedWeek !== null ? state.selectedWeek : "",
 			};
 
-			for (let [charID, { current }] of Object.entries(state.characterScores)) {
+			for (const [charID, { current }] of Object.entries(
+				state.characterScores,
+			)) {
 				if (
 					typeof state.characterScoresOriginal[Number(charID)] ===
 						"undefined" ||
@@ -204,7 +206,7 @@ export const charactersSlice = createSlice({
 					statusMessage: string;
 					date: Date;
 				} = { status: 200, date: new Date(), statusMessage: "" };
-				for (let v of [_new, edit]) {
+				for (const v of [_new, edit]) {
 					if (v.payload.length !== 0) {
 						const res = await updateCulvertScores(action.payload, v);
 						if (res.status !== 200) {

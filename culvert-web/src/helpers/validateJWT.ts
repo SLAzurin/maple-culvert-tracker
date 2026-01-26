@@ -1,4 +1,4 @@
-import MCTClaims from "../types/MCTClaims";
+import { type MCTClaims } from "../types/MCTClaims";
 
 const validateJWT = (auth: string): { valid: boolean; claims?: MCTClaims } => {
 	if (!auth.includes(".")) return { valid: false };

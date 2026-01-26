@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { resetInitialStateCharacters } from "../features/characters/charactersSlice";
 import { selectToken } from "../features/login/loginSlice";

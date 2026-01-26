@@ -68,7 +68,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push by digest
         id: build
-        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         env:
           DOCKER_BUILD_RECORD_UPLOAD: 'false'
         with:
@@ -79,6 +79,8 @@ jobs:
           context: ${{ inputs.service-context }}
           target: ${{ inputs.service-target }}
           build-args: ${{ inputs.service-build-args }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Write image sha to output
         if: ${{ inputs.publish }}
         id: write-image-sha

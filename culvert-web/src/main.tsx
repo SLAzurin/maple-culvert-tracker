@@ -10,7 +10,7 @@ import {
 	createRoutesFromElements,
 	Route,
 	RouterProvider,
-} from "react-router-dom";
+} from "react-router";
 
 // Bootstrap CSS
 import "bootstrap/dist/css/bootstrap.min.css";

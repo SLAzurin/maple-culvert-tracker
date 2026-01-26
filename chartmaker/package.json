@@ -7,8 +7,8 @@
   "private": true,
   "scripts": {
     "test": "exit 0",
-    "build": "rm -rf dist && tsc && node chartmakerBuilder.cjs",
-    "dev": "esbuild --bundle --platform=node --format=cjs --packages=external src/server.ts | node"
+    "build": "rm -rf dist && tsc && bun build --compile --minify --sourcemap --bytecode ./src/server.ts --outfile dist/chartmaker",
+    "dev": "bun --watch src/server.ts"
   },
   "repository": {
     "type": "git",
@@ -24,13 +24,9 @@
     "url": "https://github.com/SLAzurin/maple-culvert-tracker/issues"
   },
   "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme",
-  "dependencies": {
-    "@napi-rs/canvas": "0.1.88"
-  },
   "devDependencies": {
-    "@types/express": "^5.0.5",
+    "@napi-rs/canvas": "^0.1.88",
     "chart.js": "^4.5.1",
-    "chartjs-plugin-datalabels": "^2.2.0",
-    "express": "^5.1.0"
+    "chartjs-plugin-datalabels": "^2.2.0"
   }
 }

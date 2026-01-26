@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs'
 import { buildServicesSchema } from './workflow-build-services-zod-schema';
 import { ZodError } from 'zod';
 
+// TODO: Delete this action, revert the release workflow, use yaml anchors
+
 void (async () => {
     try {
         const data = readFileSync('workflow-build-services.json', 'utf-8');
