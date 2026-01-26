@@ -38,7 +38,7 @@ import fetchCharacters from "./helpers/fetchCharacters";
 import fetchCharacterScores from "./helpers/fetchCharacterScores";
 import { selectMembersByID } from "./features/members/membersSlice";
 import renameCharacter from "./helpers/renameCharacter";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import linkDiscordMaple from "./helpers/linkDiscordMaple";
 import { type GuildMember } from "./types/GuildMember";
 interface ImportedData {
