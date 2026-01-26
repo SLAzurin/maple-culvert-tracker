@@ -3,7 +3,7 @@
     "private": true,
     "scripts": {
         "gen": "tsc && bun run src/generate-json-schema.ts",
-        "build": "tsc && pnpm run gen"
+        "build": "tsc && bun run gen"
     },
     "devDependencies": {
         "@actions/core": "^1.11.1",

@@ -18,15 +18,16 @@ COPY cmd/${APPNAME} /src/cmd/${APPNAME}
 RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /src/main .
 
 # culvert-web specific
-FROM --platform=$BUILDPLATFORM node:24-slim AS culvert-web-builder
+FROM --platform=$BUILDPLATFORM oven/bun:1-alpine AS culvert-web-builder
 ENV NODE_ENV=dev
 WORKDIR /app
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json bun.lock bunfig.toml ./
+COPY chartmaker/package.json chartmaker/
 COPY culvert-web/package.json culvert-web/
-RUN corepack enable && corepack prepare --activate && pnpm i
-COPY culvert-web/index.html culvert-web/tsconfig.json culvert-web/tsconfig.node.json culvert-web/vite.config.ts culvert-web/
+RUN bun i --filter maple-culvert-tracker --filter culvert-web --frozen-lockfile
+COPY culvert-web/index.html culvert-web/tsconfig.json culvert-web/tsconfig.node.json culvert-web/tsconfig.app.json culvert-web/vite.config.ts culvert-web/
 COPY culvert-web/src culvert-web/src/
-RUN corepack enable && corepack prepare --activate && cd culvert-web && pnpm run build
+RUN bun --filter culvert-web build
 
 FROM scratch AS final
 

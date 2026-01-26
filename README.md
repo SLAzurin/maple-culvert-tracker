@@ -24,10 +24,7 @@ Please open issues to ask questions and open PRs for any code changes.
 
 Install Docker Engine (Linux) or Docker Desktop (Linux/Windows/Mac) for development.  
 Install Golang 1.25.x or newer versions when developing.  
-Install Nodejs 24.x or newer even number LTS versions. (Using [nvm.sh](https://github.com/nvm-sh/nvm) is recommended)  
-Enable `pnpm` with this command:
-
-- Command: `corepack enable && corepack prepare --activate`
+Install [Bun](https://bun.com/) 1.x or newer, a newer modern JavaScript runtime replacing NodeJS.
 
 ## Deployment note
 
@@ -51,10 +48,10 @@ Requirements are relatively low spec. I'd suggest a minimum of 1cpu, 1gb of ram 
    - Run the sql files: `psql -U $POSTGRES_USER -d $POSTGRES_DB </root/sqlfiles/createdb.sql`
 4. Run the `main` Go app (discord bot) process and leave it running in the background.
    - Command: `go run cmd/main/*.go`
-5. Install Nodejs dependencies with `pnpm`:
-   - Command: `pnpm i`
+5. Install Bun dependencies, no longer nodejs:
+   - Command: `bun i`
 6. Run the Website control panel and leave it in the background.
-   - Command: `cd culvert-web ; pnpm run dev`
+   - Command: `cd culvert-web ; bun run dev`
 
 # Developer codebase notes
 Internally used discord id `1` means unlinked and not in guild anymore  
