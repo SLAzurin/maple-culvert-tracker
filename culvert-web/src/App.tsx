@@ -191,12 +191,12 @@ function App() {
 			setImportedDataStatus("Failed to import. Likely wrong syntax.");
 			return;
 		}
-		let characterMap: { [key: string]: number } = {};
+		const characterMap: { [key: string]: number } = {};
 		for (const [id, char] of Object.entries(characters)) {
 			characterMap[char] = Number(id);
 		}
-		let importedScores: { [key: number]: number } = {};
-		let scoreErrors: { [key: string]: number } = {};
+		const importedScores: { [key: number]: number } = {};
+		const scoreErrors: { [key: string]: number } = {};
 		for (const [charName, score] of Object.entries(importedDataObj)) {
 			if (characterMap[charName]) {
 				importedScores[characterMap[charName]] = score;
