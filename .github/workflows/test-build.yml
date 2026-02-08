@@ -30,7 +30,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        service: &services
+        service:
           - name: bot
             dockerfile: "Dockerfile.goapps"
             context: "."
