@@ -10,3 +10,4 @@ culvert-web2
 .vscode/launch.json
 __debug_bin*
 convert_discord_id_config.json
+compose.override.yaml

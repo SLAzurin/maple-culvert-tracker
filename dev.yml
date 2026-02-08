@@ -1,3 +1,4 @@
+# Copy this into compose.override.yaml
 services:
   chartmaker:
     ports:
