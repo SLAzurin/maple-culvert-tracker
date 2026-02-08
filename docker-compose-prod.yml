@@ -68,6 +68,13 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
       - "com.centurylinklabs.watchtower.scope=mctscpdly"
   cron:
+    depends_on:
+      db16:
+        condition: service_healthy
+        restart: true
+      valkey:
+        condition: service_healthy
+        restart: true
     image: ghcr.io/slazurin/maple-culvert-tracker/cron
     restart: unless-stopped
     env_file:
@@ -107,7 +114,7 @@ services:
       - "--providers.file.directory=/configs/"
       - "--entryPoints.websecure.address=:443"
       - "--certificatesresolvers.lets-encrypt.acme.tlschallenge=true"
-      # - "--certificatesresolvers.lets-encrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      # - "--certificatesresolvers.lets-encrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # staging test server
       - "--certificatesresolvers.lets-encrypt.acme.email=${LETSENCRYPT_EMAIL}"
       - "--certificatesresolvers.lets-encrypt.acme.storage=/letsencrypt/acme.json"
       - "--entryPoints.web.address=:80"
@@ -146,6 +153,12 @@ services:
       - "traefik.http.services.api-service.loadbalancer.server.port=8080"
   web:
     image: ghcr.io/slazurin/maple-culvert-tracker/web
+    healthcheck:
+      test: ["CMD", "/http_healthcheck", "--url", "http://localhost:8080/"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
     environment:
       - NODE_ENV=production
     restart: unless-stopped

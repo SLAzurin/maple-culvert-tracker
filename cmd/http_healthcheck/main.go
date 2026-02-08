@@ -15,8 +15,11 @@ func main() {
 		log.Fatalln("url flag empty")
 	}
 
-	r, err := http.NewRequest("GET", *urlFlag, nil)
-	if r.Response.StatusCode != 200 || err != nil {
-		log.Fatalln("failed with " + strconv.Itoa(r.Response.StatusCode) + err.Error())
+	r, err := http.Get(*urlFlag)
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	if r.StatusCode != 200 {
+		log.Fatalln("failed with " + strconv.Itoa(r.StatusCode))
 	}
 }
