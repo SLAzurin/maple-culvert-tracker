@@ -27,7 +27,8 @@
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "http_healthcheck.mts"
   ],
   "exclude": [
     "node_modules"

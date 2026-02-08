@@ -6,4 +6,6 @@ services:
       target: final
       args:
         APPNAME: autofill_characters
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/autofill_characters
     env_file: .env

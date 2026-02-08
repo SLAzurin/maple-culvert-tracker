@@ -15,6 +15,9 @@ COPY internal /src/internal
 COPY .gen /src/.gen
 
 ARG APPNAME=main
+COPY cmd/http_healthcheck /src/cmd/http_healthcheck
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    cd /src/cmd/http_healthcheck && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /src/http_healthcheck .
 COPY cmd/${APPNAME} /src/cmd/${APPNAME}
 RUN --mount=type=cache,target=/root/.cache/go-build \
     cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /src/main .
@@ -34,6 +37,7 @@ RUN bun --filter culvert-web build
 
 FROM scratch AS final
 
+COPY --from=build /src/http_healthcheck /
 COPY --from=build /src/main /
 
 WORKDIR /

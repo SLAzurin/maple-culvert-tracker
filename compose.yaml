@@ -7,6 +7,8 @@ services:
     build:
       dockerfile: Dockerfile.goapps
       target: final-with-server-assets
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/bot
       context: .
       args:
         APPNAME: main
@@ -17,6 +19,8 @@ services:
       context: .
       dockerfile: chartmaker/Dockerfile
       target: runner
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/chartmaker
     restart: unless-stopped
     init: true
     environment:
@@ -51,6 +55,8 @@ services:
       context: .
       args:
         APPNAME: staticserve
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/web
     restart: unless-stopped
   periodicredis:
     depends_on:
@@ -61,6 +67,8 @@ services:
       context: .
       args:
         APPNAME: periodicredis
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/periodicredis
     restart: unless-stopped
     env_file: .env
   cron:
@@ -70,6 +78,8 @@ services:
       target: cron
       args:
         APPNAME: auto_backup
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/cron
     restart: unless-stopped
     env_file:
       - .env

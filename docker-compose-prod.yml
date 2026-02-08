@@ -1,17 +1,17 @@
 services:
   watchtower:
-    image: containrrr/watchtower@sha256:6dd50763bbd632a83cb154d5451700530d1e44200b268a4e9488fefdfcf2b038 # latest Nov 11, 2023
+    image: ghcr.io/containrrr/watchtower:1.7.1@sha256:6dd50763bbd632a83cb154d5451700530d1e44200b268a4e9488fefdfcf2b038 # latest 1.7.1 Nov 11, 2023
     restart: unless-stopped
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     command:
-      - --rolling-restart
-      - --cleanup
-      - --label-enable
-      - --api-version
-      - "1.44"
-      - --scope
-      - mctscpdly
+      - --rolling-restart # update running containers strategy
+      - --cleanup # auto-remove old image to save disk spaces size
+      - --label-enable # instruct watchtower to scan running containers with container labels
+      - --api-version # critical cli flag to fix startup api version check
+      - "1.44" # override api version semver
+      - --scope # instruct watchtower to only update containers with specified scope
+      - mctscpdly # scope name
   db16:
     image: postgres:16-alpine
     volumes:
@@ -20,11 +20,23 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
   valkey:
     image: valkey/valkey:7.2-alpine
     volumes:
       - mapleculverttracker_valkey_data:/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/local/bin/redis-cli ping"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
   chartmaker:
     image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker
     restart: unless-stopped
@@ -34,9 +46,21 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
       - "com.centurylinklabs.watchtower.scope=mctscpdly"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'bun -e ''var t=await fetch("http://localhost:3000/chartmaker/ping");if(t.status!==200)throw Error("status not 200");console.log(t.status);''',
+        ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
   periodicredis:
     depends_on:
-      - valkey
+      valkey:
+        condition: service_healthy
+        restart: true
     image: ghcr.io/slazurin/maple-culvert-tracker/periodicredis
     restart: unless-stopped
     env_file: .env
@@ -58,8 +82,12 @@ services:
       - "com.centurylinklabs.watchtower.scope=mctscpdly"
   traefik:
     depends_on:
-      - bot
-      - web
+      bot:
+        condition: service_started
+        restart: true
+      web:
+        condition: service_started
+        restart: true
     image: traefik:v3
     restart: unless-stopped
     volumes:
@@ -78,9 +106,10 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file.directory=/configs/"
       - "--entryPoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.tlschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.email=${LETSENCRYPT_EMAIL}"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.lets-encrypt.acme.tlschallenge=true"
+      # - "--certificatesresolvers.lets-encrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.lets-encrypt.acme.email=${LETSENCRYPT_EMAIL}"
+      - "--certificatesresolvers.lets-encrypt.acme.storage=/letsencrypt/acme.json"
       - "--entryPoints.web.address=:80"
       - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
@@ -88,20 +117,28 @@ services:
       - "com.centurylinklabs.watchtower.enable=false"
   bot:
     depends_on:
-      - db16
-      - chartmaker
-      - valkey
+      db16:
+        condition: service_healthy
+        restart: true
+      chartmaker:
+        condition: service_healthy
+        restart: true
+      valkey:
+        condition: service_healthy
+        restart: true
     image: ghcr.io/slazurin/maple-culvert-tracker/bot
     restart: unless-stopped
     env_file: .env
     labels:
+      # watchtower
       - "com.centurylinklabs.watchtower.enable=true"
       - "com.centurylinklabs.watchtower.scope=mctscpdly"
+      # traefik
       - "traefik.enable=true"
       - "traefik.http.routers.api.priority=100"
       - "traefik.http.routers.api.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.tls.certresolver=myresolver"
+      - "traefik.http.routers.api.tls.certresolver=lets-encrypt"
       - "traefik.http.routers.api.service=api-service"
       - "traefik.http.routers.api.tls.options=modern@file"
       - "traefik.http.routers.api.middlewares[0]=hsts-header"
@@ -120,7 +157,7 @@ services:
       - "traefik.http.routers.static.priority=10"
       - "traefik.http.routers.static.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/`)"
       - "traefik.http.routers.static.entrypoints=websecure"
-      - "traefik.http.routers.static.tls.certresolver=myresolver"
+      - "traefik.http.routers.static.tls.certresolver=lets-encrypt"
       - "traefik.http.routers.static.service=static-service"
       - "traefik.http.routers.static.tls.options=modern@file"
       - "traefik.http.routers.static.middlewares[0]=hsts-header"
