@@ -84,3 +84,4 @@ jobs:
           build-args: ${{ matrix.service.buildArgs }}
           push: false
           cache-from: type=gha
+          cache-to: type=gha,mode=max
