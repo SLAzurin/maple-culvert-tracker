@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM golang:1.25.6-alpine AS build
+FROM --platform=$BUILDPLATFORM golang:1.25.7-alpine AS build
 ARG TARGETOS
 ARG TARGETARCH
 RUN apk --no-cache add tzdata
@@ -8,14 +8,16 @@ WORKDIR /src/
 
 COPY go.mod go.sum /src/
 
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
 
 COPY internal /src/internal
 COPY .gen /src/.gen
 
 ARG APPNAME=main
 COPY cmd/${APPNAME} /src/cmd/${APPNAME}
-RUN cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /src/main .
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    cd /src/cmd/${APPNAME} && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /src/main .
 
 # culvert-web specific
 FROM --platform=$BUILDPLATFORM oven/bun:1-alpine AS culvert-web-builder
@@ -24,8 +26,8 @@ WORKDIR /app
 COPY package.json bun.lock bunfig.toml ./
 COPY chartmaker/package.json chartmaker/
 COPY culvert-web/package.json culvert-web/
-COPY actions/validate-build-services/package.json actions/validate-build-services/
-RUN bun install --filter maple-culvert-tracker --filter culvert-web --frozen-lockfile
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --filter maple-culvert-tracker --filter culvert-web --frozen-lockfile
 COPY culvert-web/index.html culvert-web/tsconfig.json culvert-web/tsconfig.node.json culvert-web/tsconfig.app.json culvert-web/vite.config.ts culvert-web/
 COPY culvert-web/src culvert-web/src/
 RUN bun --filter culvert-web build
@@ -54,7 +56,8 @@ ARG TARGETOS
 ARG TARGETARCH
 # main arg already built auto_backup
 COPY cmd/culvert_score_update_reminder /src/cmd/culvert_score_update_reminder
-RUN cd /src/cmd/culvert_score_update_reminder && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /src/culvert_score_update_reminder .
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    cd /src/cmd/culvert_score_update_reminder && CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -o /src/culvert_score_update_reminder .
 
 FROM postgres:16-alpine AS cron
 COPY --from=build /src/main /usr/local/bin/auto_backup

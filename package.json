@@ -17,8 +17,7 @@
   },
   "workspaces": [
     "chartmaker",
-    "culvert-web",
-    "actions/validate-build-services"
+    "culvert-web"
   ],
   "type": "module"
 }
