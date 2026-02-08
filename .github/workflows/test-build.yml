@@ -4,6 +4,11 @@ on:
   pull_request:
     branches: [master]
 
+env:
+  CR_HOST: ghcr.io
+  CR_OWNER: slazurin
+  IMAGE_NAME_PREFIX: ghcr.io/slazurin/maple-culvert-tracker
+
 jobs:
   go-test:
     name: Go test
@@ -15,36 +20,47 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
         with:
-          go-version-file: 'go.mod'
+          go-version-file: "go.mod"
       - name: Run tests
         run: |
           go test -v ./{cmd,internal}/...
-  validate-services-for-test-build:
-    name: Validate Services List
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    outputs:
-      build-services: ${{ steps.set-services-list.outputs.build-services }}
-    steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
-        with:
-          sparse-checkout: |
-            workflow-build-services.json
-            actions/validate-build-services/dist
-            actions/validate-build-services/action.yml
-      - id: set-services-list
-        uses: ./actions/validate-build-services
   test-build:
     name: "Test build image: ${{ matrix.service.name }} - ${{ matrix.platform.manifest-name }}"
-    needs:
-      - validate-services-for-test-build
     permissions:
       contents: read
     strategy:
       matrix:
-        service:
-          ${{ fromJson(needs.validate-services-for-test-build.outputs.build-services) }}
+        service: &services
+          - name: bot
+            dockerfile: "Dockerfile.goapps"
+            context: "."
+            target: "final-with-server-assets"
+            buildArgs: "APPNAME=main"
+          - name: "chartmaker"
+            dockerfile: "chartmaker/Dockerfile"
+            context: "."
+            target: "runner"
+            buildArgs: ""
+          - name: "web"
+            dockerfile: "Dockerfile.goapps"
+            context: "."
+            target: "culvert-web-final"
+            buildArgs: "APPNAME=staticserve"
+          - name: "periodicredis"
+            dockerfile: "Dockerfile.goapps"
+            context: "."
+            target: "final"
+            buildArgs: "APPNAME=periodicredis"
+          - name: "cron"
+            dockerfile: "Dockerfile.goapps"
+            context: "."
+            target: "cron"
+            buildArgs: "APPNAME=auto_backup"
+          - name: "autofill_characters"
+            dockerfile: "Dockerfile.goapps"
+            context: "."
+            target: "final"
+            buildArgs: "APPNAME=autofill_characters"
         platform:
           - name: linux/amd64
             runner: ubuntu-latest
@@ -60,7 +76,7 @@ jobs:
         id: build
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          tags: ghcr.io/slazurin/maple-culvert-tracker/${{ matrix.service.name }} # tags here doesn't matter as we won't push
+          tags: ${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service.name }} # tags here doesn't matter as we won't push
           platforms: ${{ matrix.platform.name }}
           file: ${{ matrix.service.dockerfile }}
           context: ${{ matrix.service.context }}
