@@ -93,7 +93,7 @@ services:
         condition: service_started
         restart: true
       web:
-        condition: service_started
+        condition: service_healthy
         restart: true
     image: traefik:v3
     restart: unless-stopped
@@ -134,6 +134,18 @@ services:
         condition: service_healthy
         restart: true
     image: ghcr.io/slazurin/maple-culvert-tracker/bot
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/http_healthcheck",
+          "--url",
+          "http://localhost:8080/health",
+        ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
     restart: unless-stopped
     env_file: .env
     labels:
