@@ -90,7 +90,7 @@ services:
   traefik:
     depends_on:
       bot:
-        condition: service_started
+        condition: service_healthy
         restart: true
       web:
         condition: service_healthy
@@ -136,12 +136,7 @@ services:
     image: ghcr.io/slazurin/maple-culvert-tracker/bot
     healthcheck:
       test:
-        [
-          "CMD",
-          "/http_healthcheck",
-          "--url",
-          "http://localhost:8080/health",
-        ]
+        ["CMD", "/http_healthcheck", "--url", "http://localhost:8080/health"]
       interval: 10s
       retries: 5
       start_period: 30s
