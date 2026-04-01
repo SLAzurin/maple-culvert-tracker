@@ -56,11 +56,6 @@ jobs:
             context: "."
             target: "cron"
             buildArgs: "APPNAME=auto_backup"
-          - name: "autofill_characters"
-            dockerfile: "Dockerfile.goapps"
-            context: "."
-            target: "final"
-            buildArgs: "APPNAME=autofill_characters"
         platform:
           - name: linux/amd64
             runner: ubuntu-latest

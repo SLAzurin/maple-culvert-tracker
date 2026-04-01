@@ -1,0 +1,27 @@
+# necessary cli flags: "--certificatesresolvers.letsEncrypt.acme.email=${LETSENCRYPT_EMAIL}"
+
+log:
+  level: INFO
+accessLog: {}
+providers:
+  file:
+    directory: /configs/
+  docker:
+    exposedByDefault: false
+entryPoints:
+  websecure:
+    address: :443
+  web:
+    address: :80
+    # http:
+    #   redirections:
+    #     entryPoint:
+    #       to: websecure
+    #       scheme: https
+    #       permanent: true
+certificatesResolvers:
+  letsEncrypt:
+    acme:
+      tlsChallenge: {}
+      caServer: https://acme-staging-v02.api.letsencrypt.org/directory # only for testing
+      storage: /letsencrypt/acme.json

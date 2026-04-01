@@ -1,0 +1,74 @@
+# rename this to compose.override.yaml
+services:
+  bot:
+    image: !reset null
+    build:
+      dockerfile: Dockerfile.goapps
+      target: final-with-server-assets
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/bot
+      context: .
+      args:
+        APPNAME: main
+    environment:
+      - GIN_MODE=debug
+  chartmaker:
+    image: !reset null
+    build:
+      context: .
+      dockerfile: chartmaker/Dockerfile
+      target: runner
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/chartmaker
+    environment:
+      - NODE_ENV=development
+    ports:
+      - ${CLIENT_CHARTMAKER_PORT}:3000
+  valkey:
+    ports:
+      - ${REDIS_PORT}:6379
+    volumes:
+      - mapleculverttracker_valkey_data:/data
+  db16:
+    ports:
+      - ${CLIENT_POSTGRES_PORT}:5432
+  web:
+    image: !reset null
+    build:
+      dockerfile: Dockerfile.goapps
+      target: culvert-web-final
+      context: .
+      args:
+        APPNAME: staticserve
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/web
+    restart: unless-stopped
+  periodicredis:
+    image: !reset null
+    build:
+      dockerfile: Dockerfile.goapps
+      target: final
+      context: .
+      args:
+        APPNAME: periodicredis
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/periodicredis
+    restart: unless-stopped
+    env_file: .env
+  cron:
+    image: !reset null
+    build:
+      context: .
+      dockerfile: Dockerfile.goapps
+      target: cron
+      args:
+        APPNAME: auto_backup
+      tags:
+        - ghcr.io/slazurin/maple-culvert-tracker/cron
+    volumes:
+      - ./cron.d:/etc/cron
+  traefik:
+    volumes: !reset
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik-http-only:/configs
+  watchtower: !reset null

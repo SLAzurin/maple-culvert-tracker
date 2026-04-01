@@ -1,35 +1,17 @@
 services:
-  bot:
-    depends_on:
-      - db16
-      - chartmaker
-      - valkey
-    build:
-      dockerfile: Dockerfile.goapps
-      target: final-with-server-assets
-      tags:
-        - ghcr.io/slazurin/maple-culvert-tracker/bot
-      context: .
-      args:
-        APPNAME: main
+  watchtower:
+    image: ghcr.io/containrrr/watchtower:1.7.1@sha256:6dd50763bbd632a83cb154d5451700530d1e44200b268a4e9488fefdfcf2b038 # latest 1.7.1 Nov 11, 2023
     restart: unless-stopped
-    env_file: .env
-  chartmaker:
-    build:
-      context: .
-      dockerfile: chartmaker/Dockerfile
-      target: runner
-      tags:
-        - ghcr.io/slazurin/maple-culvert-tracker/chartmaker
-    restart: unless-stopped
-    init: true
-    environment:
-      - NODE_ENV=production
-  valkey:
-    image: valkey/valkey:7.2-alpine
     volumes:
-      - mapleculverttracker_valkey_data:/data
-    restart: unless-stopped
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - --rolling-restart # update running containers strategy
+      - --cleanup # auto-remove old image to save disk spaces size
+      - --label-enable # instruct watchtower to scan running containers with container labels
+      - --api-version # critical cli flag to fix startup api version check
+      - "1.44" # override api version semver
+      - --scope # instruct watchtower to only update containers with specified scope
+      - mctscpdly # scope name
   db16:
     image: postgres:16-alpine
     volumes:
@@ -38,48 +20,62 @@ services:
     restart: unless-stopped
     env_file:
       - .env
-  nginx:
-    depends_on:
-      - web
-      - bot
-    image: nginx:stable-alpine-slim
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+  valkey:
+    image: valkey/valkey:7.2-alpine
     volumes:
-      - ./nginx/conf.d/:/etc/nginx/conf.d/
-  web:
-    build:
-      dockerfile: Dockerfile.goapps
-      target: culvert-web-final
-      context: .
-      args:
-        APPNAME: staticserve
-      tags:
-        - ghcr.io/slazurin/maple-culvert-tracker/web
+      - mapleculverttracker_valkey_data:/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "/usr/local/bin/redis-cli ping"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+  chartmaker:
+    image: ghcr.io/slazurin/maple-culvert-tracker/chartmaker
+    restart: unless-stopped
+    init: true
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=mctscpdly"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'bun -e ''var t=await fetch("http://localhost:3000/chartmaker/ping");if(t.status!==200)throw Error("status not 200");console.log(t.status);''',
+        ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
   periodicredis:
     depends_on:
-      - valkey
-    build:
-      dockerfile: Dockerfile.goapps
-      target: final
-      context: .
-      args:
-        APPNAME: periodicredis
-      tags:
-        - ghcr.io/slazurin/maple-culvert-tracker/periodicredis
+      valkey:
+        condition: service_healthy
+        restart: true
+    image: ghcr.io/slazurin/maple-culvert-tracker/periodicredis
     restart: unless-stopped
     env_file: .env
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=mctscpdly"
   cron:
-    build:
-      context: .
-      dockerfile: Dockerfile.goapps
-      target: cron
-      args:
-        APPNAME: auto_backup
-      tags:
-        - ghcr.io/slazurin/maple-culvert-tracker/cron
+    depends_on:
+      db16:
+        condition: service_healthy
+        restart: true
+      valkey:
+        condition: service_healthy
+        restart: true
+    image: ghcr.io/slazurin/maple-culvert-tracker/cron
     restart: unless-stopped
     env_file:
       - .env
@@ -88,6 +84,94 @@ services:
     command: ["-c", "/usr/sbin/crond -f -c /etc/cron"]
     volumes:
       - mapleculverttracker_valkey_data:/valkey_data
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=mctscpdly"
+  traefik:
+    depends_on:
+      bot:
+        condition: service_healthy
+        restart: true
+      web:
+        condition: service_healthy
+        restart: true
+    image: traefik:v3
+    restart: unless-stopped
+    volumes:
+      - ${TRAEFIK_CONFIG_PATH}:/etc/traefik
+      - ${TRAEFIK_DYNAMIC_CONFIG_PATH}:/configs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    ports:
+      - 80:80
+      # - "8080:8080" # optional
+      - 443:443
+    environment:
+      - TRAEFIK_CERTIFICATESRESOLVERS_letsEncrypt_ACME_EMAIL=${TRAEFIK_CERTIFICATESRESOLVERS_letsEncrypt_ACME_EMAIL}
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+  bot:
+    depends_on:
+      db16:
+        condition: service_healthy
+        restart: true
+      chartmaker:
+        condition: service_healthy
+        restart: true
+      valkey:
+        condition: service_healthy
+        restart: true
+    image: ghcr.io/slazurin/maple-culvert-tracker/bot
+    healthcheck:
+      test:
+        ["CMD", "/http_healthcheck", "--url", "http://localhost:8080/health"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    restart: unless-stopped
+    env_file: .env
+    labels:
+      # watchtower
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=mctscpdly"
+      # traefik
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.priority=100"
+      - "traefik.http.routers.api.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.service=api-service"
+      - "traefik.http.routers.api.tls.certresolver=letsEncrypt"
+      - "traefik.http.routers.api.tls.options=modern@file"
+      - "traefik.http.routers.api.middlewares[0]=hsts-header"
+      - "traefik.http.services.api-service.loadbalancer.server.port=8080"
+
+  web:
+    image: ghcr.io/slazurin/maple-culvert-tracker/web
+    healthcheck:
+      test: ["CMD", "/http_healthcheck", "--url", "http://localhost:8080/"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    init: true
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=mctscpdly"
+      - "traefik.enable=true"
+      - "traefik.http.routers.static.priority=10"
+      - "traefik.http.routers.static.rule=Host(`${LETSENCRYPT_HOSTNAME}`) && PathPrefix(`/`)"
+      - "traefik.http.routers.static.entrypoints=websecure"
+      - "traefik.http.routers.static.tls.certresolver=letsEncrypt"
+      - "traefik.http.routers.static.service=static-service"
+      - "traefik.http.routers.static.tls.options=modern@file"
+      - "traefik.http.routers.static.middlewares[0]=hsts-header"
+      - "traefik.http.services.static-service.loadbalancer.server.port=8080"
+
 volumes:
   mapleculverttracker_pg16_data:
   mapleculverttracker_valkey_data:
+  letsencrypt:

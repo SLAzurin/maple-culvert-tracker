@@ -1,3 +1,4 @@
+# dedprecated: This is here to perform a one time auto insert from existing sources
 services:
   autofill_characters:
     image: ghcr.io/slazurin/maple-culvert-tracker/autofill_characters

@@ -44,11 +44,6 @@ jobs:
             context: "."
             target: "cron"
             buildArgs: "APPNAME=auto_backup"
-          - name: "autofill_characters"
-            dockerfile: "Dockerfile.goapps"
-            context: "."
-            target: "final"
-            buildArgs: "APPNAME=autofill_characters"
     permissions:
       contents: read
       packages: write

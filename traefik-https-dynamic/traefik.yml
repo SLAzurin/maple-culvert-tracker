@@ -1,0 +1,23 @@
+http:
+  middlewares:
+    redirectToHttps:
+      redirectScheme: https
+      permanent: true
+    hstsHeader:
+      headers:
+        customResponseHeaders:
+          "Strict-Transport-Security": "max-age=63072000"
+  routers:
+    redirectToHttps:
+      entryPoints:
+        - web
+      middlewares:
+        - redirectToHttps
+      rule: "HostRegexp(`{host:.+}`)"
+      service: "noop@internal"
+
+tls:
+  options:
+    modern:
+      minVersion: "VersionTLS13"
+      curvePreferences: ["X25519", "CurveP256", "CurveP384"]
