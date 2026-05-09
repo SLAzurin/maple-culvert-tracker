@@ -307,6 +307,12 @@ func (EditableSettingsController) GETEditable(s *discordgo.Session) func(c *gin.
 				EditableType:             string(apiredis.OPTIONAL_CONF_SANDBAG_THRESHOLD.EditableType),
 				Multiple:                 apiredis.OPTIONAL_CONF_SANDBAG_THRESHOLD.Multiple,
 			},
+			apiredis.OPTIONAL_CONF_MONTHLY_IMPROVEMENT_THRESHOLD.ToString(): EditableSetting{
+				HumanReadableDescription: apiredis.GetHumanReadableDescriptions(apiredis.OPTIONAL_CONF_MONTHLY_IMPROVEMENT_THRESHOLD),
+				Value:                    apiredis.OPTIONAL_CONF_MONTHLY_IMPROVEMENT_THRESHOLD.GetWithDefault(apiredis.RedisDB, ""),
+				EditableType:             string(apiredis.OPTIONAL_CONF_MONTHLY_IMPROVEMENT_THRESHOLD.EditableType),
+				Multiple:                 apiredis.OPTIONAL_CONF_MONTHLY_IMPROVEMENT_THRESHOLD.Multiple,
+			},
 		})
 	}
 }
