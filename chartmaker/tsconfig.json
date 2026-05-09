@@ -1,11 +1,15 @@
 {
-  "extends": "../tsconfig.json",
   "compilerOptions": {
+    "types": [
+      "node"
+    ],
     "outDir": "dist",
     "noEmit": true,
-    "module": "commonjs"
-  },
-  "include": [
-    "src/**/*.ts"
-  ]
+    "target": "esnext",
+    "module": "nodenext",
+    "rootDir": "src",
+    "rewriteRelativeImportExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true
+  }
 }

@@ -1,8 +1,8 @@
 import { createCanvas } from "@napi-rs/canvas"
-import { ChartItem } from "chart.js"
+import type { ChartItem } from "chart.js"
 import Chart from "chart.js/auto"
-import ChartDataLabels from "chartjs-plugin-datalabels"
-import { fontFamily } from "./fontfamily"
+import * as ChartDataLabels from "chartjs-plugin-datalabels"
+import { fontFamily } from "./fontfamily.mts"
 
 interface AdditionalChartOptions {
   yAxisStartAt0?: boolean
@@ -25,7 +25,7 @@ export const chartmaker = (
 
   // This works. yes.
   const chart = new Chart(ctx as unknown as ChartItem, {
-    plugins: [ChartDataLabels],
+    plugins: [ChartDataLabels as any],
     type: "line",
     data: {
       labels: labels,
