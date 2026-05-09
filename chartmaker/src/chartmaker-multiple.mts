@@ -1,8 +1,8 @@
 import { createCanvas } from "@napi-rs/canvas"
 
-import { Chart, ChartItem } from "chart.js"
+import { Chart, type ChartItem } from "chart.js"
 import ChartDataLabels from "chartjs-plugin-datalabels"
-import { fontFamily } from "./fontfamily"
+import { fontFamily } from "./fontfamily.mts"
 
 const dataColors = [
   "#ea5545",
@@ -27,7 +27,7 @@ export const chartmakerMultiple = (data: {
   const ctx = chartJSNodeCanvas.getContext("2d")
 
   const chart = new Chart(ctx as unknown as ChartItem, {
-    plugins: [ChartDataLabels],
+    plugins: [ChartDataLabels as any],
     type: "line",
     data: {
       labels: data.labels,

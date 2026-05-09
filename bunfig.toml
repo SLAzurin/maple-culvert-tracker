@@ -1,6 +1,0 @@
-env = false
-
-[install]
-# 3 days
-minimumReleaseAge = 259200
-# minimumReleaseAgeExcludes = ["@types/bun", "typescript"]

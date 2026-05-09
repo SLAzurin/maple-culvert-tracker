@@ -2,13 +2,13 @@
   "name": "chartmaker",
   "version": "1.0.0",
   "description": "",
-  "type": "commonjs",
+  "type": "module",
   "main": "dist/server.js",
   "private": true,
   "scripts": {
     "test": "exit 0",
-    "build": "rm -rf dist && tsc && bun build --compile --minify --sourcemap --bytecode ./src/server.ts --outfile dist/chartmaker",
-    "dev": "bun --watch src/server.ts"
+    "build": "node -e \"require('fs').rmSync('./dist', { recursive: true, force: true, maxRetries: process.platform === 'win32' ? 10 : 0 })\" && tsc && esbuild --minify --bundle --outfile=dist/chartmaker.js --platform=node --format=cjs --external:@napi-rs/canvas-* ./src/server.mts",
+    "dev": "node --watch src/server.mts"
   },
   "repository": {
     "type": "git",
@@ -24,9 +24,14 @@
     "url": "https://github.com/SLAzurin/maple-culvert-tracker/issues"
   },
   "homepage": "https://github.com/SLAzurin/maple-culvert-tracker#readme",
-  "devDependencies": {
-    "@napi-rs/canvas": "^0.1.88",
+  "dependencies": {
+    "@napi-rs/canvas": "^1.0.0",
     "chart.js": "^4.5.1",
-    "chartjs-plugin-datalabels": "^2.2.0"
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "chartjs-plugin-datalabels": "^2.2.0",
+    "esbuild": "^0.28.0"
   }
 }
