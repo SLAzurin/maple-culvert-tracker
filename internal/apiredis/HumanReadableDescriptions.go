@@ -15,6 +15,7 @@ var confReadableNameAndDescriptions = map[redisInternalKey]HumanReadableDescript
 	OPTIONAL_CONF_SUBMIT_SCORES_SHOW_SANDBAGGERS: {"Optional Show sandbaggers after submitting scores", "Toggle yes/no if the bot should show sandbaggers after submitting weekly scores"},
 	OPTIONAL_CONF_SUBMIT_SCORES_SHOW_RATS:        {"Optional Show rats after submitting scores", "Toggle 6/7 if the bot should show rats after submitting weekly scores"},
 	OPTIONAL_CONF_SANDBAG_THRESHOLD:              {"Optional sandbagger threshold", "Threshold which defines a sandbagger, against their previous best culvert score. (Default or empty: 0.7)"},
+	OPTIONAL_CONF_MONTHLY_IMPROVEMENT_THRESHOLD:  {"Optional monthly improvement threshold", "Minimum improvement percentage to be listed as a top improver in the monthly report. (Default or empty: 10)"},
 }
 
 func GetHumanReadableDescriptions(k redisInternalKey) *HumanReadableDescriptions {
