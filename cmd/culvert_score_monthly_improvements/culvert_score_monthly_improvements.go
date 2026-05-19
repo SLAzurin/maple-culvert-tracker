@@ -124,6 +124,30 @@ func buildEmbed(improvers []characterImprovement, hasSlackers bool, fluffText st
 	}
 }
 
+// main runs the monthly culvert score improvements report.
+//
+// It compares each active character's best culvert score from before the previous
+// month's first reset against their best score during the current month's first reset
+// period, then posts a Discord embed ranking the top improvers.
+//
+// The report is only sent on the first culvert reset day of the month (Wednesday).
+// On all other days the program exits early unless the -date flag is provided.
+//
+// Flags:
+//
+//	-date YYYY-MM-DD  Override the target month. The date is floored to the first
+//	                  culvert reset of that month. Bypasses the month-boundary guard.
+//
+// Configuration:
+//
+//	OPTIONAL_CONF_MONTHLY_IMPROVEMENT_THRESHOLD (Redis) — minimum improvement percentage
+//	to appear in the "Top Improvers" list. Defaults to 10%. Editable from the frontend.
+//
+// Send-or-edit behavior:
+//
+//	If a message was already sent for the current month (tracked in discord_monthly_improvements),
+//	the existing Discord message is edited instead of sending a new one. The randomized
+//	slacker roast text is persisted in the database to remain consistent across edits.
 func main() {
 	// Parse CLI flags
 	dateOverride := flag.String("date", "", "Override date (YYYY-MM-DD) to run for a specific month. Skips the month-boundary guard.")
