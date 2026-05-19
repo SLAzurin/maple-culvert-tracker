@@ -59,10 +59,24 @@ func formatScore(score int32) string {
 }
 
 func buildEmbed(improvers []characterImprovement, hasSlackers bool, fluffText string, prevMonthStr string, currentDateStr string, minImprovementPct float64) *discordgo.MessageEmbed {
+	const maxDescLen = 3300 // Discord client visually truncates at ~3300 rendered runes (API limit is 4096)
+	const maxTitleLen = 256
+	const maxFooterLen = 2048
+
+	// Build the suffix (slacker roast) first so we know how much space to reserve
+	suffix := ""
+	if hasSlackers {
+		suffix = "\n───────────────────\n\n" + fluffText + "\n"
+	}
+	suffixRuneLen := len([]rune(suffix))
+
 	var descBuilder strings.Builder
+	runeCount := 0
 
 	if len(improvers) > 0 {
-		descBuilder.WriteString("**🏆 Top Improvers**\n\n")
+		header := "**🏆 Top Improvers**\n\n"
+		descBuilder.WriteString(header)
+		runeCount += len([]rune(header))
 		for i, imp := range improvers {
 			medal := ""
 			switch i {
@@ -75,26 +89,37 @@ func buildEmbed(improvers []characterImprovement, hasSlackers bool, fluffText st
 			default:
 				medal = "⭐"
 			}
-			descBuilder.WriteString(fmt.Sprintf(
+			line := fmt.Sprintf(
 				"%s **%s** improved by **%.0f%%**! %s → %s\n",
 				medal, imp.CharacterName, imp.ImprovementPct, formatScore(imp.OldScore), formatScore(imp.NewScore),
-			))
+			)
+			lineRuneLen := len([]rune(line))
+
+			// Check if adding this line + suffix would exceed the limit
+			if runeCount+lineRuneLen+suffixRuneLen > maxDescLen {
+				break
+			}
+			descBuilder.WriteString(line)
+			runeCount += lineRuneLen
 		}
 	} else {
-		descBuilder.WriteString("No one improved enough this month... 💀\n")
+		noOne := "No one improved enough this month... 💀\n"
+		descBuilder.WriteString(noOne)
+		runeCount += len([]rune(noOne))
 	}
 
-	if hasSlackers {
-		descBuilder.WriteString("\n───────────────────\n\n")
-		descBuilder.WriteString(fluffText + "\n")
-	}
+	descBuilder.WriteString(suffix)
+
+	desc := descBuilder.String()
+	title := "📈 Culvert Improvements Over the Last Month"
+	footerText := fmt.Sprintf("Period: %s → %s | Minimum threshold: %.0f%%", prevMonthStr, currentDateStr, minImprovementPct)
 
 	return &discordgo.MessageEmbed{
-		Title:       "📈 Culvert Improvements Over the Last Month",
-		Description: descBuilder.String(),
+		Title:       title,
+		Description: desc,
 		Color:       3066993, // #2ECC71 green
 		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("Period: %s → %s | Minimum threshold: %.0f%%", prevMonthStr, currentDateStr, minImprovementPct),
+			Text: footerText,
 		},
 	}
 }
@@ -137,6 +162,17 @@ func main() {
 		}
 	}
 
+	// Check if there is at least 1 non-zero score for this month's first reset
+	var scoreCount int
+	err := db.DB.QueryRow(
+		"SELECT COUNT(*) FROM character_culvert_scores WHERE culvert_date = $1 AND score > 0",
+		currentReset.Format("2006-01-02"),
+	).Scan(&scoreCount)
+	if err != nil || scoreCount == 0 {
+		log.Println("No non-zero scores found for the first week of this month, skipping.")
+		return
+	}
+
 	log.Println("Running monthly improvements report.")
 
 	// Calculate the first culvert reset of the previous month
@@ -161,28 +197,28 @@ func main() {
 		return
 	}
 
-	// Query scores for all active characters at both dates
+	// Query scores for all active characters
 	var improvements []characterImprovement
 
 	for _, char := range *activeChars {
 		var oldScore, newScore int32
 
-		// Get old score (previous month's first reset)
+		// Get old high score (best score before the previous month's first reset)
 		row := db.DB.QueryRow(
-			"SELECT score FROM character_culvert_scores WHERE character_id = $1 AND culvert_date = $2",
+			"SELECT COALESCE(MAX(score), 0) FROM character_culvert_scores WHERE character_id = $1 AND culvert_date < $2 AND score > 0",
 			char.ID, prevMonthStr,
 		)
 		if err := row.Scan(&oldScore); err != nil || oldScore <= 0 {
-			continue // Skip if no score or zero score in previous month
+			continue // Skip if no previous scores
 		}
 
-		// Get new score (current week)
+		// Get new high score (best score from previous month's first reset through current month's first reset)
 		row = db.DB.QueryRow(
-			"SELECT score FROM character_culvert_scores WHERE character_id = $1 AND culvert_date = $2",
-			char.ID, currentDateStr,
+			"SELECT COALESCE(MAX(score), 0) FROM character_culvert_scores WHERE character_id = $1 AND culvert_date >= $2 AND culvert_date <= $3 AND score > 0",
+			char.ID, prevMonthStr, currentDateStr,
 		)
 		if err := row.Scan(&newScore); err != nil || newScore <= 0 {
-			continue // Skip if no score or zero score this week
+			continue // Skip if no scores in the comparison period
 		}
 
 		improvementPct := (float64(newScore-oldScore) / float64(oldScore)) * 100.0
