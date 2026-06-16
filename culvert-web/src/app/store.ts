@@ -8,7 +8,7 @@ import loginReducer from "../features/login/loginSlice";
 import membersReducer from "../features/members/membersSlice";
 
 import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage";
+import storage from "redux-persist/es/storage";
 import charactersSlice from "../features/characters/charactersSlice";
 
 const persistLoginConfig = {
