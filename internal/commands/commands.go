@@ -214,6 +214,10 @@ var Commands = []*discordgo.ApplicationCommand{
 		},
 	},
 	{
+		Name:        "inactive-players",
+		Description: "Shows characters whose latest culvert score is a zero streak on the newest date",
+	},
+	{
 		Name:        "list-characters",
 		Description: "List all characters being tracked in the guild",
 	},
