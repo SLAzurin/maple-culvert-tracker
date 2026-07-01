@@ -59,6 +59,12 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			editContent("Failed to fetch message `" + msgID + "`. Make sure the message and channel IDs are correct.")
 			return
 		}
+		if len(msg.Attachments) > 0 {
+			log.Printf("parseImages: message %s has %d attachment(s)", msgID, len(msg.Attachments))
+			for _, a := range msg.Attachments {
+				log.Printf("  - %s (ContentType=%q, Size=%d bytes)", a.Filename, a.ContentType, a.Size)
+			}
+		}
 		for _, a := range msg.Attachments {
 			if isImageAttachment(a) {
 				imageURLs = append(imageURLs, a.URL)
@@ -178,9 +184,12 @@ func isImageAttachment(a *discordgo.MessageAttachment) bool {
 		return true
 	}
 	fn := strings.ToLower(a.Filename)
+	// Accept common image extensions, even if ContentType is empty
 	return strings.HasSuffix(fn, ".png") ||
 		strings.HasSuffix(fn, ".jpg") ||
-		strings.HasSuffix(fn, ".jpeg")
+		strings.HasSuffix(fn, ".jpeg") ||
+		strings.HasSuffix(fn, ".gif") ||
+		strings.HasSuffix(fn, ".webp")
 }
 
 func downloadBytes(url string) ([]byte, error) {
