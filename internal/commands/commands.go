@@ -222,7 +222,7 @@ var Commands = []*discordgo.ApplicationCommand{
 		Description: "List all characters being tracked in the guild",
 	},
 	{
-		Name:        "submit-scores",
+		Name:        "submit-scores-from-attachment",
 		Description: "Submit culvert scores via a discord message attachment as .txt or .json file",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
@@ -246,7 +246,7 @@ var Commands = []*discordgo.ApplicationCommand{
 		},
 	},
 	{
-		Name:        "submit-scores-from-attachment",
+		Name:        "submit-scores",
 		Description: "Submit culvert scores by reading a .txt or .json attachment from an existing discord message",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
