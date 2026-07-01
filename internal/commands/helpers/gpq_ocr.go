@@ -129,9 +129,17 @@ func decodeTemplate(data []byte) ([][]bool, int, int, error) {
 	return bits, w, h, nil
 }
 
-// ParseSmallImage decodes a "small" GPQ score table image and returns a map of
-// character name -> score. Names are reconciled against memberNames.
-func ParseSmallImage(imgData []byte, memberNames []string, font *GPQFont) (map[string]int, error) {
+// ScoreEntry is a single parsed character name and score, preserving the
+// top-to-bottom row order they appear in the image.
+type ScoreEntry struct {
+	Name  string
+	Score int
+}
+
+// ParseSmallImage decodes a "small" GPQ score table image and returns the
+// parsed character name/score entries in row order (top to bottom). Names are
+// reconciled against memberNames.
+func ParseSmallImage(imgData []byte, memberNames []string, font *GPQFont) ([]ScoreEntry, error) {
 	img, _, err := image.Decode(strings.NewReader(string(imgData)))
 	if err != nil {
 		return nil, err
@@ -394,18 +402,25 @@ func keepDigits(s string) string {
 
 // mergeScoresWithNames zips scores and names, stopping at the first non-integer
 // score (mirrors the Python int()/break behaviour).
-func mergeScoresWithNames(scores, names []string) map[string]int {
-	res := map[string]int{}
+func mergeScoresWithNames(scores, names []string) []ScoreEntry {
+	entries := []ScoreEntry{}
+	pos := map[string]int{}
 	for i := range scores {
 		score, err := strconv.Atoi(scores[i])
 		if err != nil {
 			break
 		}
 		if score > 0 && i < len(names) {
-			res[names[i]] = score
+			name := names[i]
+			if idx, ok := pos[name]; ok {
+				entries[idx].Score = score
+			} else {
+				pos[name] = len(entries)
+				entries = append(entries, ScoreEntry{Name: name, Score: score})
+			}
 		}
 	}
-	return res
+	return entries
 }
 
 // ── Name reconciliation (font_match.py) ─────────────────────────────────────

@@ -27,21 +27,21 @@ func TestNewGlyphsDecodedFromPixels(t *testing.T) {
 		if err != nil {
 			t.Fatalf("read %s: %v", c.file, err)
 		}
-		got, err := ParseSmallImage(data, nil, font)
+		entries, err := ParseSmallImage(data, nil, font)
 		if err != nil {
 			t.Fatalf("ParseSmallImage %s: %v", c.file, err)
 		}
 		found := false
-		for name := range got {
-			if strings.Contains(name, c.want) {
+		for _, e := range entries {
+			if strings.Contains(e.Name, c.want) {
 				found = true
 				break
 			}
 		}
 		if !found {
-			keys := make([]string, 0, len(got))
-			for k := range got {
-				keys = append(keys, k)
+			keys := make([]string, 0, len(entries))
+			for _, e := range entries {
+				keys = append(keys, e.Name)
 			}
 			t.Errorf("%s: raw pixel decode did not contain %q; got keys=%v", c.file, c.want, keys)
 		}
