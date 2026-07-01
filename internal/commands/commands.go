@@ -328,4 +328,46 @@ var Commands = []*discordgo.ApplicationCommand{
 			},
 		},
 	},
+	{
+		Name:        "parse-images",
+		Description: "Parse GPQ score images from Discord message(s) into a JSON of character scores",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "channel-id",
+				Description: "Channel of the messages (accepts <#id> or raw id)",
+			},
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "message-id-1",
+				Description: "Discord message ID containing score image attachment(s)",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "message-id-2",
+				Description: "Additional Discord message ID",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "message-id-3",
+				Description: "Additional Discord message ID",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "message-id-4",
+				Description: "Additional Discord message ID",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "message-id-5",
+				Description: "Additional Discord message ID",
+			},
+		},
+	},
 }
