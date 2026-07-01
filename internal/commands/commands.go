@@ -246,6 +246,36 @@ var Commands = []*discordgo.ApplicationCommand{
 		},
 	},
 	{
+		Name:        "submit-scores-from-attachment",
+		Description: "Submit culvert scores by reading a .txt or .json attachment from an existing discord message",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "channel-id",
+				Description: "Channel of the message (accepts <#id> or raw id)",
+			},
+			{
+				Required:    true,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "message-id",
+				Description: "Discord message ID containing the .txt or .json scores attachment",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "date",
+				Description: "Culvert date in YYYY-MM-DD format. If not provided, defaults to the most recent Wednesday.",
+			},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionBoolean,
+				Name:        "overwrite-existing",
+				Description: "Overwrite existing scores for characters that already have a score for the specified date.",
+			},
+		},
+	},
+	{
 		Name:        "sniff-out-rats",
 		Description: "Find members who culvert bi-weekly, or sandbag semi-consistently",
 		Options: []*discordgo.ApplicationCommandOption{

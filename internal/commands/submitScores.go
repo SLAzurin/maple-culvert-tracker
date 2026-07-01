@@ -123,6 +123,13 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// done parsing options
 
+	finalizeSubmitScores(s, i, content, attachmentMap, culvertDate, culvertDateStr, overwriteExisting)
+}
+
+// finalizeSubmitScores runs the shared score submission flow once an
+// attachmentMap (character name -> score) has been parsed from a source. It is
+// used by both /submit-scores and /submit-scores-from-attachment.
+func finalizeSubmitScores(s *discordgo.Session, i *discordgo.InteractionCreate, content *string, attachmentMap map[string]int, culvertDate time.Time, culvertDateStr string, overwriteExisting bool) {
 	// query all scores for culvert date to see if any exist
 	// get all active tracked characters
 	characters, err := helpers.GetActiveCharacters(apiredis.RedisDB, db.DB)
