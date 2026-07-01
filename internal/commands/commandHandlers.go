@@ -69,4 +69,5 @@ var CommandHandlers = map[string]func(s *discordgo.Session, i *discordgo.Interac
 	"sniff-out-rats":      sniffOutRats,
 	"weekly-sandbaggers":  weeklySandbaggers,
 	"participation":       participation,
+	"parse-images":        parseImages,
 }
