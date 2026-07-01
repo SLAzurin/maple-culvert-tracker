@@ -59,12 +59,6 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			editContent("Failed to fetch message `" + msgID + "`. Make sure the message and channel IDs are correct.")
 			return
 		}
-		if len(msg.Attachments) > 0 {
-			log.Printf("parseImages: message %s has %d attachment(s)", msgID, len(msg.Attachments))
-			for _, a := range msg.Attachments {
-				log.Printf("  - %s (ContentType=%q, Size=%d bytes)", a.Filename, a.ContentType, a.Size)
-			}
-		}
 		for _, a := range msg.Attachments {
 			if isImageAttachment(a) {
 				imageURLs = append(imageURLs, a.URL)
@@ -98,7 +92,7 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Process each image in parallel: download into memory then parse.
 	type imgResult struct {
-		scores map[string]int
+		scores []helpers.ScoreEntry
 		err    error
 	}
 	results := make([]imgResult, len(imageURLs))
@@ -118,23 +112,31 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	wg.Wait()
 
-	merged := map[string]int{}
+	// Merge preserving order: first attachment to last, top-to-bottom rows.
+	// Duplicate names keep their first-seen position; later scores overwrite.
+	merged := []helpers.ScoreEntry{}
+	mergedPos := map[string]int{}
 	for idx, r := range results {
 		if r.err != nil {
 			log.Println("parseImages: failed to process image", imageURLs[idx], r.err)
 			editContent("Failed to process one of the images. Please ensure they are valid `small` style GPQ score images.")
 			return
 		}
-		for name, score := range r.scores {
-			merged[name] = score
+		for _, e := range r.scores {
+			if pos, ok := mergedPos[e.Name]; ok {
+				merged[pos].Score = e.Score
+			} else {
+				mergedPos[e.Name] = len(merged)
+				merged = append(merged, e)
+			}
 		}
 	}
 
 	// Fail when any parsed name is not an active character.
 	unmatched := []string{}
-	for name := range merged {
-		if !activeSet[name] {
-			unmatched = append(unmatched, name)
+	for _, e := range merged {
+		if !activeSet[e.Name] {
+			unmatched = append(unmatched, e.Name)
 		}
 	}
 	if len(unmatched) > 0 {
@@ -152,7 +154,7 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	out, err := json.MarshalIndent(merged, "", "    ")
+	out, err := marshalOrderedScores(merged)
 	if err != nil {
 		log.Println("parseImages: failed to marshal result:", err)
 		editContent("Internal error building the JSON result.")
@@ -170,6 +172,33 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	})
 }
 
+// marshalOrderedScores emits a JSON object of name -> score with 4-space
+// indentation, preserving the given entry order (encoding/json sorts map keys,
+// so a map cannot be used here).
+func marshalOrderedScores(entries []helpers.ScoreEntry) ([]byte, error) {
+	if len(entries) == 0 {
+		return []byte("{}"), nil
+	}
+	var b strings.Builder
+	b.WriteString("{\n")
+	for idx, e := range entries {
+		key, err := json.Marshal(e.Name)
+		if err != nil {
+			return nil, err
+		}
+		b.WriteString("    ")
+		b.Write(key)
+		b.WriteString(": ")
+		b.WriteString(strconv.Itoa(e.Score))
+		if idx < len(entries)-1 {
+			b.WriteByte(',')
+		}
+		b.WriteByte('\n')
+	}
+	b.WriteByte('}')
+	return []byte(b.String()), nil
+}
+
 // parseChannelID accepts either a raw ID ("123") or a channel mention
 // ("<#123>") and returns the bare ID.
 func parseChannelID(s string) string {
@@ -184,7 +213,6 @@ func isImageAttachment(a *discordgo.MessageAttachment) bool {
 		return true
 	}
 	fn := strings.ToLower(a.Filename)
-	// Accept common image extensions, even if ContentType is empty
 	return strings.HasSuffix(fn, ".png") ||
 		strings.HasSuffix(fn, ".jpg") ||
 		strings.HasSuffix(fn, ".jpeg") ||
