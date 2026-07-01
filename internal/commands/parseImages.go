@@ -161,7 +161,16 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	*content = "Parsed scores from " + strconv.Itoa(len(imageURLs)) + " image(s)."
+	// Non-fatal validation: scores should be in descending order. If not, warn
+	// but still attach the output so the user can inspect/correct it.
+	msg := "Parsed scores from " + strconv.Itoa(len(imageURLs)) + " image(s)."
+	if idx := firstDescendingViolation(merged); idx >= 0 {
+		msg += "\n:warning: Scores are not in descending order (`" +
+			merged[idx-1].Name + "`: " + strconv.Itoa(merged[idx-1].Score) + " -> `" +
+			merged[idx].Name + "`: " + strconv.Itoa(merged[idx].Score) +
+			"). The output may be incorrect; please verify."
+	}
+	*content = msg
 	s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 		Content: content,
 		Files: []*discordgo.File{{
@@ -170,6 +179,18 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Reader:      strings.NewReader(string(out)),
 		}},
 	})
+}
+
+// firstDescendingViolation returns the index of the first entry whose score is
+// greater than the previous entry's score (i.e. breaks descending order), or -1
+// if the entries are in non-increasing order.
+func firstDescendingViolation(entries []helpers.ScoreEntry) int {
+	for i := 1; i < len(entries); i++ {
+		if entries[i].Score > entries[i-1].Score {
+			return i
+		}
+	}
+	return -1
 }
 
 // marshalOrderedScores emits a JSON object of name -> score with 4-space
