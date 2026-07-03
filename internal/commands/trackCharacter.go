@@ -20,7 +20,7 @@ import (
 func trackCharacter(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Parse discord param character-name
-	discordUserID := ""
+	discordUserID := "2"
 	characterName := ""
 	skipNameCheck := false
 	options := i.ApplicationCommandData().Options

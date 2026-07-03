@@ -151,12 +151,12 @@ var Commands = []*discordgo.ApplicationCommand{
 				Name:        "character-name",
 				Description: "Character name",
 			},
-			{
-				Required:    true,
-				Type:        discordgo.ApplicationCommandOptionString,
-				Name:        "discord-user-id",
-				Description: "Discord user global username or ID",
-			},
+		{
+			Required:    false,
+			Type:        discordgo.ApplicationCommandOptionString,
+			Name:        "discord-user-id",
+			Description: "Discord user global username or ID (default: untracked)",
+		},
 			{
 				Required:    false,
 				Type:        discordgo.ApplicationCommandOptionBoolean,
