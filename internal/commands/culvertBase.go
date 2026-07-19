@@ -44,7 +44,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	// Validate date format
 	if date != "" {
-		d, err := time.Parse("2006-01-02", date) // YYYY-MM-DD
+		d, err := time.Parse(time.DateOnly, date) // YYYY-MM-DD
 		if err != nil {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -55,7 +55,7 @@ func culvertBase(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			})
 			return
 		}
-		date = cmdhelpers.GetCulvertResetDate(d).Format("2006-01-02")
+		date = cmdhelpers.GetCulvertResetDate(d).Format(time.DateOnly)
 	}
 
 	// Command name = culvert

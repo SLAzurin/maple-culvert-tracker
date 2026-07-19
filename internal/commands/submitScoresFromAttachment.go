@@ -32,7 +32,7 @@ func submitScoresFromAttachment(s *discordgo.Session, i *discordgo.InteractionCr
 	options := i.ApplicationCommandData().Options
 
 	culvertDate := helpers.GetCulvertResetDate(time.Now())
-	culvertDateStr := culvertDate.Format("2006-01-02")
+	culvertDateStr := culvertDate.Format(time.DateOnly)
 	overwriteExisting := false
 	attachmentMap := map[string]int{}
 
@@ -41,7 +41,7 @@ func submitScoresFromAttachment(s *discordgo.Session, i *discordgo.InteractionCr
 	for _, v := range options {
 		if v.Name == "date" {
 			culvertDateStr = strings.Trim(v.StringValue(), " ")
-			culvertDate, err = time.Parse("2006-01-02", culvertDateStr)
+			culvertDate, err = time.Parse(time.DateOnly, culvertDateStr)
 			if err != nil {
 				*content = "Invalid date format provided! Please use YYYY-MM-DD."
 				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{

@@ -20,7 +20,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 		claims := &data.MCTClaims{}
-		tkn, err := jwt.ParseWithClaims(auth, claims, func(token *jwt.Token) (interface{}, error) {
+		tkn, err := jwt.ParseWithClaims(auth, claims, func(token *jwt.Token) (any, error) {
 			return []byte(os.Getenv(data.EnvVarJWTSecret)), nil
 		})
 		if err != nil {

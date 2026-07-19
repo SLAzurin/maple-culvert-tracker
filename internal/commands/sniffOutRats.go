@@ -40,7 +40,7 @@ func sniffOutRats(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 	}
 
-	date := helpers.GetCulvertResetDate(time.Now()).Format("2006-01-02")
+	date := helpers.GetCulvertResetDate(time.Now()).Format(time.DateOnly)
 
 	characters, err := helpers.GetActiveCharacters(apiredis.RedisDB, db.DB)
 	if err != nil {

@@ -32,10 +32,10 @@ func culvertSummary(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	if date == "" {
-		date = cmdhelpers.GetCulvertResetDate(time.Now()).Format("2006-01-02")
+		date = cmdhelpers.GetCulvertResetDate(time.Now()).Format(time.DateOnly)
 	}
 
-	d, err := time.Parse("2006-01-02", date) // YYYY-MM-DD
+	d, err := time.Parse(time.DateOnly, date) // YYYY-MM-DD
 	if err != nil {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -110,7 +110,7 @@ func culvertSummary(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "Culvert summary for " + d.Format("2006-01-02"),
+			Content: "Culvert summary for " + d.Format(time.DateOnly),
 			Files: []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(cmdhelpers.FormatNthColumnList(columnCount, dest, table.Row{"Pos", "Character", "Score"}, func(data struct {
 				Score              int32
 				MapleCharacterName string

@@ -43,8 +43,8 @@ func GetWeeklySandbaggers(characters []string, rawDate string, weeks int, thresh
 		chartData := []data.ChartMakerPoints{}
 		for _, v := range scoresRawDb {
 			d := data.ChartMakerPoints{
-				Label:   v.CulvertDate.Format("2006-01-02"),
-				RawDate: v.CulvertDate.Format("2006-01-02"),
+				Label:   v.CulvertDate.Format(time.DateOnly),
+				RawDate: v.CulvertDate.Format(time.DateOnly),
 				Score:   v.Score,
 			}
 			chartData = append(chartData, d)

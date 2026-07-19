@@ -17,7 +17,7 @@ func main() {
 	helpers.EnvVarsTest()
 
 	dateRaw := "2025-06-10"
-	date, _ := time.Parse("2006-01-02", dateRaw)
+	date, _ := time.Parse(time.DateOnly, dateRaw)
 
 	/*
 		This func call is broken, it does not handle the case when there is 1 or 2 of the 3 weeks without data

@@ -66,7 +66,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	culvertScorePaddingTotal := 0
 
 	for curPos, v := range rawData {
-		if submittedDate.Format("2006-01-02") == v.CulvertDate.Format("2006-01-02") {
+		if submittedDate.Format(time.DateOnly) == v.CulvertDate.Format(time.DateOnly) {
 			characters = append(characters, v.Name)
 			charactersModel = append(charactersModel, model.Characters{MapleCharacterName: v.Name, ID: v.ID})
 			culvertScoresByCharacterID[v.ID] = struct {
@@ -84,7 +84,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 		if _, ok := nameToIdxMap[v.Name]; !ok && cutoffPos == -1 {
 			nameToIdxMap[v.Name] = curPos
 		}
-		if v.CulvertDate.Format("2006-01-02") == lastWeek.Format("2006-01-02") && cutoffPos == -1 {
+		if v.CulvertDate.Format(time.DateOnly) == lastWeek.Format(time.DateOnly) && cutoffPos == -1 {
 			cutoffPos = curPos
 		}
 		if cutoffPos != -1 {
@@ -169,7 +169,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	// if it is not "true", always treat false, so ignore error
 
 	if shouldShowWeeklySandbaggers {
-		sandbaggers, err := cmdhelpers.GetWeeklySandbaggers(characters, submittedDate.Format("2006-01-02"), medianWeeks, float64(cmdhelpers.GetSandbagThresholdMultiplier(apiredis.RedisDB)))
+		sandbaggers, err := cmdhelpers.GetWeeklySandbaggers(characters, submittedDate.Format(time.DateOnly), medianWeeks, float64(cmdhelpers.GetSandbagThresholdMultiplier(apiredis.RedisDB)))
 		if err != nil {
 			log.Println("send_weekly_differences:GetWeeklySandbaggers", err)
 			return
@@ -197,11 +197,11 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 	}{}
 	calculateRatWeeks := 12
 	if shouldShowWeeklyRats {
-		rats, err = cmdhelpers.GetStinkyRats(db, rdb, charactersModel, submittedDate.Format("2006-01-02"), calculateRatWeeks, float64(4)/float64(12), "zero")
+		rats, err = cmdhelpers.GetStinkyRats(db, rdb, charactersModel, submittedDate.Format(time.DateOnly), calculateRatWeeks, float64(4)/float64(12), "zero")
 	}
 
 	s.ChannelMessageSendComplex(adminsTextChannel, &discordgo.MessageSend{
-		Content: "Culvert scores updated! These are the changes from " + lastWeek.Format("2006-01-02") + " to " + submittedDate.Format("2006-01-02"),
+		Content: "Culvert scores updated! These are the changes from " + lastWeek.Format(time.DateOnly) + " to " + submittedDate.Format(time.DateOnly),
 		Files:   []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(rawStr)}},
 	})
 	if len(noLongerExistsFromLastWeek) > 0 {
@@ -212,7 +212,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 
 	if shouldShowWeeklySandbaggers {
 		s.ChannelMessageSendComplex(adminsTextChannel, &discordgo.MessageSend{
-			Content: "Sandbaggers for " + submittedDate.Format("2006-01-02") + ", median over " + strconv.Itoa(medianWeeks) + " weeks",
+			Content: "Sandbaggers for " + submittedDate.Format(time.DateOnly) + ", median over " + strconv.Itoa(medianWeeks) + " weeks",
 			Files:   []*discordgo.File{{Name: "sandbaggers.txt", Reader: strings.NewReader(*sandbaggersTable)}, {Name: "zero-scores.txt", Reader: strings.NewReader(*sandbaggersZeroScoreList)}},
 		})
 	}
@@ -224,7 +224,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 				contentInner += v.SixSeven + " has a high amount roller coaster pattern count! " + strconv.Itoa(v.LWeeks) + "/" + strconv.Itoa(v.WWeeks) + "\n"
 			}
 			s.ChannelMessageSendComplex(adminsTextChannel, &discordgo.MessageSend{
-				Content: "Rats for " + submittedDate.Format("2006-01-02") + ", calculated over " + strconv.Itoa(calculateRatWeeks) + " weeks",
+				Content: "Rats for " + submittedDate.Format(time.DateOnly) + ", calculated over " + strconv.Itoa(calculateRatWeeks) + " weeks",
 				Files:   []*discordgo.File{{Name: "stinky-rats.txt", Reader: strings.NewReader(contentInner)}},
 			})
 		} else {
@@ -253,7 +253,7 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 
 		congratzMsgPart := 0
 		congratsMsgs := []string{""}
-		congratsMsgs[congratzMsgPart] = "Congratulations to the following members for achieving a new personal best this week of " + submittedDate.Format("2006-01-02") + "! :partying_face: :tada:\n```"
+		congratsMsgs[congratzMsgPart] = "Congratulations to the following members for achieving a new personal best this week of " + submittedDate.Format(time.DateOnly) + "! :partying_face: :tada:\n```"
 
 		// sort characterIDsNewPb by new pb
 		slices.SortStableFunc(characterIDsNewPb, func(a, b int) int {
