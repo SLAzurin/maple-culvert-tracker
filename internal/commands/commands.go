@@ -222,6 +222,10 @@ var Commands = []*discordgo.ApplicationCommand{
 		Description: "List all characters being tracked in the guild",
 	},
 	{
+		Name:        "personal-bests",
+		Description: "List personal bests for all active characters",
+	},
+	{
 		Name:        "submit-scores-from-attachment",
 		Description: "Submit culvert scores via a discord message attachment as .txt or .json file",
 		Options: []*discordgo.ApplicationCommandOption{
