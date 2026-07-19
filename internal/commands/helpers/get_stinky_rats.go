@@ -85,13 +85,13 @@ func GetStinkyRats(db *sql.DB, vk *valkey.Client, characters []model.Characters,
 			}
 
 			if week1IsBefore2mPatch == nil {
-				culvertDate, _ := time.Parse("2006-01-02", rawDate)
+				culvertDate, _ := time.Parse(time.DateOnly, rawDate)
 				b := culvertDate.Before(data.Date2mPatch) || culvertDate.Equal(data.Date2mPatch)
 				week1IsBefore2mPatch = &b
 			}
 
 			if *week1IsBefore2mPatch {
-				culvertDate, _ := time.Parse("2006-01-02", rawDate)
+				culvertDate, _ := time.Parse(time.DateOnly, rawDate)
 				if culvertDate.After(data.Date2mPatch) || culvertDate.Equal(data.Date2mPatch) {
 					*week1IsBefore2mPatch = false // This ensures we fallback into the else block for the rest of the chartData, no need to re-parse the culvertDate again
 					lastKnownGoodScore = int64(score)

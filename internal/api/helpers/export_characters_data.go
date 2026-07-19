@@ -49,7 +49,7 @@ func ExportCharactersData(db *sql.DB, vk *valkey.Client, weeks int, asOf time.Ti
 
 	// Fetch all characters for the latest week
 
-	rows, err := db.Query("SELECT character_id FROM character_culvert_scores WHERE culvert_date = $1", asOf.Format("2006-01-02"))
+	rows, err := db.Query("SELECT character_id FROM character_culvert_scores WHERE culvert_date = $1", asOf.Format(time.DateOnly))
 	if err != nil {
 		return retVal, err
 	}
@@ -116,21 +116,21 @@ func ExportCharactersData(db *sql.DB, vk *valkey.Client, weeks int, asOf time.Ti
 
 	for name, mdata := range m {
 		for _, date := range weeksDateRaw {
-			if _, ok := mScoresOnly[name][date.Format("2006-01-02")]; !ok {
+			if _, ok := mScoresOnly[name][date.Format(time.DateOnly)]; !ok {
 				mdata.Scores = append(mdata.Scores, data.ChartMakerPoints{
-					Label:   date.Format("2006-01-02"),
+					Label:   date.Format(time.DateOnly),
 					Score:   0,
-					RawDate: date.Format("2006-01-02"),
+					RawDate: date.Format(time.DateOnly),
 				})
 			} else {
 				mdata.Scores = append(mdata.Scores, data.ChartMakerPoints{
-					Label:   date.Format("2006-01-02"),
-					Score:   mScoresOnly[name][date.Format("2006-01-02")],
-					RawDate: date.Format("2006-01-02"),
+					Label:   date.Format(time.DateOnly),
+					Score:   mScoresOnly[name][date.Format(time.DateOnly)],
+					RawDate: date.Format(time.DateOnly),
 				})
 			}
 		}
-		stats, err := cmdhelpers.GetCharacterStatistics(db, vk, name, asOf.Format("2006-01-02"), mdata.Scores)
+		stats, err := cmdhelpers.GetCharacterStatistics(db, vk, name, asOf.Format(time.DateOnly), mdata.Scores)
 		if err != nil {
 			panic(err)
 		}

@@ -2,7 +2,7 @@ package helpers
 
 import "github.com/jedib0t/go-pretty/v6/table"
 
-func FormatNthColumnList[T interface{}](columnsAmount int, dataArr []T, headers table.Row, formatRowData func(data T, idx int) table.Row) string {
+func FormatNthColumnList[T any](columnsAmount int, dataArr []T, headers table.Row, formatRowData func(data T, idx int) table.Row) string {
 	rowCount := len(dataArr) / columnsAmount
 
 	if len(dataArr)%columnsAmount != 0 {

@@ -163,7 +163,7 @@ func main() {
 	var currentReset time.Time
 
 	if *dateOverride != "" {
-		parsed, err := time.Parse("2006-01-02", *dateOverride)
+		parsed, err := time.Parse(time.DateOnly, *dateOverride)
 		if err != nil {
 			log.Fatalf("Invalid date format %q, expected YYYY-MM-DD: %v", *dateOverride, err)
 		}
@@ -173,7 +173,7 @@ func main() {
 			firstOfMonth = firstOfMonth.AddDate(0, 0, 1)
 		}
 		currentReset = firstOfMonth
-		log.Printf("Date override: floored to first reset of month %s", currentReset.Format("2006-01-02"))
+		log.Printf("Date override: floored to first reset of month %s", currentReset.Format(time.DateOnly))
 	} else {
 		now := time.Now()
 		currentReset = helpers.GetCulvertResetDate(now)
@@ -190,7 +190,7 @@ func main() {
 	var scoreCount int
 	err := db.DB.QueryRow(
 		"SELECT COUNT(*) FROM character_culvert_scores WHERE culvert_date = $1 AND score > 0",
-		currentReset.Format("2006-01-02"),
+		currentReset.Format(time.DateOnly),
 	).Scan(&scoreCount)
 	if err != nil || scoreCount == 0 {
 		log.Println("No non-zero scores found for the first week of this month, skipping.")
@@ -204,8 +204,8 @@ func main() {
 	for prevMonth.Weekday() != helpers.GetCulvertResetDay(prevMonth) {
 		prevMonth = prevMonth.AddDate(0, 0, 1)
 	}
-	currentDateStr := currentReset.Format("2006-01-02")
-	prevMonthStr := prevMonth.Format("2006-01-02")
+	currentDateStr := currentReset.Format(time.DateOnly)
+	prevMonthStr := prevMonth.Format(time.DateOnly)
 
 	log.Printf("Comparing scores: %s → %s\n", prevMonthStr, currentDateStr)
 

@@ -26,7 +26,7 @@ func orderedKeys(t *testing.T, data []byte) []string {
 			t.Fatalf("json key token: %v", err)
 		}
 		keys = append(keys, tok.(string))
-		var v interface{} // consume the value
+		var v any // consume the value
 		if err := dec.Decode(&v); err != nil {
 			t.Fatalf("json value decode: %v", err)
 		}

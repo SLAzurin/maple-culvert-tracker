@@ -164,7 +164,7 @@ func getSandbaggers() *discordgo.InteractionResponse {
 				sandbaggedRuns.SandbaggedRuns = append(sandbaggedRuns.SandbaggedRuns, struct {
 					S int32  "json:\"s\""
 					D string "json:\"d\""
-				}{D: v.CulvertDate.Format("2006-01-02"), S: v.Score})
+				}{D: v.CulvertDate.Format(time.DateOnly), S: v.Score})
 			}
 			if v.Score > int32(lastKnownGoodScore) {
 				lastKnownGoodScore = int64(v.Score)

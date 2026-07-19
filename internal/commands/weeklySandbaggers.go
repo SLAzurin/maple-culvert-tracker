@@ -39,7 +39,7 @@ func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	rawDate := rawDateOut.Max.Format("2006-01-02")
+	rawDate := rawDateOut.Max.Format(time.DateOnly)
 
 	date := rawDateOut.Max
 
@@ -48,7 +48,7 @@ func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	for _, v := range options {
 		if v.Name == "date" {
-			d, err := time.Parse("2006-01-02", v.StringValue()) // YYYY-MM-DD
+			d, err := time.Parse(time.DateOnly, v.StringValue()) // YYYY-MM-DD
 			if err != nil {
 				content := "Invalid date"
 				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
@@ -56,7 +56,7 @@ func weeklySandbaggers(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				})
 				return
 			}
-			rawDate = d.Format("2006-01-02")
+			rawDate = d.Format(time.DateOnly)
 			if d.Weekday() != helpers.GetCulvertResetDay(d) {
 				content := "Date " + rawDate + " is not culvert reset day..."
 				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
