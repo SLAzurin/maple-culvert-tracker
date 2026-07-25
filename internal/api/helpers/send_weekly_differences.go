@@ -32,6 +32,10 @@ type weeklyDiffScores struct {
 }
 
 func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, submittedDate time.Time, adminsTextChannel string, membersTextChannel string) {
+	// Always post the PB leaderboard to the members channel after this flow finishes
+	// (including after new-PB congrats when those are sent).
+	defer sendPersonalBestsTableToMembersChannel(s, db, rdb, membersTextChannel)
+
 	submittedDate = cmdhelpers.GetCulvertResetDate(submittedDate)
 	lastWeek := cmdhelpers.GetCulvertResetDate(submittedDate.Add(time.Hour * -24 * 7))
 
@@ -340,5 +344,28 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 				}
 			}
 		}
+	}
+}
+
+func sendPersonalBestsTableToMembersChannel(s *discordgo.Session, db *sql.DB, rdb *redis.Client, membersTextChannel string) {
+	if membersTextChannel == "" {
+		return
+	}
+
+	metrics, err := cmdhelpers.LoadPersonalBestRankMetrics(db, rdb)
+	if err != nil {
+		log.Println("SendWeeklyDifferences: load personal bests failed", err)
+		return
+	}
+	if len(metrics) == 0 {
+		return
+	}
+
+	_, err = s.ChannelMessageSendComplex(membersTextChannel, &discordgo.MessageSend{
+		Content: "Here are the up-to-date rankings!",
+		Files:   []*discordgo.File{{Name: "personal-bests.txt", Reader: strings.NewReader(cmdhelpers.FormatPersonalBestsTable(metrics))}},
+	})
+	if err != nil {
+		log.Println("Discord ERROR SendWeeklyDifferences sending personal bests table", err)
 	}
 }
