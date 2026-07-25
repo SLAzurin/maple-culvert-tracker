@@ -5,43 +5,15 @@ import (
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
 func personalBests(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	chars, err := helpers.GetActiveCharacters(apiredis.RedisDB, db.DB)
+	dest, err := helpers.LoadPersonalBestRankMetrics(db.DB, apiredis.RedisDB)
 	if err != nil {
-		log.Println("personalBests: get active chars failed", err)
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "personal-bests command failed, could not get active characters",
-			},
-		})
-		return
-	}
-
-	if len(*chars) == 0 {
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "No active characters found.",
-			},
-		})
-		return
-	}
-
-	charIDs := make([]int64, 0, len(*chars))
-	for _, v := range *chars {
-		charIDs = append(charIDs, v.ID)
-	}
-
-	scores, err := helpers.FetchCharacterScoresSince(db.DB, charIDs, helpers.PersonalBestRankWindowStart())
-	if err != nil {
-		log.Println("personalBests: fetch scores failed", err)
+		log.Println("personalBests: load metrics failed", err)
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
@@ -51,7 +23,6 @@ func personalBests(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	dest := helpers.ComputePersonalBestRankMetrics(scores, helpers.PersonalBestRankWeeks)
 	if len(dest) == 0 {
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -65,14 +36,8 @@ func personalBests(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: "Personal bests for all active characters",
-			Files: []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(helpers.FormatNthColumnList(1, dest, table.Row{"Pos", "Character", "Personal Best"}, func(row helpers.PersonalBestRankMetric, idx int) table.Row {
-				return table.Row{
-					helpers.FormatPersonalBestPos(row.Pos, row.DeltaPos, row.HasPrevRank, row.Streak),
-					row.MapleCharacterName,
-					row.PersonalBest,
-				}
-			}))}},
+			Content: "Here are the up-to-date rankings!",
+			Files:   []*discordgo.File{{Name: "message.txt", Reader: strings.NewReader(helpers.FormatPersonalBestsTable(dest))}},
 		},
 	})
 }

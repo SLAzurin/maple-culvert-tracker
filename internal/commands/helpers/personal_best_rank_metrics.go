@@ -11,8 +11,10 @@ import (
 	"time"
 
 	. "github.com/go-jet/jet/v2/postgres"
+	"github.com/jedib0t/go-pretty/v6/table"
 	. "github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/table"
 	"github.com/slazurin/maple-culvert-tracker/internal/data"
+	redis "github.com/valkey-io/valkey-go"
 )
 
 const PersonalBestRankWeeks = 52
@@ -178,6 +180,39 @@ func FormatPersonalBestPos(pos int, deltaPos int, hasPrevRank bool, streak int) 
 // PersonalBestRankWindowStart returns the score query floor: Date2mPatch.
 func PersonalBestRankWindowStart() time.Time {
 	return data.Date2mPatch
+}
+
+// LoadPersonalBestRankMetrics loads active-character PB rank metrics for the rolling window.
+func LoadPersonalBestRankMetrics(db *sql.DB, rdb *redis.Client) ([]PersonalBestRankMetric, error) {
+	chars, err := GetActiveCharacters(rdb, db)
+	if err != nil {
+		return nil, err
+	}
+	if len(*chars) == 0 {
+		return nil, nil
+	}
+
+	charIDs := make([]int64, 0, len(*chars))
+	for _, v := range *chars {
+		charIDs = append(charIDs, v.ID)
+	}
+
+	scores, err := FetchCharacterScoresSince(db, charIDs, PersonalBestRankWindowStart())
+	if err != nil {
+		return nil, err
+	}
+	return ComputePersonalBestRankMetrics(scores, PersonalBestRankWeeks), nil
+}
+
+// FormatPersonalBestsTable renders the personal-bests leaderboard as an ASCII table.
+func FormatPersonalBestsTable(metrics []PersonalBestRankMetric) string {
+	return FormatNthColumnList(1, metrics, table.Row{"Pos", "Character", "Personal Best"}, func(row PersonalBestRankMetric, idx int) table.Row {
+		return table.Row{
+			FormatPersonalBestPos(row.Pos, row.DeltaPos, row.HasPrevRank, row.Streak),
+			row.MapleCharacterName,
+			row.PersonalBest,
+		}
+	})
 }
 
 func distinctCulvertDates(scores []CharacterScoreRow) []time.Time {
