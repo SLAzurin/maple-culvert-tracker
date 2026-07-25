@@ -206,7 +206,7 @@ func LoadPersonalBestRankMetrics(db *sql.DB, rdb *redis.Client) ([]PersonalBestR
 
 // FormatPersonalBestsTable renders the personal-bests leaderboard as an ASCII table.
 func FormatPersonalBestsTable(metrics []PersonalBestRankMetric) string {
-	return FormatNthColumnList(1, metrics, table.Row{"Pos", "Character", "Personal Best"}, func(row PersonalBestRankMetric, idx int) table.Row {
+	return FormatNthColumnList(1, metrics, table.Row{"Rank", "Character", "Personal Best"}, func(row PersonalBestRankMetric, idx int) table.Row {
 		return table.Row{
 			FormatPersonalBestPos(row.Pos, row.DeltaPos, row.HasPrevRank, row.Streak),
 			row.MapleCharacterName,
