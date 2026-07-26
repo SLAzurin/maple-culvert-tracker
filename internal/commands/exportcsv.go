@@ -44,7 +44,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 	// Validate date format
 	if date != "" {
-		rawDate, err = time.Parse("2006-01-02", date) // YYYY-MM-DD
+		rawDate, err = time.Parse(time.DateOnly, date) // YYYY-MM-DD
 		if err != nil {
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -57,7 +57,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 		rawDate = helpers.GetCulvertResetDate(rawDate)
 	}
-	originalInputDate := rawDate.Format("2006-01-02")
+	originalInputDate := rawDate.Format(time.DateOnly)
 
 	allDates := []Expression{}
 	allDatesRaw := []time.Time{}
@@ -112,7 +112,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	m := map[string]map[string]int{}
 
 	for _, v := range dest {
-		d := v.CulvertDate.Format("2006-01-02")
+		d := v.CulvertDate.Format(time.DateOnly)
 		if _, ok := m[d]; !ok {
 			m[d] = map[string]int{}
 		}
@@ -142,7 +142,7 @@ func exportcsv(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	culvertData := [][]string{}
 	for _, v := range allDatesRaw {
-		d := v.Format("2006-01-02")
+		d := v.Format(time.DateOnly)
 		row := []string{d}
 		for _, c := range *chars {
 			score := -1

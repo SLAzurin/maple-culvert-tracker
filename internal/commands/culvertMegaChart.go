@@ -42,10 +42,10 @@ func culvertMegaChart(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	if date == "" {
-		date = cmdhelpers.GetCulvertResetDate(time.Now()).Format("2006-01-02")
+		date = cmdhelpers.GetCulvertResetDate(time.Now()).Format(time.DateOnly)
 	}
 
-	d, err := time.Parse("2006-01-02", date) // YYYY-MM-DD
+	d, err := time.Parse(time.DateOnly, date) // YYYY-MM-DD
 	if err != nil {
 		str := "Invalid date format, should be YYYY-MM-DD"
 		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
@@ -64,7 +64,7 @@ func culvertMegaChart(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	dateLabels := []string{}
 	for _, v := range dates {
 		allDates = append(allDates, DateT(v))
-		dateLabels = append(dateLabels, v.Format("2006-01-02"))
+		dateLabels = append(dateLabels, v.Format(time.DateOnly))
 	}
 	slices.Reverse(dateLabels)
 
@@ -122,7 +122,7 @@ func culvertMegaChart(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			scores[v] = 0
 		}
 		for _, v := range rawRowData {
-			scores[v.CulvertDate.Format("2006-01-02")] = int(v.Score)
+			scores[v.CulvertDate.Format(time.DateOnly)] = int(v.Score)
 		}
 		currentScores := []int{}
 		for _, v := range dateLabels {

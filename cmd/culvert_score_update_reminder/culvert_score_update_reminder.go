@@ -22,7 +22,7 @@ func main() {
 		now = now.Add(time.Hour * -24)
 	}
 
-	date := now.Format("2006-01-02")
+	date := now.Format(time.DateOnly)
 	stmt, err := db.DB.Prepare("SELECT COUNT(*) as count FROM character_culvert_scores WHERE culvert_date = $1")
 	if err != nil {
 		panic(err)

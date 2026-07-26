@@ -1,6 +1,6 @@
 module github.com/slazurin/maple-culvert-tracker
 
-go 1.26.3
+go 1.26.5
 
 require (
 	github.com/bwmarrin/discordgo v0.29.0
@@ -12,7 +12,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.11.1
 	github.com/valkey-io/valkey-go v1.0.71
-	golang.org/x/text v0.37.0
+	golang.org/x/text v0.39.0
 )
 
 require (

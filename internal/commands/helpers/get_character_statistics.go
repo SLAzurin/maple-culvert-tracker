@@ -17,7 +17,7 @@ import (
 
 func GetCharacterStatistics(db *sql.DB, vk *valkey.Client, characterName string, date string, chartData []data.ChartMakerPoints) (*data.CharacterStatistics, error) {
 	r := data.CharacterStatistics{}
-	dateRaw, err := time.Parse("2006-01-02", date)
+	dateRaw, err := time.Parse(time.DateOnly, date)
 	if err != nil {
 		dateRaw, err = GetLatestResetDate(db)
 		if err != nil {
@@ -69,7 +69,7 @@ func GetCharacterStatistics(db *sql.DB, vk *valkey.Client, characterName string,
 	}
 
 	week1IsBefore2mPatch := false
-	if culvertDate, _ := time.Parse("2006-01-02", chartData[0].RawDate); culvertDate.Before(data.Date2mPatch) || culvertDate.Equal(data.Date2mPatch) {
+	if culvertDate, _ := time.Parse(time.DateOnly, chartData[0].RawDate); culvertDate.Before(data.Date2mPatch) || culvertDate.Equal(data.Date2mPatch) {
 		week1IsBefore2mPatch = true
 	}
 	rawScoresSlice := []float64{}
@@ -77,7 +77,7 @@ func GetCharacterStatistics(db *sql.DB, vk *valkey.Client, characterName string,
 		rawScoresSlice = append(rawScoresSlice, float64(v.Score))
 		avg += int64(v.Score)
 		if week1IsBefore2mPatch {
-			culvertDate, _ := time.Parse("2006-01-02", v.RawDate)
+			culvertDate, _ := time.Parse(time.DateOnly, v.RawDate)
 			if culvertDate.After(data.Date2mPatch) || culvertDate.Equal(data.Date2mPatch) {
 				week1IsBefore2mPatch = false // This ensures we fallback into the else block for the rest of the chartData, no need to re-parse the culvertDate again
 				if v.Score <= 0 {

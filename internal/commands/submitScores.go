@@ -22,7 +22,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := i.ApplicationCommandData().Options
 
 	culvertDate := helpers.GetCulvertResetDate(time.Now())
-	culvertDateStr := culvertDate.Format("2006-01-02")
+	culvertDateStr := culvertDate.Format(time.DateOnly)
 	overwriteExisting := false
 	channelID := ""
 	messageID := ""
@@ -39,7 +39,7 @@ func submitScores(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		}
 		if v.Name == "date" {
 			culvertDateStr = strings.Trim(v.StringValue(), " ")
-			culvertDate, err = time.Parse("2006-01-02", culvertDateStr)
+			culvertDate, err = time.Parse(time.DateOnly, culvertDateStr)
 			if err != nil {
 				*content = "Invalid date format provided! Please use YYYY-MM-DD."
 				s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{

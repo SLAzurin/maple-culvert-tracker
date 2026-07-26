@@ -2,7 +2,7 @@ package helpers
 
 import "time"
 
-var culvertResetChangedFromSundayToWednesday, _ = time.Parse("2006-01-02", "2024-08-28") // hardcoded as of the maple GMS patch on this day
+var culvertResetChangedFromSundayToWednesday, _ = time.Parse(time.DateOnly, "2024-08-28") // hardcoded as of the maple GMS patch on this day
 
 func GetCulvertResetDay(asOf time.Time) time.Weekday {
 	if asOf.Before(culvertResetChangedFromSundayToWednesday) {
