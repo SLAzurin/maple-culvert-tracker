@@ -1,12 +1,8 @@
 import { type GuildMember } from "../types/GuildMember";
 
-const fetchMembers = async (auth: string): Promise<GuildMember[] | number> => {
+const fetchMembers = async (): Promise<GuildMember[] | number> => {
 	try {
-		const res = await fetch("/api/discord/members/fetch", {
-			headers: {
-				Authorization: `Bearer ${auth}`,
-			},
-		});
+		const res = await fetch("/api/discord/members/fetch");
 		if (res.status !== 200) {
 			return Promise.resolve(res.status);
 		}

@@ -152,7 +152,7 @@ export const charactersSlice = createSlice({
 			newScores[action.payload] = {};
 			state.characterScores = newScores;
 		},
-		applyCulvertChanges: (state, action: PayloadAction<string>) => {
+		applyCulvertChanges: (state) => {
 			if (
 				state.characterScores === null ||
 				state.characterScoresOriginal === null
@@ -208,7 +208,7 @@ export const charactersSlice = createSlice({
 				} = { status: 200, date: new Date(), statusMessage: "" };
 				for (const v of [_new, edit]) {
 					if (v.payload.length !== 0) {
-						const res = await updateCulvertScores(action.payload, v);
+						const res = await updateCulvertScores(v);
 						if (res.status !== 200) {
 							mainRes.status = res.status;
 							mainRes.statusMessage += (res.payload as string) + " ";
