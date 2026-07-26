@@ -1,7 +1,6 @@
 import { type FetchResult } from "../types/FetchResult";
 
 const linkDiscordMaple = async (
-	auth: string,
 	discordUserID: string,
 	characterName: string,
 	link: boolean,
@@ -10,7 +9,6 @@ const linkDiscordMaple = async (
 	const res = await fetch("/api/maple/link", {
 		method: "POST",
 		headers: {
-			Authorization: `Bearer ${auth}`,
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify({

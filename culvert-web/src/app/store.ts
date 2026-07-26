@@ -11,11 +11,6 @@ import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/es/storage";
 import charactersSlice from "../features/characters/charactersSlice";
 
-const persistLoginConfig = {
-	key: "login",
-	storage,
-};
-
 const persistCharactersConfig = {
 	key: "characters",
 	storage,
@@ -32,7 +27,7 @@ const persistCharactersConfig = {
 };
 
 const rootReducer = combineReducers({
-	login: persistReducer(persistLoginConfig, loginReducer),
+	login: loginReducer,
 	members: membersReducer,
 	characters: persistReducer(persistCharactersConfig, charactersSlice),
 });
