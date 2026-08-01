@@ -185,8 +185,13 @@ func SendWeeklyDifferences(s *discordgo.Session, db *sql.DB, rdb *redis.Client, 
 		})
 		sandbaggersTable = &detailsTable
 
-		detailsZeroScoreCharas := strings.Join(sandbaggers.ZeroScoreSandbaggers, ",")
-		sandbaggersZeroScoreList = &detailsZeroScoreCharas
+		zeroScoreStreaks, err := cmdhelpers.GetCurrentZeroScoreStreaks(db, submittedDate)
+		if err != nil {
+			log.Println("send_weekly_differences:GetCurrentZeroScoreStreaks", err)
+			return
+		}
+		zeroScoreStreakReport := cmdhelpers.FormatZeroScoreStreaks(zeroScoreStreaks)
+		sandbaggersZeroScoreList = &zeroScoreStreakReport
 	}
 
 	shouldShowWeeklyRats := false
