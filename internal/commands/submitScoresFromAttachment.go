@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -247,18 +248,13 @@ func finalizeSubmitScores(s *discordgo.Session, i *discordgo.InteractionCreate, 
 
 	// check if there are untracked characters in attachmentMap
 	if len(attachmentMap) > 0 {
-		untrackedNames := []string{}
-		for k := range attachmentMap {
-			untrackedNames = append(untrackedNames, k)
-		}
-		untrackedNamesJSON, _ := json.Marshal(untrackedNames)
 		*content = "Failed to submit scores. Correct their name or track these new characters before submitting their scores."
 		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 			Content: content,
 			Files: []*discordgo.File{{
-				Name:        "names.json",
-				ContentType: "application/json",
-				Reader:      strings.NewReader(string(untrackedNamesJSON)),
+				Name:        "names.txt",
+				ContentType: "text/plain",
+				Reader:      strings.NewReader(formatUnmatchedScoresTable(sortedScoreEntries(attachmentMap))),
 			}},
 		})
 		return
@@ -289,6 +285,7 @@ func finalizeSubmitScores(s *discordgo.Session, i *discordgo.InteractionCreate, 
 			log.Println("submitScores: Error submitting new scores:", resp.StatusCode, err)
 		}
 	}
+
 	if len(newMapIsNotNew.Payload) > 0 {
 		body, _ := json.Marshal(newMapIsNotNew)
 		req, _ := http.NewRequest("POST", "http://localhost:"+port+"/api/maple/characters/culvert", strings.NewReader(string(body)))
@@ -319,4 +316,18 @@ func finalizeSubmitScores(s *discordgo.Session, i *discordgo.InteractionCreate, 
 	s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 		Content: content,
 	})
+}
+
+func sortedScoreEntries(scores map[string]int) []helpers.ScoreEntry {
+	names := make([]string, 0, len(scores))
+	for name := range scores {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+
+	entries := make([]helpers.ScoreEntry, 0, len(names))
+	for _, name := range names {
+		entries = append(entries, helpers.ScoreEntry{Name: name, Score: scores[name]})
+	}
+	return entries
 }

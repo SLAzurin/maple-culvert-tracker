@@ -6,12 +6,12 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/slazurin/maple-culvert-tracker/internal/apiredis"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
@@ -133,22 +133,15 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	// Fail when any parsed name is not an active character.
-	unmatched := []string{}
-	for _, e := range merged {
-		if !activeSet[e.Name] {
-			unmatched = append(unmatched, e.Name)
-		}
-	}
+	unmatched := collectUnmatchedScores(merged, activeSet)
 	if len(unmatched) > 0 {
-		sort.Strings(unmatched)
-		unmatchedJSON, _ := json.MarshalIndent(unmatched, "", "    ")
 		*content = "Some parsed character names did not match any active character. Fix the images or track these characters first."
 		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 			Content: content,
 			Files: []*discordgo.File{{
-				Name:        "unmatched.json",
-				ContentType: "application/json",
-				Reader:      strings.NewReader(string(unmatchedJSON)),
+				Name:        "unmatched.txt",
+				ContentType: "text/plain",
+				Reader:      strings.NewReader(formatUnmatchedScoresTable(unmatched)),
 			}},
 		})
 		return
@@ -179,6 +172,25 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Reader:      strings.NewReader(string(out)),
 		}},
 	})
+}
+
+func collectUnmatchedScores(entries []helpers.ScoreEntry, activeSet map[string]bool) []helpers.ScoreEntry {
+	unmatched := make([]helpers.ScoreEntry, 0)
+	for _, entry := range entries {
+		if !activeSet[entry.Name] {
+			unmatched = append(unmatched, entry)
+		}
+	}
+	return unmatched
+}
+
+func formatUnmatchedScoresTable(entries []helpers.ScoreEntry) string {
+	t := table.NewWriter()
+	t.AppendHeader(table.Row{"Missing Active Character", "Score"})
+	for _, entry := range entries {
+		t.AppendRow(table.Row{entry.Name, entry.Score})
+	}
+	return t.Render()
 }
 
 // firstDescendingViolation returns the index of the first entry whose score is

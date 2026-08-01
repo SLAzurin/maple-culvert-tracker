@@ -22,7 +22,7 @@
 4. **Get results**:
    - JSON file (`gpq_scores.json`) with character scores in leaderboard order
    - If scores are out of order: warning appended to message (but JSON still attached)
-   - If character names don't match active roster: `unmatched.json` list sent instead
+   - If character names don't match active roster: `unmatched.txt` ASCII table with names and parsed scores sent instead
 
 ### Requirements
 
@@ -103,7 +103,7 @@ Discord slash command that parses GPQ score table images and outputs character s
 
 - JSON: `{"name": score, ...}` in **row order**, 4-space indent
 - Attachment: `gpq_scores.json`
-- If unmatched names (not in active guild): sends `unmatched.json` list, command fails
+- If unmatched names (not in active guild): sends an `unmatched.txt` ASCII table with names and parsed scores, command fails
 - If order violation: warning appended to message; JSON still sent
 
 ## Testing
