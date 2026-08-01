@@ -28,6 +28,7 @@ code side validation and execution flow
     - loop through trackedCharacterScores -> check if characterName is in map attachmentMap[v]
         - error and break loop if name is not found, suggest use /track-character command
         - assign culvert score from attachmentMap[v] to newMapIsNew[v] if score is nil, and to newMapIsNotNew[v] if score not nil
+    - if untracked names remain, attach `names.txt` with an ASCII table of character names and submitted scores
             - omit newMapIsNotNew if score is same as before
     - at this point, after these validations, newMapIsNew will contain scores to insert, and newMapIsNotNew will contain scores to update.
     - generate jwt key with ttl 5m, and send POST to `localhost:${BACKEND_HTTP_PORT ?? 8080}/api/maple/characters/culvert`
