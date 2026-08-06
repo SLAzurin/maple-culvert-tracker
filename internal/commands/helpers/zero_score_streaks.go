@@ -13,7 +13,7 @@ import (
 type ZeroScoreStreak struct {
 	MapleCharacterName string
 	ZeroStreak         int64
-	LatestCulvertDate  time.Time
+	LastNonZeroDate    sql.NullTime
 }
 
 // GetCurrentZeroScoreStreaks returns characters that have a zero score on
@@ -35,7 +35,8 @@ func GetCurrentZeroScoreStreaks(db *sql.DB, latestDate time.Time) ([]ZeroScoreSt
 	first_non_zero AS (
 		SELECT
 			character_id,
-			MIN(rn) FILTER (WHERE score <> 0) AS first_non_zero_rn
+			MIN(rn) FILTER (WHERE score <> 0) AS first_non_zero_rn,
+			MAX(culvert_date) FILTER (WHERE score <> 0) AS last_non_zero_date
 		FROM ranked
 		GROUP BY character_id
 	),
@@ -44,12 +45,12 @@ func GetCurrentZeroScoreStreaks(db *sql.DB, latestDate time.Time) ([]ZeroScoreSt
 			r.character_id,
 			r.maple_character_name,
 			COUNT(*) AS zero_streak,
-			MAX(r.culvert_date) AS latest_culvert_date
+			f.last_non_zero_date
 		FROM ranked r
 		LEFT JOIN first_non_zero f ON f.character_id = r.character_id
 		WHERE r.score = 0
 			AND (f.first_non_zero_rn IS NULL OR r.rn < f.first_non_zero_rn)
-		GROUP BY r.character_id, r.maple_character_name
+		GROUP BY r.character_id, r.maple_character_name, f.last_non_zero_date
 		HAVING COUNT(*) > 0
 	),
 	latest_characters AS (
@@ -60,10 +61,10 @@ func GetCurrentZeroScoreStreaks(db *sql.DB, latestDate time.Time) ([]ZeroScoreSt
 	SELECT
 		cs.maple_character_name,
 		cs.zero_streak,
-		cs.latest_culvert_date
+		cs.last_non_zero_date
 	FROM current_zero_streaks cs
 	INNER JOIN latest_characters lc ON lc.character_id = cs.character_id
-	ORDER BY cs.zero_streak DESC, cs.latest_culvert_date DESC, cs.maple_character_name`
+	ORDER BY cs.zero_streak DESC, cs.maple_character_name`
 
 	rows, err := db.Query(query, latestDate)
 	if err != nil {
@@ -74,7 +75,7 @@ func GetCurrentZeroScoreStreaks(db *sql.DB, latestDate time.Time) ([]ZeroScoreSt
 	streaks := []ZeroScoreStreak{}
 	for rows.Next() {
 		var streak ZeroScoreStreak
-		if err := rows.Scan(&streak.MapleCharacterName, &streak.ZeroStreak, &streak.LatestCulvertDate); err != nil {
+		if err := rows.Scan(&streak.MapleCharacterName, &streak.ZeroStreak, &streak.LastNonZeroDate); err != nil {
 			return nil, err
 		}
 		streaks = append(streaks, streak)
@@ -96,12 +97,6 @@ func SortZeroScoreStreaks(streaks []ZeroScoreStreak) {
 		if a.ZeroStreak < b.ZeroStreak {
 			return 1
 		}
-		if !a.LatestCulvertDate.Equal(b.LatestCulvertDate) {
-			if a.LatestCulvertDate.After(b.LatestCulvertDate) {
-				return -1
-			}
-			return 1
-		}
 		if a.MapleCharacterName < b.MapleCharacterName {
 			return -1
 		}
@@ -115,9 +110,13 @@ func SortZeroScoreStreaks(streaks []ZeroScoreStreak) {
 // FormatZeroScoreStreaks renders the shared inactive-player report table.
 func FormatZeroScoreStreaks(streaks []ZeroScoreStreak) string {
 	t := table.NewWriter()
-	t.AppendHeader(table.Row{"Character", "Zero Streak", "Latest Culvert Date"})
+	t.AppendHeader(table.Row{"Character", "Zero Streak", "Last Non-Zero Date"})
 	for _, streak := range streaks {
-		t.AppendRow(table.Row{streak.MapleCharacterName, streak.ZeroStreak, streak.LatestCulvertDate.Format(time.DateOnly)})
+		lastNonZeroDate := "Never"
+		if streak.LastNonZeroDate.Valid {
+			lastNonZeroDate = streak.LastNonZeroDate.Time.Format(time.DateOnly)
+		}
+		t.AppendRow(table.Row{streak.MapleCharacterName, streak.ZeroStreak, lastNonZeroDate})
 	}
 	return t.Render()
 }
