@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useSelector } from "react-redux";
-import { selectToken } from "../features/login/loginSlice";
 import fetchEditableSettings from "../helpers/fetchEditableSettings";
 import { getHumanValue } from "./EditSettingsHelpers";
 
 const EditSettings = () => {
 	const navigate = useNavigate();
-	const token = useSelector(selectToken);
 	const [status, setStatus] = useState("");
 	const [statusColor, setStatusColor] = useState("green");
 	const [editableValues, setEditableValues] = useState({} as any);
@@ -35,7 +32,6 @@ const EditSettings = () => {
 				method: "PATCH",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
 				},
 				body: JSON.stringify({
 					key: key,
@@ -94,7 +90,7 @@ const EditSettings = () => {
 	useEffect(() => {
 		setStatus("Loading settings...");
 		try {
-			fetchEditableSettings(token).then((res) => {
+			fetchEditableSettings().then((res) => {
 				const vals = Object.entries(res).map(([key, v]) => ({
 					[key]: (v as any).value,
 				}));

@@ -1,17 +1,13 @@
 import { type FetchResult } from "../types/FetchResult";
 
-const renameCharacter = async (
-	auth: string,
-	data: {
-		character_id: number;
-		new_name: string;
-		bypass_name_check: boolean;
-	},
-): Promise<FetchResult> => {
+const renameCharacter = async (data: {
+	character_id: number;
+	new_name: string;
+	bypass_name_check: boolean;
+}): Promise<FetchResult> => {
 	const res = await fetch("/api/maple/characters/rename", {
 		method: "POST",
 		headers: {
-			Authorization: `Bearer ${auth}`,
 			"Content-Type": "application/json",
 		},
 		body: JSON.stringify(data),

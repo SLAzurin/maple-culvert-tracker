@@ -2,43 +2,43 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 import { type RootState } from "../../app/store";
 import { type MCTClaims } from "../../types/MCTClaims";
-import validateJWT from "../../helpers/validateJWT";
 
 export interface LoginState {
-	token: string;
+	authenticated: boolean;
 	claims: MCTClaims;
 }
 
+const emptyClaims: MCTClaims = {
+	exp: "0",
+	discord_username: "",
+	discord_server_id: "",
+	discord_user_id: "",
+	dev_mode: 0,
+};
+
 const initialState: LoginState = {
-	token: "",
-	claims: {
-		exp: "0",
-		discord_username: "",
-		discord_server_id: "",
-		discord_user_id: "",
-		dev_mode: 0,
-	},
+	authenticated: false,
+	claims: emptyClaims,
 };
 
 export const loginSlice = createSlice({
 	name: "login",
 	initialState,
 	reducers: {
-		setToken: (state, action: PayloadAction<string>) => {
-			const { valid, claims } = validateJWT(action.payload);
-			if (!valid) return;
-			state.token = action.payload;
-			state.claims = claims as MCTClaims;
+		setClaims: (state, action: PayloadAction<MCTClaims>) => {
+			state.authenticated = true;
+			state.claims = action.payload;
 		},
 		resetToken: (state) => {
-			state.claims = initialState.claims;
-			state.token = initialState.token;
+			state.authenticated = false;
+			state.claims = emptyClaims;
 		},
 	},
 });
 export default loginSlice.reducer;
 
-export const selectToken = (state: RootState) => state.login.token;
+export const selectAuthenticated = (state: RootState) =>
+	state.login.authenticated;
 export const selectClaims = (state: RootState) => state.login.claims;
 
-export const { setToken, resetToken } = loginSlice.actions;
+export const { setClaims, resetToken } = loginSlice.actions;
