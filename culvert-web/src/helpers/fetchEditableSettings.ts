@@ -1,10 +1,6 @@
-const fetchEditableSettings = async (auth: string): Promise<any> => {
+const fetchEditableSettings = async (): Promise<any> => {
 	try {
-		const res = await fetch("/api/editable-settings", {
-			headers: {
-				Authorization: `Bearer ${auth}`,
-			},
-		});
+		const res = await fetch("/api/editable-settings");
 		if (res.status !== 200) {
 			return Promise.reject(res.status);
 		}

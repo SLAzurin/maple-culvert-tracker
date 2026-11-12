@@ -6,7 +6,6 @@ import {
 	selectCharacters,
 } from "../features/characters/charactersSlice";
 import { selectMembers, setMembers } from "../features/members/membersSlice";
-import { selectToken } from "../features/login/loginSlice";
 import linkDiscordMaple from "../helpers/linkDiscordMaple";
 import { store } from "../app/store";
 import { type GuildMember } from "../types/GuildMember";
@@ -15,7 +14,6 @@ const LinkDiscord = () => {
 	const navigate = useNavigate();
 	const characters = useSelector(selectCharacters);
 	const members = useSelector(selectMembers);
-	const token = useSelector(selectToken);
 	const [status, setStatus] = useState("");
 	const [disabled, setDisabled] = useState(false);
 
@@ -25,7 +23,6 @@ const LinkDiscord = () => {
 		setDisabled(true);
 		setStatus("Linking character...");
 		const res = linkDiscordMaple(
-			token,
 			member.discord_user_id,
 			characters[Number(charID)],
 			false,
@@ -35,7 +32,6 @@ const LinkDiscord = () => {
 			.then((res) => {
 				if (res.status === 200) {
 					const res2 = linkDiscordMaple(
-						token,
 						member.discord_user_id,
 						characters[Number(charID)],
 						true,

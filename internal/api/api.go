@@ -14,34 +14,45 @@ func NewRouter() *gin.Engine {
 	router := gin.Default()
 	apiGroup := router.Group("/api")
 	{
-		apiGroup.Use(middlewares.AuthMiddleware())
-		discordGroup := apiGroup.Group("/discord")
+		auth := controllers.AuthController{}
+		authGroup := apiGroup.Group("/auth")
 		{
-			discordServer := controllers.DiscordServerController{}
-			discordServerMembers := discordGroup.Group("/members")
-			{
-				discordServerMembers.GET("/fetch", discordServer.RetrieveMembers)
-				discordServerMembers.GET("/force", discordServer.RetrieveMembersForce)
-			}
+			authGroup.POST("/login", auth.Login)
+			authGroup.POST("/logout", auth.Logout)
+			authGroup.GET("/me", middlewares.AuthMiddleware(), auth.Me)
 		}
-		mapleGroup := apiGroup.Group("/maple")
-		{
-			maple := controllers.MapleController{}
-			mapleGroup.POST("/link", maple.LinkDiscord)
-			mapleCharacters := mapleGroup.Group("/characters")
-			{
-				mapleCharacters.GET("/culvert", maple.GETCulvert)
-				mapleCharacters.POST("/culvert", maple.POSTCulvert)
-				mapleCharacters.GET("/fetch", maple.GETCharacters)
-				mapleCharacters.POST("/rename", maple.POSTRename)
-			}
 
-		}
-		settingsGroup := apiGroup.Group("/editable-settings")
+		protected := apiGroup.Group("")
+		protected.Use(middlewares.AuthMiddleware())
 		{
-			settings := controllers.EditableSettingsController{}
-			settingsGroup.GET("", settings.GETEditable(DiscordSession))
-			settingsGroup.PATCH("", settings.PatchEditable(DiscordSession))
+			discordGroup := protected.Group("/discord")
+			{
+				discordServer := controllers.DiscordServerController{}
+				discordServerMembers := discordGroup.Group("/members")
+				{
+					discordServerMembers.GET("/fetch", discordServer.RetrieveMembers)
+					discordServerMembers.GET("/force", discordServer.RetrieveMembersForce)
+				}
+			}
+			mapleGroup := protected.Group("/maple")
+			{
+				maple := controllers.MapleController{}
+				mapleGroup.POST("/link", maple.LinkDiscord)
+				mapleCharacters := mapleGroup.Group("/characters")
+				{
+					mapleCharacters.GET("/culvert", maple.GETCulvert)
+					mapleCharacters.POST("/culvert", maple.POSTCulvert)
+					mapleCharacters.GET("/fetch", maple.GETCharacters)
+					mapleCharacters.POST("/rename", maple.POSTRename)
+				}
+
+			}
+			settingsGroup := protected.Group("/editable-settings")
+			{
+				settings := controllers.EditableSettingsController{}
+				settingsGroup.GET("", settings.GETEditable(DiscordSession))
+				settingsGroup.PATCH("", settings.PatchEditable(DiscordSession))
+			}
 		}
 	}
 	return router

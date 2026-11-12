@@ -5,14 +5,12 @@ import {
 	resetInitialStateCharacters,
 	selectCharacters,
 } from "../features/characters/charactersSlice";
-import { selectToken } from "../features/login/loginSlice";
 import { store } from "../app/store";
 import renameCharacter from "../helpers/renameCharacter";
 
 const Rename = () => {
 	const navigate = useNavigate();
 	const characters = useSelector(selectCharacters);
-	const token = useSelector(selectToken);
 	const [status, setStatus] = useState("");
 	const [newName, setNewName] = useState("");
 	const [bypassNameCheck, setBypassNameCheck] = useState(false);
@@ -60,7 +58,7 @@ const Rename = () => {
 					}
 					setStatus("Renaming character...");
 					setDisabled(true);
-					const res = await renameCharacter(token, {
+					const res = await renameCharacter({
 						character_id: Number(charID),
 						new_name: newName,
 						bypass_name_check: bypassNameCheck,

@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useSelector } from "react-redux";
 import { resetInitialStateCharacters } from "../features/characters/charactersSlice";
-import { selectToken } from "../features/login/loginSlice";
 import { store } from "../app/store";
 import linkDiscordMaple from "../helpers/linkDiscordMaple";
 
 const NewChar = () => {
 	const navigate = useNavigate();
-	const token = useSelector(selectToken);
 	const [status, setStatus] = useState("");
 	const [characterName, setCharacterName] = useState("");
 	const [bypassNameCheck, setBypassNameCheck] = useState(false);
@@ -36,7 +33,6 @@ const NewChar = () => {
 					setStatus("Linking character...");
 					setDisabled(true);
 					linkDiscordMaple(
-						token,
 						"2",
 						characterName,
 						true,

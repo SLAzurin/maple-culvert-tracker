@@ -1,15 +1,9 @@
-const fetchCharacters = async (
-	auth: string,
-): Promise<
+const fetchCharacters = async (): Promise<
 	| { character_name: string; character_id: number; discord_user_id: string }[]
 	| number
 > => {
 	try {
-		const res = await fetch("/api/maple/characters/fetch", {
-			headers: {
-				Authorization: `Bearer ${auth}`,
-			},
-		});
+		const res = await fetch("/api/maple/characters/fetch");
 		if (res.status !== 200) {
 			return Promise.resolve(res.status);
 		}

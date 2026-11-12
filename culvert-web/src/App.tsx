@@ -4,9 +4,12 @@ import { useEffect, useState } from "react";
 import fetchMembers from "./helpers/fetchMembers";
 import {
 	resetToken,
+	selectAuthenticated,
 	selectClaims,
-	selectToken,
+	setClaims,
 } from "./features/login/loginSlice";
+import fetchMe from "./helpers/fetchMe";
+import logout from "./helpers/logout";
 import { selectMembers, setMembers } from "./features/members/membersSlice";
 import { store } from "./app/store";
 import { useSelector } from "react-redux";
@@ -18,6 +21,7 @@ import {
 	addNewCharacterScore,
 	applyCulvertChanges,
 	resetCharacterScores,
+	resetInitialStateCharacters,
 	selectCharacterScores,
 	selectCharacters,
 	selectMembersCharacters,
@@ -47,7 +51,7 @@ interface ImportedData {
 
 function App() {
 	const navigate = useNavigate();
-	const token = useSelector(selectToken);
+	const authenticated = useSelector(selectAuthenticated);
 	const claims = useSelector(selectClaims);
 	const members = useSelector(selectMembers);
 	const membersByID = useSelector(selectMembersByID);
@@ -88,8 +92,12 @@ function App() {
 	}, [selectedWeekFE]);
 
 	useEffect(() => {
-		if (token !== "" && action === "culvert_score" && selectedWeek !== null) {
-			fetchCharacterScores(token, selectedWeek).then((res) => {
+		if (
+			authenticated &&
+			action === "culvert_score" &&
+			selectedWeek !== null
+		) {
+			fetchCharacterScores(selectedWeek).then((res) => {
 				if (typeof res === "number") {
 					setSuccessful(false);
 					setStatusMessage("Failed with error " + res);
@@ -98,7 +106,7 @@ function App() {
 				store.dispatch(setCharacterScores(res));
 			});
 		}
-	}, [selectedWeek, token, action]);
+	}, [selectedWeek, authenticated, action]);
 
 	useEffect(() => {
 		if (updateCulvertScoresResult !== null) {
@@ -113,13 +121,14 @@ function App() {
 
 	useEffect(() => {
 		if (
+			authenticated &&
 			(action === "culvert_score" ||
 				action === "rename_character" ||
 				action === "link_member") &&
 			Object.values(characters).length === 0
 		) {
 			console.log("action get characters");
-			fetchCharacters(token).then((res) => {
+			fetchCharacters().then((res) => {
 				if (typeof res === "number") {
 					setSuccessful(false);
 					setStatusMessage("Failed with error " + res);
@@ -128,16 +137,16 @@ function App() {
 				if (res.length > 0) store.dispatch(setCharacters(res));
 			});
 		}
-	}, [action, characters, token]);
+	}, [action, characters, authenticated]);
 	useEffect(() => {
 		if (
+			authenticated &&
 			action === "culvert_score" &&
 			Object.values(characters).length !== 0 &&
 			characterScores === null
 		) {
 			console.log("action get character scores");
 			fetchCharacterScores(
-				token,
 				selectedWeek !== null ? selectedWeek : "",
 			).then((res) => {
 				if (typeof res === "number") {
@@ -148,35 +157,59 @@ function App() {
 				store.dispatch(setCharacterScores(res));
 			});
 		}
-	}, [action, characters, token, characterScores, selectedWeek]);
+	}, [action, characters, authenticated, characterScores, selectedWeek]);
 	useEffect(() => {
+		(async () => {
+			const me = await fetchMe();
+			if (typeof me === "number") {
+				if (authenticated) {
+					await logout();
+					store.dispatch(resetToken());
+				}
+				return;
+			}
+			store.dispatch(setClaims(me));
+		})();
+		// Bootstrap session from httpOnly cookie once on mount.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+	useEffect(() => {
+		if (!authenticated) {
+			setAction("");
+			setStatusMessage("");
+			setSuccessful(true);
+			setSelectedWeekFE("");
+			setImportedData("");
+			setImportedDataStatus("");
+			store.dispatch(setMembers([]));
+			store.dispatch(resetInitialStateCharacters());
+			return;
+		}
 		// claims expired
 		if (
 			claims.exp !== "0" &&
 			Number(claims.exp) * 1000 < new Date().getTime()
 		) {
 			alert("Expired login token");
-			store.dispatch(resetToken());
+			void logout().then(() => store.dispatch(resetToken()));
 			return;
 		}
-		// if new token was entered
-		if (token !== "") {
-			(async () => {
-				console.log("fetching members");
-				const res = await fetchMembers(token);
-				if (typeof res === "number") {
-					console.log("failed to get members", res);
-					if (res === 401) {
-						// Using store's dispatch to go around react hook exhaustive deps
-						store.dispatch(resetToken());
-					}
-					return;
+		(async () => {
+			console.log("fetching members");
+			const res = await fetchMembers();
+			if (typeof res === "number") {
+				console.log("failed to get members", res);
+				if (res === 401) {
+					// Using store's dispatch to go around react hook exhaustive deps
+					await logout();
+					store.dispatch(resetToken());
 				}
-				if (res.length > 0) store.dispatch(setMembers(res));
-				setAction("culvert_score");
-			})();
-		}
-	}, [token, claims]);
+				return;
+			}
+			if (res.length > 0) store.dispatch(setMembers(res));
+			setAction("culvert_score");
+		})();
+	}, [authenticated, claims]);
 
 	useEffect(() => {
 		// Handle importedData onChange
@@ -242,7 +275,6 @@ function App() {
 	const untrackCharacter = (member: GuildMember, charID: string) => {
 		setDisabledUntrackCharacter(true);
 		const res = linkDiscordMaple(
-			token,
 			member.discord_user_id,
 			characters[Number(charID)],
 			false,
@@ -275,7 +307,7 @@ function App() {
 		<div className="App">
 			<header className="App-header">
 				<Login />
-				{token !== "" && (
+				{authenticated && (
 					<div className="m-5">
 						<Navbar
 							expand="lg"
@@ -307,7 +339,7 @@ function App() {
 						{statusMessage}
 					</div>
 				)}
-				{action === "culvert_score" && (
+				{authenticated && action === "culvert_score" && (
 					<div>
 						{editableWeeks !== null && (
 							<div style={{ display: "flex", flexDirection: "column" }}>
@@ -406,7 +438,7 @@ Don't forget to submit"
 												setImportedDataStatus("");
 												setDisabledLink(true);
 												console.log("apply changes for culvert scores");
-												store.dispatch(applyCulvertChanges(token));
+												store.dispatch(applyCulvertChanges());
 											}}
 										>
 											Submit
@@ -652,7 +684,8 @@ Don't forget to submit"
 						</table>
 					</div>
 				)}
-				{action === "rename_character" && ( // We no longer change the action variable's value
+				{authenticated &&
+					action === "rename_character" && ( // We no longer change the action variable's value
 					<div>
 						<div>
 							{selectedCharacterID !== 0 && (
@@ -709,7 +742,7 @@ Don't forget to submit"
 							disabled={disabledLink}
 							onClick={() => {
 								setDisabledLink(true);
-								renameCharacter(token, {
+								renameCharacter({
 									character_id: selectedCharacterID,
 									new_name: newCharacterName,
 									bypass_name_check: false, // literally dead old code.
