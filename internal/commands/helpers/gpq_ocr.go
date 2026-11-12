@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"embed"
+	"errors"
 	"image"
 	_ "image/jpeg"
 	_ "image/png"
@@ -145,30 +146,182 @@ func ParseSmallImage(imgData []byte, memberNames []string, font *GPQFont) ([]Sco
 		return nil, err
 	}
 
-	namesBin := binarizeCrop(img, 0, 0, 68)
-	scoresBin := binarizeCrop(img, 305, 0, 415)
+	// Screenshots are hand-cut, so margins and column positions vary: locate
+	// the text rows and the name/score columns from the pixels themselves.
+	bin := binarizeCrop(img, 0, 0, img.Bounds().Dx())
+	lay, err := findLayout(bin, font)
+	if err != nil {
+		return nil, err
+	}
 
-	decodedNames := decodeColumn(namesBin, font)
-	decodedScores := decodeColumn(scoresBin, font)
+	decodedNames := decodeRegion(bin, lay.rows, lay.name, font)
+	decodedScores := decodeRegion(bin, lay.rows, lay.score, font)
 
 	names := make([]string, len(decodedNames))
 	for i, d := range decodedNames {
-		names[i] = reconcileName(strings.TrimRight(d, "."), memberNames)
+		names[i] = reconcileName(cleanDecodedName(d), memberNames)
 	}
 	scores := make([]string, len(decodedScores))
 	for i, d := range decodedScores {
 		scores[i] = keepDigits(d)
 	}
 
-	// Pad/truncate to equal length (gpq.py main behaviour).
-	for len(names) < len(scores) {
-		names = append(names, "__unknown_"+strconv.Itoa(len(names))+"__")
-	}
-	if len(scores) > len(names) {
-		scores = scores[:len(names)]
-	}
-
+	// names and scores share the same detected rows, so they are always the
+	// same length.
 	return mergeScoresWithNames(scores, names), nil
+}
+
+// cleanDecodedName drops the optional "(...)" suffix the game UI can append to
+// a character name, then removes the ".." truncation marker. Maplestory names
+// are alphanumeric, so "(" never belongs to a real name.
+func cleanDecodedName(d string) string {
+	if i := strings.IndexRune(d, '('); i >= 0 {
+		d = d[:i]
+	}
+	return strings.TrimRight(d, ".")
+}
+
+// ── Layout detection (hand-cut screenshots) ─────────────────────────────────
+
+const (
+	// gpqColGap: this many blank pixel columns (across all text rows) separate
+	// two table columns. Equal to gpqGapStop, the in-row word gap.
+	gpqColGap = 8
+	// gpqMinRowH: ink bands shorter than this are borders/noise, not text rows.
+	gpqMinRowH = 6
+	// gpqMinColW: ink clusters narrower than this are border lines, not columns.
+	gpqMinColW = 3
+)
+
+// gpqColumn is a horizontal pixel range [x0, x1) of one table column.
+type gpqColumn struct{ x0, x1 int }
+
+// gpqLayout locates the table inside one image, whatever the crop margins.
+type gpqLayout struct {
+	rows  [][2]int  // [y0, y1) of each text row
+	name  gpqColumn // character name column (leftmost)
+	score gpqColumn // culvert score column
+}
+
+// findLayout detects the text rows, then the table columns, then picks the
+// name column (leftmost) and the score column (the widest purely numeric
+// column: it holds 5-6 digit comma-separated numbers, wider than the level,
+// the small count and the trailing flag columns).
+func findLayout(bin [][]bool, font *GPQFont) (gpqLayout, error) {
+	var lay gpqLayout
+	for _, r := range detectRows(bin) {
+		if r[1]-r[0] >= gpqMinRowH {
+			lay.rows = append(lay.rows, r)
+		}
+	}
+	cols := detectColumns(bin, lay.rows)
+	if len(lay.rows) == 0 || len(cols) < 2 {
+		return lay, errors.New("gpq: no score table found in image")
+	}
+	lay.name = cols[0]
+	bestW := -1
+	for _, c := range cols[1:] {
+		if !numericStrings(decodeRegion(bin, lay.rows, c, font)) {
+			continue
+		}
+		if w := c.x1 - c.x0; w > bestW {
+			bestW = w
+			lay.score = c
+		}
+	}
+	if bestW < 0 {
+		return lay, errors.New("gpq: score column not found in image")
+	}
+	return lay, nil
+}
+
+// detectColumns groups ink columns (looking only at the text rows, so
+// horizontal border lines cannot bridge columns) into table columns.
+func detectColumns(bin [][]bool, rows [][2]int) []gpqColumn {
+	if len(bin) == 0 {
+		return nil
+	}
+	w := len(bin[0])
+	cols := []gpqColumn{}
+	start, last := -1, -1
+	flush := func() {
+		if start >= 0 && last+1-start >= gpqMinColW {
+			cols = append(cols, gpqColumn{start, last + 1})
+		}
+		start = -1
+	}
+	for x := 0; x < w; x++ {
+		ink := false
+		for _, r := range rows {
+			for y := r[0]; y < r[1] && !ink; y++ {
+				ink = bin[y][x]
+			}
+			if ink {
+				break
+			}
+		}
+		if !ink {
+			continue
+		}
+		if start >= 0 && x-last-1 >= gpqColGap {
+			flush()
+		}
+		if start < 0 {
+			start = x
+		}
+		last = x
+	}
+	flush()
+	return cols
+}
+
+// decodeRegion decodes column c of every text row. Each row is trimmed to its
+// own ink so glyph matching sees the same band the per-column detection used.
+func decodeRegion(bin [][]bool, rows [][2]int, c gpqColumn, font *GPQFont) []string {
+	res := make([]string, len(rows))
+	for i, r := range rows {
+		sub := make([][]bool, 0, r[1]-r[0])
+		for y := r[0]; y < r[1]; y++ {
+			sub = append(sub, bin[y][c.x0:c.x1])
+		}
+		for len(sub) > 0 && !rowHasInk(sub[0]) {
+			sub = sub[1:]
+		}
+		for len(sub) > 0 && !rowHasInk(sub[len(sub)-1]) {
+			sub = sub[:len(sub)-1]
+		}
+		if len(sub) > 0 {
+			res[i] = matchRow(sub, font)
+		}
+	}
+	return res
+}
+
+func rowHasInk(row []bool) bool {
+	for _, v := range row {
+		if v {
+			return true
+		}
+	}
+	return false
+}
+
+// numericStrings reports whether every non-empty string is digits and commas,
+// with at least one non-empty string.
+func numericStrings(ss []string) bool {
+	seen := false
+	for _, s := range ss {
+		if s == "" {
+			continue
+		}
+		seen = true
+		for _, r := range s {
+			if (r < '0' || r > '9') && r != ',' {
+				return false
+			}
+		}
+	}
+	return seen
 }
 
 // binarizeCrop crops the image to columns [x0, x1) (clamped to width) over the
