@@ -203,10 +203,10 @@ type gpqLayout struct {
 	score gpqColumn // culvert score column
 }
 
-// findLayout detects the text rows, then the table columns, then picks the
-// name column (leftmost) and the score column (the widest purely numeric
-// column: it holds 5-6 digit comma-separated numbers, wider than the level,
-// the small count and the trailing flag columns).
+// findLayout detects the text rows and columns. The full table ends with
+// participation count, culvert score, and a trailing numeric flag. Their order
+// identifies the score even when every score is zero or narrower than a level.
+// For crops without that numeric suffix, retain the widest-numeric fallback.
 func findLayout(bin [][]bool, font *GPQFont) (gpqLayout, error) {
 	var lay gpqLayout
 	for _, r := range detectRows(bin) {
@@ -220,14 +220,21 @@ func findLayout(bin [][]bool, font *GPQFont) (gpqLayout, error) {
 	}
 	lay.name = cols[0]
 	bestW := -1
+	numericSuffix := 0
 	for _, c := range cols[1:] {
 		if !numericStrings(decodeRegion(bin, lay.rows, c, font)) {
+			numericSuffix = 0
 			continue
 		}
+		numericSuffix++
 		if w := c.x1 - c.x0; w > bestW {
 			bestW = w
 			lay.score = c
 		}
+	}
+	if numericSuffix >= 3 {
+		lay.score = cols[len(cols)-2]
+		return lay, nil
 	}
 	if bestW < 0 {
 		return lay, errors.New("gpq: score column not found in image")

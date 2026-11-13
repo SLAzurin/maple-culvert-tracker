@@ -3,8 +3,12 @@ package helpers
 import (
 	"bytes"
 	"encoding/json"
+	"image"
+	"image/color"
+	"image/png"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strconv"
 	"testing"
 )
@@ -34,93 +38,131 @@ func orderedKeys(t *testing.T, data []byte) []string {
 	return keys
 }
 
-// loadExpected reads every N.json and returns the parsed maps plus the union
-// of all character names (used as the member roster for reconciliation).
-func loadExpected(t *testing.T, n int) []map[string]int {
-	t.Helper()
-	expected := make([]map[string]int, n+1)
-	for i := 1; i <= n; i++ {
-		data, err := os.ReadFile(filepath.Join(gpqTestsDir, strconv.Itoa(i)+".json"))
-		if err != nil {
-			t.Fatalf("read %d.json: %v", i, err)
-		}
-		m := map[string]int{}
-		if err := json.Unmarshal(data, &m); err != nil {
-			t.Fatalf("unmarshal %d.json: %v", i, err)
-		}
-		expected[i] = m
+// Render complete tables from the embedded font so score-column selection is
+// exercised independently of the supplied screenshots' score distributions.
+func TestParseSmallImageScoreColumn(t *testing.T) {
+	font, err := LoadGPQFont()
+	if err != nil {
+		t.Fatal(err)
 	}
-	return expected
+	for _, score := range []int{0, 1, 42, 999, 123456} {
+		t.Run(strconv.Itoa(score), func(t *testing.T) {
+			img := image.NewRGBA(image.Rect(0, 0, 620, 30))
+			columns := []struct {
+				x    int
+				text string
+			}{
+				{4, "Alice"}, {110, "Hero"}, {220, "295"},
+				{280, "Paper"}, {390, "10"}, {440, strconv.Itoa(score)}, {540, "1000"},
+			}
+			for _, column := range columns {
+				x := column.x
+				for _, r := range column.text {
+					var glyph *gpqGlyph
+					for i := range font.glyphs {
+						if font.glyphs[i].r == r {
+							glyph = &font.glyphs[i]
+							break
+						}
+					}
+					if glyph == nil {
+						t.Fatalf("missing glyph %q", r)
+					}
+					for y, row := range glyph.bits {
+						for dx, ink := range row {
+							if ink {
+								img.Set(x+dx, 8+y, color.White)
+							}
+						}
+					}
+					x += glyph.w + 1
+				}
+			}
+			var data bytes.Buffer
+			if err := png.Encode(&data, img); err != nil {
+				t.Fatal(err)
+			}
+			got, err := ParseSmallImage(data.Bytes(), []string{"Alice"}, font)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want := []ScoreEntry{}
+			if score > 0 {
+				want = append(want, ScoreEntry{Name: "Alice", Score: score})
+			}
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("entries = %#v, want %#v", got, want)
+			}
+		})
+	}
+}
+
+func TestCleanDecodedName(t *testing.T) {
+	for _, tc := range []struct{ decoded, want string }{
+		{"Subzero(Subzero)", "Subzero"},
+		{"FlamingJay..(FlamingJay)", "FlamingJay"},
+		{"Kagètsu", "Kagètsu"},
+		{"ShiningRo..", "ShiningRo"},
+	} {
+		t.Run(tc.decoded, func(t *testing.T) {
+			if got := cleanDecodedName(tc.decoded); got != tc.want {
+				t.Errorf("cleanDecodedName(%q) = %q, want %q", tc.decoded, got, tc.want)
+			}
+		})
+	}
 }
 
 func TestParseSmallImageAgainstProvided(t *testing.T) {
-	const total = 12
-	expected := loadExpected(t, total)
-
-	memberSet := map[string]bool{}
-	members := []string{}
-	for i := 1; i <= total; i++ {
-		for name := range expected[i] {
-			if !memberSet[name] {
-				memberSet[name] = true
-				members = append(members, name)
-			}
-		}
-	}
-
 	font, err := LoadGPQFont()
 	if err != nil {
 		t.Fatalf("LoadGPQFont: %v", err)
 	}
 
-	for i := 1; i <= total; i++ {
-		i := i
-		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			imgData, err := os.ReadFile(filepath.Join(gpqTestsDir, strconv.Itoa(i)+".png"))
+	cases, err := filepath.Glob(filepath.Join(gpqTestsDir, "case-*"))
+	if err != nil || len(cases) == 0 {
+		t.Fatalf("find fixture cases: %v (found %d)", err, len(cases))
+	}
+	for _, caseDir := range cases {
+		t.Run(filepath.Base(caseDir), func(t *testing.T) {
+			roster, err := os.ReadFile(filepath.Join(caseDir, "members.json"))
 			if err != nil {
-				t.Fatalf("read %d.png: %v", i, err)
+				t.Fatal(err)
 			}
-			entries, err := ParseSmallImage(imgData, members, font)
-			if err != nil {
-				t.Fatalf("ParseSmallImage %d.png: %v", i, err)
+			var members []string
+			if err := json.Unmarshal(roster, &members); err != nil {
+				t.Fatal(err)
 			}
-			got := map[string]int{}
-			for _, e := range entries {
-				got[e.Name] = e.Score
+			images, err := filepath.Glob(filepath.Join(caseDir, "*.png"))
+			if err != nil || len(images) == 0 {
+				t.Fatalf("find fixture images: %v (found %d)", err, len(images))
 			}
-			want := expected[i]
-			if len(got) != len(want) {
-				t.Errorf("%d.png: got %d entries, want %d", i, len(got), len(want))
-			}
-			for name, score := range want {
-				if got[name] != score {
-					t.Errorf("%d.png: name %q got score %d, want %d", i, name, got[name], score)
-				}
-			}
-			for name, score := range got {
-				if _, ok := want[name]; !ok {
-					t.Errorf("%d.png: unexpected name %q with score %d", i, name, score)
-				}
-			}
-
-			// Row order must be preserved: parsed entry order should match the
-			// key order in the expected JSON file (top-to-bottom leaderboard).
-			rawJSON, err := os.ReadFile(filepath.Join(gpqTestsDir, strconv.Itoa(i)+".json"))
-			if err != nil {
-				t.Fatalf("read %d.json: %v", i, err)
-			}
-			wantOrder := orderedKeys(t, rawJSON)
-			gotOrder := make([]string, len(entries))
-			for j, e := range entries {
-				gotOrder[j] = e.Name
-			}
-			if len(gotOrder) != len(wantOrder) {
-				t.Fatalf("%d.png: got %d ordered entries, want %d", i, len(gotOrder), len(wantOrder))
-			}
-			for j := range wantOrder {
-				if gotOrder[j] != wantOrder[j] {
-					t.Errorf("%d.png: order mismatch at %d: got %q, want %q", i, j, gotOrder[j], wantOrder[j])
-				}
+			for _, imagePath := range images {
+				t.Run(filepath.Base(imagePath), func(t *testing.T) {
+					imgData, err := os.ReadFile(imagePath)
+					if err != nil {
+						t.Fatal(err)
+					}
+					rawJSON, err := os.ReadFile(imagePath[:len(imagePath)-len(".png")] + ".json")
+					if err != nil {
+						t.Fatal(err)
+					}
+					var scores map[string]int
+					if err := json.Unmarshal(rawJSON, &scores); err != nil {
+						t.Fatal(err)
+					}
+					// Compare entries directly to verify scores, order, and duplicates.
+					want := []ScoreEntry{}
+					for _, name := range orderedKeys(t, rawJSON) {
+						want = append(want, ScoreEntry{Name: name, Score: scores[name]})
+					}
+					got, err := ParseSmallImage(imgData, members, font)
+					if err != nil {
+						t.Fatal(err)
+					}
+					if !reflect.DeepEqual(got, want) {
+						t.Errorf("entries:\n got: %#v\nwant: %#v", got, want)
+					}
+				})
 			}
 		})
 	}

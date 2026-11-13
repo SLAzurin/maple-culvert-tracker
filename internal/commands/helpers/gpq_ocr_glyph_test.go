@@ -19,11 +19,11 @@ func TestNewGlyphsDecodedFromPixels(t *testing.T) {
 		file string
 		want string // substring the raw pixel decode must contain
 	}{
-		{"2.png", "Kagètsu"},
-		{"6.png", "Mišs"},
+		{"1.png", "Kagètsu"},
+		{"5.png", "Mišs"},
 	}
 	for _, c := range cases {
-		data, err := os.ReadFile(filepath.Join(gpqTestsDir, c.file))
+		data, err := os.ReadFile(filepath.Join(gpqTestsDir, "case-1", c.file))
 		if err != nil {
 			t.Fatalf("read %s: %v", c.file, err)
 		}
