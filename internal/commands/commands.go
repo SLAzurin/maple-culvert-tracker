@@ -7,7 +7,6 @@ import (
 var culvertMinWeeks = float64(4)
 var exportCsvMinWeeks = float64(4)
 var minimumPercentageSniffOutRats = float64(0)
-var secondaryCharacterWritePermission = int64(discordgo.PermissionManageGuild)
 
 var Commands = []*discordgo.ApplicationCommand{
 	{
@@ -223,9 +222,8 @@ var Commands = []*discordgo.ApplicationCommand{
 		Description: "List all characters being tracked in the guild",
 	},
 	{
-		Name:                     "add-secondary-character",
-		Description:              "Link a secondary character to a tracked character",
-		DefaultMemberPermissions: &secondaryCharacterWritePermission,
+		Name:        "add-secondary-character",
+		Description: "Link a secondary character to a tracked character",
 		Options: []*discordgo.ApplicationCommandOption{
 			{Required: true, Type: discordgo.ApplicationCommandOptionString, Name: "character-name", Description: "Tracked character name", MaxLength: 255},
 			{Required: true, Type: discordgo.ApplicationCommandOptionString, Name: "secondary-character-name", Description: "Secondary character name", MaxLength: 255},
@@ -233,9 +231,8 @@ var Commands = []*discordgo.ApplicationCommand{
 		},
 	},
 	{
-		Name:                     "remove-secondary-character",
-		Description:              "Remove a secondary character mapping",
-		DefaultMemberPermissions: &secondaryCharacterWritePermission,
+		Name:        "remove-secondary-character",
+		Description: "Remove a secondary character mapping",
 		Options: []*discordgo.ApplicationCommandOption{
 			{Required: true, Type: discordgo.ApplicationCommandOptionString, Name: "secondary-character-name", Description: "Secondary character name", MaxLength: 255},
 		},
