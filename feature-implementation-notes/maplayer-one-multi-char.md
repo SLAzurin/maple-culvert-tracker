@@ -15,7 +15,7 @@ Allow a tracked character to have zero or more secondary characters. When Maplay
 | `/remove-secondary-character` | `secondary-character-name` | Find the globally unique secondary case-insensitively and remove it. Confirm the parent it was linked to, or report that the secondary was not found. |
 | `/list-secondary-characters` | None | Use `GetActiveCharacters` to select parents. Upload `secondary_characters.json`, keyed by each active parent’s current `maple_character_name`. Sort the secondary names within each array. Omit parents with no secondaries and return `{}` if none qualify. |
 
-Register the commands and handlers alongside the existing roster commands. Restrict add and remove to roster managers because mappings affect who receives a score.
+Register the commands and handlers alongside the existing roster commands. Use the same Discord permission defaults as those commands.
 
 Example list attachment with two secondaries for `MainA`:
 

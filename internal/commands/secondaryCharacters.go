@@ -18,25 +18,10 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/db"
 )
 
-func canEditSecondaryCharacters(member *discordgo.Member) bool {
-	return member != nil && member.Permissions&(discordgo.PermissionManageGuild|discordgo.PermissionAdministrator) != 0
-}
-
 func editSecondaryCharacter(add bool) func(*discordgo.Session, *discordgo.InteractionCreate) {
 	return func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if !canEditSecondaryCharacters(i.Member) {
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: "You need the Manage Server permission to edit secondary characters.",
-					Flags:   discordgo.MessageFlagsEphemeral,
-				},
-			})
-			return
-		}
 		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{Flags: discordgo.MessageFlagsEphemeral},
 		}); err != nil {
 			log.Println("editSecondaryCharacter: failed to acknowledge interaction:", err)
 			return

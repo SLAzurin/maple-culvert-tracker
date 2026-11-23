@@ -14,20 +14,7 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/model"
 )
 
-func TestSecondaryCharacterCommandPermissions(t *testing.T) {
-	for _, tc := range []struct {
-		member *discordgo.Member
-		want   bool
-	}{
-		{nil, false},
-		{&discordgo.Member{Permissions: discordgo.PermissionSendMessages}, false},
-		{&discordgo.Member{Permissions: discordgo.PermissionManageGuild}, true},
-		{&discordgo.Member{Permissions: discordgo.PermissionAdministrator}, true},
-	} {
-		if got := canEditSecondaryCharacters(tc.member); got != tc.want {
-			t.Errorf("member %v: can edit = %v, want %v", tc.member, got, tc.want)
-		}
-	}
+func TestSecondaryCharacterCommandRegistration(t *testing.T) {
 	commands := make(map[string]*discordgo.ApplicationCommand)
 	for _, command := range Commands {
 		commands[command.Name] = command
@@ -54,12 +41,8 @@ func TestSecondaryCharacterCommandPermissions(t *testing.T) {
 				t.Errorf("%s is missing required option %s", name, option)
 			}
 		}
-		if name == "list-secondary-characters" {
-			if command.DefaultMemberPermissions != nil {
-				t.Error("listing secondary characters should be available to guild members")
-			}
-		} else if command.DefaultMemberPermissions == nil || *command.DefaultMemberPermissions != discordgo.PermissionManageGuild {
-			t.Errorf("%s should require Manage Server by default", name)
+		if command.DefaultMemberPermissions != nil {
+			t.Errorf("%s should use standard Discord command permissions", name)
 		}
 	}
 }
