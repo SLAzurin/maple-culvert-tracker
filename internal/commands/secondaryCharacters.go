@@ -22,7 +22,6 @@ func editSecondaryCharacter(add bool) func(*discordgo.Session, *discordgo.Intera
 	return func(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{Flags: discordgo.MessageFlagsEphemeral},
 		}); err != nil {
 			log.Println("editSecondaryCharacter: failed to acknowledge interaction:", err)
 			return
