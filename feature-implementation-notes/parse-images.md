@@ -70,7 +70,7 @@ Discord slash command that parses GPQ score table images and outputs character s
 
 ### Order Preservation
 - Returns `[]ScoreEntry` (not `map`) to preserve top-to-bottom row order
-- Merges multiple images in download order; duplicate names keep first-seen position, scores overwrite
+- Processes images in download order and warns if multiple rows resolve to the same tracked character ID. Review the attached duplicate report before exporting scores.
 - Custom JSON marshaler (`marshalOrderedScores`) emits 4-space indentation without sorting keys
 
 ### Non-Fatal Validation
@@ -120,7 +120,7 @@ Discord slash command that parses GPQ score table images and outputs character s
 4. **Parallel download** each image into memory (no disk writes)
 5. **Parallel parse** each image via `ParseSmallImage(imgData, memberNames, font)`
    - Binarize → crop name/score columns → detect rows → decode via template matching → reconcile names
-6. Merge results: preserve image order, keep first-seen position for duplicate names
+6. Merge results in image order and require one row per tracked character ID
 7. Validate: all names in active guild; scores in descending order (warn if not)
 8. Output: ordered JSON attachment + Discord message
 

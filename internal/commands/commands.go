@@ -7,6 +7,7 @@ import (
 var culvertMinWeeks = float64(4)
 var exportCsvMinWeeks = float64(4)
 var minimumPercentageSniffOutRats = float64(0)
+var secondaryCharacterWritePermission = int64(discordgo.PermissionManageGuild)
 
 var Commands = []*discordgo.ApplicationCommand{
 	{
@@ -151,12 +152,12 @@ var Commands = []*discordgo.ApplicationCommand{
 				Name:        "character-name",
 				Description: "Character name",
 			},
-		{
-			Required:    false,
-			Type:        discordgo.ApplicationCommandOptionString,
-			Name:        "discord-user-id",
-			Description: "Discord user global username or ID (default: untracked)",
-		},
+			{
+				Required:    false,
+				Type:        discordgo.ApplicationCommandOptionString,
+				Name:        "discord-user-id",
+				Description: "Discord user global username or ID (default: untracked)",
+			},
 			{
 				Required:    false,
 				Type:        discordgo.ApplicationCommandOptionBoolean,
@@ -220,6 +221,28 @@ var Commands = []*discordgo.ApplicationCommand{
 	{
 		Name:        "list-characters",
 		Description: "List all characters being tracked in the guild",
+	},
+	{
+		Name:                     "add-secondary-character",
+		Description:              "Link a secondary character to a tracked character",
+		DefaultMemberPermissions: &secondaryCharacterWritePermission,
+		Options: []*discordgo.ApplicationCommandOption{
+			{Required: true, Type: discordgo.ApplicationCommandOptionString, Name: "character-name", Description: "Tracked character name", MaxLength: 255},
+			{Required: true, Type: discordgo.ApplicationCommandOptionString, Name: "secondary-character-name", Description: "Secondary character name", MaxLength: 255},
+			{Type: discordgo.ApplicationCommandOptionBoolean, Name: "skip-name-check", Description: "Skip checking the secondary name against MapleStory rankings"},
+		},
+	},
+	{
+		Name:                     "remove-secondary-character",
+		Description:              "Remove a secondary character mapping",
+		DefaultMemberPermissions: &secondaryCharacterWritePermission,
+		Options: []*discordgo.ApplicationCommandOption{
+			{Required: true, Type: discordgo.ApplicationCommandOptionString, Name: "secondary-character-name", Description: "Secondary character name", MaxLength: 255},
+		},
+	},
+	{
+		Name:        "list-secondary-characters",
+		Description: "Export secondary characters for the active guild roster",
 	},
 	{
 		Name:        "personal-bests",
