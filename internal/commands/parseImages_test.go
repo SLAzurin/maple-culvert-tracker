@@ -7,21 +7,23 @@ import (
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 )
 
-func TestCollectUnmatchedScoresPreservesParsedOrderAndScores(t *testing.T) {
+func TestMergeImageScoresPreservesUnmatchedOrderAndScores(t *testing.T) {
 	entries := []helpers.ScoreEntry{
 		{Name: "MissingFirst", Score: 123456},
 		{Name: "ActiveCharacter", Score: 100000},
 		{Name: "MissingSecond", Score: 98765},
 	}
-	activeSet := map[string]bool{"ActiveCharacter": true}
-
-	got := collectUnmatchedScores(entries, activeSet)
+	roster, err := newTestImageRoster([]string{"ActiveCharacter"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := roster.mergeScores(entries).unmatched
 
 	if len(got) != 2 {
-		t.Fatalf("collectUnmatchedScores returned %d entries, want 2", len(got))
+		t.Fatalf("got %d unmatched entries, want 2", len(got))
 	}
 	if got[0] != entries[0] || got[1] != entries[2] {
-		t.Fatalf("collectUnmatchedScores returned %#v, want %#v then %#v", got, entries[0], entries[2])
+		t.Fatalf("unmatched entries = %#v, want %#v then %#v", got, entries[0], entries[2])
 	}
 }
 

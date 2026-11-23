@@ -89,11 +89,7 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		editContent("Internal error querying secondary characters. Please try again later.")
 		return
 	}
-	activeNames := make([]string, 0, len(*characters))
-	for _, c := range *characters {
-		activeNames = append(activeNames, c.MapleCharacterName)
-	}
-	roster, err := newImageRoster(activeNames, secondaries)
+	roster, err := newImageRoster(*characters, secondaries)
 	if err != nil {
 		editContent(err.Error())
 		return
@@ -151,13 +147,10 @@ func imageScoreResponse(roster imageRoster, rows []helpers.ScoreEntry, imageCoun
 		files = append(files, &discordgo.File{Name: "ambiguous_scores.txt", ContentType: "text/plain", Reader: strings.NewReader(formatAmbiguousImageScores(result.ambiguous))})
 	}
 	if len(result.duplicates) > 0 {
-		messages = append(messages, "Multiple character names mapped to the same active character. See the attached names and scores.")
+		messages = append(messages, ":warning: A tracked character appears more than once across the supplied screenshots. Each main can appear only once, including its linked secondaries. Review the attached names and scores, then rerun with corrected screenshots. No score JSON was generated.")
 		files = append(files, &discordgo.File{Name: "secondary_character_scores.txt", ContentType: "text/plain", Reader: strings.NewReader(formatDuplicateImageScores(result.duplicates))})
 	}
-	if result.conflict {
-		messages = append(messages, "Conflicting scores need review. No score JSON was generated.")
-	}
-	if result.conflict || len(result.unmatched) > 0 || len(result.ambiguous) > 0 {
+	if len(result.duplicates) > 0 || len(result.unmatched) > 0 || len(result.ambiguous) > 0 {
 		return strings.Join(messages, "\n"), files
 	}
 
@@ -178,16 +171,6 @@ func imageScoreResponse(roster imageRoster, rows []helpers.ScoreEntry, imageCoun
 	return strings.Join(append([]string{msg}, messages...), "\n"), append(files, &discordgo.File{
 		Name: "gpq_scores.json", ContentType: "application/json", Reader: strings.NewReader(string(out)),
 	})
-}
-
-func collectUnmatchedScores(entries []helpers.ScoreEntry, activeSet map[string]bool) []helpers.ScoreEntry {
-	unmatched := make([]helpers.ScoreEntry, 0)
-	for _, entry := range entries {
-		if !activeSet[entry.Name] {
-			unmatched = append(unmatched, entry)
-		}
-	}
-	return unmatched
 }
 
 func formatUnmatchedScoresTable(entries []helpers.ScoreEntry) string {

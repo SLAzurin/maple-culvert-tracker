@@ -29,14 +29,12 @@ Example list attachment with two secondaries for `MainA`:
 
 1. Load active characters through `GetActiveCharacters`. Fetch their secondary mappings in one query and build a shared OCR roster containing active and secondary names. Keep a lookup from each secondary to the active parent’s current name.
 2. Resolve OCR matches to active parent names before merging entries, checking for unmatched names, and building `gpq_scores.json`. Retain the original matched name and score until duplicate checks finish. If an OCR match ties between different parents, report the row for review instead of assigning its score.
-3. When a main and one or more of its secondaries appear in the same request, notify the command issuer through the interaction response. Include the original names and scores, even when the scores agree. Apply the same rule when multiple distinct secondaries map to the same main.
-   - If all scores agree, export one entry under the main’s name at its first occurrence and include the notice.
-   - If scores differ, report the conflicting rows and withhold `gpq_scores.json` for review. Apply this check within a single screenshot and across attachments.
-4. Preserve the existing merge behavior for repeated rows under the same original name. Keep the unmatched-name report and score-order warning.
+3. Require each tracked character ID to appear at most once across all matched rows. Warn in the interaction response and withhold `gpq_scores.json` whenever two rows share a parent ID. This covers a main and secondary, two secondaries, and repeated rows under the same name. Attach the matched names and scores, even when the scores agree. Count zero-score rows only when their decoded name exactly matches after OCR normalization.
+4. Keep the unmatched-name report and score-order warning.
 
 ## Verification and rollout
 
 - Exercise the PostgreSQL migration up and down. Verify that parent renames preserve mappings, parent deletion removes them, and duplicate secondary names cannot be inserted.
 - Check the command permissions, add and remove behavior, and active-only JSON output. Include inactive parents, parents without secondaries, and an empty export.
-- Check `/parse-images` with a secondary by itself, a main and secondary with equal scores, and a main and secondary with different scores across attachments. Verify the issuer notification in both duplicate cases, and run the existing OCR fixtures and Go test suite.
+- Check `/parse-images` with a secondary by itself and with repeated parent IDs within one screenshot and across attachments. Verify the warning and withheld JSON for both equal and different scores, and run the existing OCR fixtures and Go test suite.
 - Apply the migration through bot startup before command registration. To roll back the application, deploy the prior bot version with the additive table still present. Running the down migration drops the stored mappings.

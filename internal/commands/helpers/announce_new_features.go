@@ -121,6 +121,17 @@ Bot out!`,
 				Content: "The formula for culvert participation has been adjusted. The previous best culvert score from October 1, 2025, will be reset to account for the two-minute patch damage adjustments.",
 			},
 		},
+		{
+			// 12 secondary characters for score screenshots
+			ComplexMessage: &discordgo.MessageSend{
+				Content: "**Link secondary characters for Culvert screenshots**\n\n" +
+					"If a guild member is logged in on a secondary character when a Culvert screenshot is taken, the screenshot can show that secondary's name. Guild Jrs can link multiple secondaries to one tracked main so `/parse-images` records the score under the correct main in the culvert data.\n\n" +
+					"- `/add-secondary-character character-name:MainName secondary-character-name:SecondaryName` links a secondary character to a tracked main.\n" +
+					"- `/remove-secondary-character secondary-character-name:SecondaryName` removes the link.\n" +
+					"- `/list-secondary-characters` lists the current links for active guild members as JSON.\n\n" +
+					"Each main can appear only once across the screenshots, including through its linked secondaries. If two rows map to the same main, the bot warns you and reports the names and scores. Correct the screenshots and run `/parse-images` again to export the JSON.",
+			},
+		},
 	}
 	return announcements
 }

@@ -4,12 +4,23 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/model"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 )
+
+func newTestImageRoster(names []string, secondaries map[string][]string) (imageRoster, error) {
+	active := make([]model.Characters, 0, len(names))
+	for idx, name := range names {
+		active = append(active, model.Characters{ID: int64(idx + 1), MapleCharacterName: name})
+	}
+	return newImageRoster(active, secondaries)
+}
 
 func readImageScoreFiles(t *testing.T, files []*discordgo.File) map[string]string {
 	t.Helper()
@@ -25,7 +36,17 @@ func readImageScoreFiles(t *testing.T, files []*discordgo.File) map[string]strin
 }
 
 func TestImageScoreResponseMapsSecondaryFromScreenshot(t *testing.T) {
-	rosterJSON, err := os.ReadFile("../../provided/gpq-tests/case-2/members.json")
+	checkImageScoreScreenshot(t, "case-2", "Geki", "CanonicalMain")
+}
+
+func TestImageScoreResponseIgnoresFuzzyZeroScoreMatches(t *testing.T) {
+	checkImageScoreScreenshot(t, "case-3", "", "")
+}
+
+func checkImageScoreScreenshot(t *testing.T, fixture, secondary, main string) {
+	t.Helper()
+	dir := filepath.Join("../../provided/gpq-tests", fixture)
+	rosterJSON, err := os.ReadFile(filepath.Join(dir, "members.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,12 +54,20 @@ func TestImageScoreResponseMapsSecondaryFromScreenshot(t *testing.T) {
 	if err := json.Unmarshal(rosterJSON, &active); err != nil {
 		t.Fatal(err)
 	}
-	for idx, name := range active {
-		if name == "Geki" {
-			active[idx] = "CanonicalMain"
+	var secondaries map[string][]string
+	if secondary != "" {
+		for idx, name := range active {
+			if name == secondary {
+				active[idx] = main
+				secondaries = map[string][]string{main: {secondary}}
+				break
+			}
+		}
+		if secondaries == nil {
+			t.Fatalf("fixture roster is missing secondary %q", secondary)
 		}
 	}
-	roster, err := newImageRoster(active, map[string][]string{"CanonicalMain": {"Geki"}})
+	roster, err := newTestImageRoster(active, secondaries)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +75,7 @@ func TestImageScoreResponseMapsSecondaryFromScreenshot(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	screenshot, err := os.ReadFile("../../provided/gpq-tests/case-2/1.png")
+	screenshot, err := os.ReadFile(filepath.Join(dir, "1.png"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,73 +85,74 @@ func TestImageScoreResponseMapsSecondaryFromScreenshot(t *testing.T) {
 	}
 	msg, files := imageScoreResponse(roster, rows, 1)
 	got := readImageScoreFiles(t, files)
-	expected, err := os.ReadFile("../../provided/gpq-tests/case-2/1.json")
+	expected, err := os.ReadFile(filepath.Join(dir, "1.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := strings.Replace(string(expected), `"Geki"`, `"CanonicalMain"`, 1); strings.TrimSpace(strings.ReplaceAll(want, "\r\n", "\n")) != got["gpq_scores.json"] || len(got) != 1 {
-		t.Fatalf("response %q, files: %v; want score JSON with Geki replaced by CanonicalMain", msg, got)
+	want := strings.TrimSpace(strings.ReplaceAll(string(expected), "\r\n", "\n"))
+	if secondary != "" {
+		want = strings.Replace(want, strconv.Quote(secondary), strconv.Quote(main), 1)
+	}
+	if got["gpq_scores.json"] != want || len(got) != 1 {
+		t.Fatalf("response %q, files: %v; want only score JSON %s", msg, got, want)
 	}
 }
 
 func TestImageScoreResponseReportsDuplicateParent(t *testing.T) {
-	roster, err := newImageRoster([]string{"MainChar", "Other"}, map[string][]string{"MainChar": {"AltChar", "ThirdChar"}})
+	roster, err := newTestImageRoster([]string{"MainChar", "Other"}, map[string][]string{"MainChar": {"AltChar", "ThirdChar"}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct {
-		name     string
-		last     helpers.ScoreEntry
-		wantJSON bool
+		name       string
+		last       helpers.ScoreEntry
+		imageCount int
 	}{
-		{"equal main score", helpers.ScoreEntry{Name: "MainChar", Score: 100}, true},
-		{"different main score", helpers.ScoreEntry{Name: "MainChar", Score: 90}, false},
-		{"zero main score", helpers.ScoreEntry{Name: "MainChar", Score: 0}, false},
-		{"distinct secondaries", helpers.ScoreEntry{Name: "ThirdChar", Score: 100}, true},
+		{"equal main score in one image", helpers.ScoreEntry{Name: "MainChar", Score: 100}, 1},
+		{"different main score across images", helpers.ScoreEntry{Name: "MainChar", Score: 90}, 2},
+		{"zero main score", helpers.ScoreEntry{Name: "MainChar", Score: 0}, 1},
+		{"two secondaries with the same score", helpers.ScoreEntry{Name: "ThirdChar", Score: 100}, 2},
+		{"two secondaries with different scores", helpers.ScoreEntry{Name: "ThirdChar", Score: 90}, 2},
+		{"same secondary twice", helpers.ScoreEntry{Name: "AltChar", Score: 90}, 2},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			first := []helpers.ScoreEntry{{Name: "AltChar", Score: 100}, {Name: "Other", Score: 80}}
 			rows := append(first, tc.last)
-			msg, files := imageScoreResponse(roster, rows, 2)
+			msg, files := imageScoreResponse(roster, rows, tc.imageCount)
 			got := readImageScoreFiles(t, files)
 			report := got["secondary_character_scores.txt"]
-			for _, text := range []string{"MainChar", "AltChar", "100", tc.last.Name} {
+			for _, text := range []string{"MainChar", "AltChar", "100", tc.last.Name, strconv.Itoa(tc.last.Score)} {
 				if !strings.Contains(report, text) {
 					t.Errorf("duplicate report %q is missing %q", report, text)
 				}
 			}
-			if !strings.Contains(msg, "Multiple character names") {
+			if !strings.Contains(msg, "appears more than once") || !strings.Contains(msg, "No score JSON was generated") {
 				t.Errorf("reply did not notify the issuer: %q", msg)
 			}
-			if tc.wantJSON {
-				if want := "{\n    \"MainChar\": 100,\n    \"Other\": 80\n}"; got["gpq_scores.json"] != want {
-					t.Errorf("score JSON = %q, want %q", got["gpq_scores.json"], want)
-				}
-			} else if _, exported := got["gpq_scores.json"]; exported || !strings.Contains(msg, "Conflicting scores") {
-				t.Errorf("conflicting scores returned %q and %v", msg, got)
+			if _, exported := got["gpq_scores.json"]; exported {
+				t.Errorf("duplicate parent returned a score export: %v", got)
 			}
 		})
 	}
 }
 
-func TestImageScoreResponsePreservesRepeatedNameBehavior(t *testing.T) {
-	roster, err := newImageRoster([]string{"First", "Other"}, nil)
+func TestImageScoreResponseReportsRepeatedMain(t *testing.T) {
+	roster, err := newTestImageRoster([]string{"First", "Other"}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	rows := []helpers.ScoreEntry{
-		{Name: "Other", Score: 0}, {Name: "First", Score: 200},
-		{Name: "Other", Score: 100}, {Name: "First", Score: 150}, {Name: "First", Score: 0},
+		{Name: "First", Score: 200}, {Name: "Other", Score: 100}, {Name: "First", Score: 150},
 	}
-	_, files := imageScoreResponse(roster, rows, 2)
+	msg, files := imageScoreResponse(roster, rows, 2)
 	got := readImageScoreFiles(t, files)
-	if want := "{\n    \"First\": 150,\n    \"Other\": 100\n}"; len(got) != 1 || got["gpq_scores.json"] != want {
-		t.Errorf("score JSON and attachments = %v, want only %s", got, want)
+	if len(got) != 1 || !strings.Contains(got["secondary_character_scores.txt"], "200") || !strings.Contains(got["secondary_character_scores.txt"], "150") {
+		t.Errorf("response = %q, files = %v, want both rows for the repeated main and no export", msg, got)
 	}
 }
 
 func TestImageScoreResponseReportsCrossParentOCRTie(t *testing.T) {
-	roster, err := newImageRoster([]string{"MainChar", "PrefixBeta"}, map[string][]string{"MainChar": {"PrefixAlpha"}})
+	roster, err := newTestImageRoster([]string{"MainChar", "PrefixBeta"}, map[string][]string{"MainChar": {"PrefixAlpha"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +165,7 @@ func TestImageScoreResponseReportsCrossParentOCRTie(t *testing.T) {
 }
 
 func TestImageRosterRejectsSecondaryConflictingWithTrackedName(t *testing.T) {
-	_, err := newImageRoster([]string{"MainChar", "Líra"}, map[string][]string{"MainChar": {"Iira"}})
+	_, err := newTestImageRoster([]string{"MainChar", "Líra"}, map[string][]string{"MainChar": {"Iira"}})
 	if err == nil || !strings.Contains(err.Error(), "Iira") || !strings.Contains(err.Error(), "Líra") {
 		t.Fatalf("expected OCR-equivalent roster names in the error, got %v", err)
 	}

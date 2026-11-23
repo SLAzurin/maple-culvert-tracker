@@ -5,33 +5,33 @@ import (
 	"strings"
 
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/slazurin/maple-culvert-tracker/.gen/mapleculverttrackerdb/public/model"
 	"github.com/slazurin/maple-culvert-tracker/internal/commands/helpers"
 )
 
 type imageRoster struct {
-	names   []string
-	parents map[string]string
-	active  map[string]bool
+	names      []string
+	parents    map[string]model.Characters
+	exactNames map[string][]string
 }
 
-func newImageRoster(active []string, secondaries map[string][]string) (imageRoster, error) {
-	roster := imageRoster{parents: make(map[string]string), active: make(map[string]bool)}
-	byOCRName := make(map[string][]string)
-	add := func(name, parent string) {
+func newImageRoster(active []model.Characters, secondaries map[string][]string) (imageRoster, error) {
+	roster := imageRoster{parents: make(map[string]model.Characters), exactNames: make(map[string][]string)}
+	add := func(name string, parent model.Characters) {
 		roster.parents[name] = parent
 		roster.names = append(roster.names, name)
 		key := helpers.NormalizeGPQName(name)
-		byOCRName[key] = append(byOCRName[key], name)
-	}
-	for _, name := range active {
-		roster.active[name] = true
-		add(name, name)
+		roster.exactNames[key] = append(roster.exactNames[key], name)
 	}
 	for _, parent := range active {
-		for _, secondary := range secondaries[parent] {
-			for _, other := range byOCRName[helpers.NormalizeGPQName(secondary)] {
-				if roster.parents[other] != parent || (roster.active[other] && strings.EqualFold(other, secondary)) {
-					return imageRoster{}, fmt.Errorf("secondary character %q for %q conflicts with %q for %q. Fix the mapping before parsing images", secondary, parent, other, roster.parents[other])
+		add(parent.MapleCharacterName, parent)
+	}
+	for _, parent := range active {
+		for _, secondary := range secondaries[parent.MapleCharacterName] {
+			for _, other := range roster.exactNames[helpers.NormalizeGPQName(secondary)] {
+				otherParent := roster.parents[other]
+				if otherParent.ID != parent.ID || (other == otherParent.MapleCharacterName && strings.EqualFold(other, secondary)) {
+					return imageRoster{}, fmt.Errorf("secondary character %q for %q conflicts with %q for %q. Fix the mapping before parsing images", secondary, parent.MapleCharacterName, other, otherParent.MapleCharacterName)
 				}
 			}
 			add(secondary, parent)
@@ -55,22 +55,26 @@ type mergedImageScores struct {
 	unmatched  []helpers.ScoreEntry
 	ambiguous  []ambiguousImageScore
 	duplicates []duplicateImageScore
-	conflict   bool
 }
 
 func (r imageRoster) mergeScores(rows []helpers.ScoreEntry) mergedImageScores {
 	var result mergedImageScores
-	var originals []helpers.ScoreEntry
-	var positivePositions []int
-	originalPositions := make(map[string]int)
+	var groups []duplicateImageScore
+	groupPositions := make(map[int64]int)
+	unmatchedPositions := make(map[string]int)
 	for _, row := range rows {
-		matches := helpers.MatchGPQNames(row.Name, r.names)
+		matches := r.exactNames[helpers.NormalizeGPQName(row.Name)]
+		// The table can include untracked members with zero scores. Fuzzy guesses
+		// for those rows must not block an otherwise valid score export.
+		if len(matches) == 0 && row.Score > 0 {
+			matches = helpers.MatchGPQNames(row.Name, r.names)
+		}
 		if len(matches) > 0 {
 			chosen := matches[0]
 			parent := r.parents[chosen]
 			ambiguous := false
 			for _, match := range matches[1:] {
-				ambiguous = ambiguous || r.parents[match] != parent
+				ambiguous = ambiguous || r.parents[match].ID != parent.ID
 				if match == row.Name {
 					chosen = match
 				}
@@ -78,66 +82,41 @@ func (r imageRoster) mergeScores(rows []helpers.ScoreEntry) mergedImageScores {
 			if ambiguous {
 				candidates := make([]string, 0, len(matches))
 				for _, match := range matches {
-					candidates = append(candidates, fmt.Sprintf("%s (%s)", match, r.parents[match]))
+					candidates = append(candidates, fmt.Sprintf("%s (%s)", match, r.parents[match].MapleCharacterName))
 				}
 				result.ambiguous = append(result.ambiguous, ambiguousImageScore{row, candidates})
 				continue
 			}
 			row.Name = chosen
 		}
-		pos, found := originalPositions[row.Name]
-		if !found {
-			pos = len(originals)
-			originalPositions[row.Name] = pos
-			originals = append(originals, helpers.ScoreEntry{Name: row.Name})
-		}
-		// Preserve the first positive row's position and the last positive score.
-		if row.Score > 0 {
-			if originals[pos].Score == 0 {
-				positivePositions = append(positivePositions, pos)
+		parent, known := r.parents[row.Name]
+		if !known {
+			if row.Score > 0 {
+				if pos, found := unmatchedPositions[row.Name]; found {
+					result.unmatched[pos].Score = row.Score
+				} else {
+					unmatchedPositions[row.Name] = len(result.unmatched)
+					result.unmatched = append(result.unmatched, row)
+				}
 			}
-			originals[pos].Score = row.Score
+			continue
 		}
-	}
-
-	var groups []duplicateImageScore
-	groupPositions := make(map[string]int)
-	for _, row := range originals {
-		parent := r.parentName(row.Name)
-		if pos, found := groupPositions[parent]; found {
+		// Keep every row for the parent ID, even when the matched name repeats.
+		if pos, found := groupPositions[parent.ID]; found {
 			groups[pos].rows = append(groups[pos].rows, row)
 		} else {
-			groupPositions[parent] = len(groups)
-			groups = append(groups, duplicateImageScore{parent, []helpers.ScoreEntry{row}})
+			groupPositions[parent.ID] = len(groups)
+			groups = append(groups, duplicateImageScore{parent.MapleCharacterName, []helpers.ScoreEntry{row}})
 		}
 	}
 	for _, group := range groups {
-		score := group.rows[0].Score
 		if len(group.rows) > 1 {
 			result.duplicates = append(result.duplicates, group)
-			for _, row := range group.rows[1:] {
-				result.conflict = result.conflict || row.Score != score
-			}
+		} else if score := group.rows[0].Score; score > 0 {
+			result.scores = append(result.scores, helpers.ScoreEntry{Name: group.parent, Score: score})
 		}
 	}
-	seen := make(map[string]bool)
-	for _, pos := range positivePositions {
-		row := originals[pos]
-		parent := r.parentName(row.Name)
-		if !seen[parent] {
-			seen[parent] = true
-			result.scores = append(result.scores, helpers.ScoreEntry{Name: parent, Score: row.Score})
-		}
-	}
-	result.unmatched = collectUnmatchedScores(result.scores, r.active)
 	return result
-}
-
-func (r imageRoster) parentName(name string) string {
-	if parent := r.parents[name]; parent != "" {
-		return parent
-	}
-	return name
 }
 
 func formatDuplicateImageScores(groups []duplicateImageScore) string {
