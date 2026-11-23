@@ -1,22 +1,17 @@
 package helpers
 
-import (
-	"log"
-	"testing"
-)
+import "testing"
 
-// Test successfuly validate func
-
+// Exercise the live endpoint so changes to Nexon's rankings API fail CI.
 func TestFetchCharacterData(t *testing.T) {
-	gotVal, gotErr := FetchCharacterData("Niru", "na")
-
-	if gotErr != nil {
-		t.Errorf("got error %s", gotErr.Error())
-		return
+	got, err := FetchCharacterData("niru", "na")
+	if err != nil {
+		t.Fatalf("live Nexon NA rankings lookup failed: %v", err)
 	}
-	if gotVal == nil {
-		t.Error("validate failed for expected known working character name")
-		return
+	if got == nil || got.CharacterName != "Niru" {
+		t.Fatalf("live Nexon NA rankings lookup returned %+v, want Niru", got)
 	}
-	log.Println(gotVal.CharacterName)
+	if got.Level <= 0 || got.JobName == "" || got.CharacterImgURL == "" {
+		t.Error("live Nexon NA rankings response is missing the character's level, job, or image URL")
+	}
 }
