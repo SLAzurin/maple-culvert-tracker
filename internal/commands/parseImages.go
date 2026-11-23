@@ -83,11 +83,20 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		editContent("Internal error querying active characters. Please try again later.")
 		return
 	}
-	memberNames := make([]string, 0, len(*characters))
-	activeSet := make(map[string]bool, len(*characters))
+	secondaries, err := loadActiveSecondaries(db.DB, *characters)
+	if err != nil {
+		log.Println("parseImages: failed to query secondary characters:", err)
+		editContent("Internal error querying secondary characters. Please try again later.")
+		return
+	}
+	activeNames := make([]string, 0, len(*characters))
 	for _, c := range *characters {
-		memberNames = append(memberNames, c.MapleCharacterName)
-		activeSet[c.MapleCharacterName] = true
+		activeNames = append(activeNames, c.MapleCharacterName)
+	}
+	roster, err := newImageRoster(activeNames, secondaries)
+	if err != nil {
+		editContent(err.Error())
+		return
 	}
 
 	// Process each image in parallel: download into memory then parse.
@@ -106,71 +115,68 @@ func parseImages(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				results[idx] = imgResult{err: err}
 				return
 			}
-			scores, err := helpers.ParseSmallImage(data, memberNames, font)
+			scores, err := helpers.ParseSmallImageRows(data, font)
 			results[idx] = imgResult{scores: scores, err: err}
 		}(idx, url)
 	}
 	wg.Wait()
 
-	// Merge preserving order: first attachment to last, top-to-bottom rows.
-	// Duplicate names keep their first-seen position; later scores overwrite.
-	merged := []helpers.ScoreEntry{}
-	mergedPos := map[string]int{}
+	var rows []helpers.ScoreEntry
 	for idx, r := range results {
 		if r.err != nil {
 			log.Println("parseImages: failed to process image", imageURLs[idx], r.err)
 			editContent("Failed to process one of the images. Please ensure they are valid `small` style GPQ score images.")
 			return
 		}
-		for _, e := range r.scores {
-			if pos, ok := mergedPos[e.Name]; ok {
-				merged[pos].Score = e.Score
-			} else {
-				mergedPos[e.Name] = len(merged)
-				merged = append(merged, e)
-			}
-		}
+		rows = append(rows, r.scores...)
+	}
+	message, files := imageScoreResponse(roster, rows, len(imageURLs))
+	s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content:         &message,
+		Files:           files,
+		AllowedMentions: &discordgo.MessageAllowedMentions{},
+	})
+}
+
+func imageScoreResponse(roster imageRoster, rows []helpers.ScoreEntry, imageCount int) (string, []*discordgo.File) {
+	result := roster.mergeScores(rows)
+	var messages []string
+	var files []*discordgo.File
+	if len(result.unmatched) > 0 {
+		messages = append(messages, "Some parsed character names did not match any active character. Fix the images or track these characters first.")
+		files = append(files, &discordgo.File{Name: "unmatched.txt", ContentType: "text/plain", Reader: strings.NewReader(formatUnmatchedScoresTable(result.unmatched))})
+	}
+	if len(result.ambiguous) > 0 {
+		messages = append(messages, "Some parsed names match more than one active character. Review the attached rows.")
+		files = append(files, &discordgo.File{Name: "ambiguous_scores.txt", ContentType: "text/plain", Reader: strings.NewReader(formatAmbiguousImageScores(result.ambiguous))})
+	}
+	if len(result.duplicates) > 0 {
+		messages = append(messages, "Multiple character names mapped to the same active character. See the attached names and scores.")
+		files = append(files, &discordgo.File{Name: "secondary_character_scores.txt", ContentType: "text/plain", Reader: strings.NewReader(formatDuplicateImageScores(result.duplicates))})
+	}
+	if result.conflict {
+		messages = append(messages, "Conflicting scores need review. No score JSON was generated.")
+	}
+	if result.conflict || len(result.unmatched) > 0 || len(result.ambiguous) > 0 {
+		return strings.Join(messages, "\n"), files
 	}
 
-	// Fail when any parsed name is not an active character.
-	unmatched := collectUnmatchedScores(merged, activeSet)
-	if len(unmatched) > 0 {
-		*content = "Some parsed character names did not match any active character. Fix the images or track these characters first."
-		s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-			Content: content,
-			Files: []*discordgo.File{{
-				Name:        "unmatched.txt",
-				ContentType: "text/plain",
-				Reader:      strings.NewReader(formatUnmatchedScoresTable(unmatched)),
-			}},
-		})
-		return
-	}
-
-	out, err := marshalOrderedScores(merged)
+	out, err := marshalOrderedScores(result.scores)
 	if err != nil {
 		log.Println("parseImages: failed to marshal result:", err)
-		editContent("Internal error building the JSON result.")
-		return
+		return "Internal error building the JSON result.", files
 	}
 
 	// Non-fatal validation: scores should be in descending order. If not, warn
 	// but still attach the output so the user can inspect/correct it.
-	msg := "Parsed scores from " + strconv.Itoa(len(imageURLs)) + " image(s)."
-	if idx := firstDescendingViolation(merged); idx >= 0 {
-		msg += "\n:warning: Scores are not in descending order (`" +
-			merged[idx-1].Name + "`: " + strconv.Itoa(merged[idx-1].Score) + " -> `" +
-			merged[idx].Name + "`: " + strconv.Itoa(merged[idx].Score) +
-			"). The output may be incorrect; please verify."
+	msg := "Parsed scores from " + strconv.Itoa(imageCount) + " image(s)."
+	scores := result.scores
+	if idx := firstDescendingViolation(scores); idx >= 0 {
+		msg += fmt.Sprintf("\n:warning: Scores are not in descending order (`%s`: %d, then `%s`: %d). The output may be incorrect; please verify.",
+			scores[idx-1].Name, scores[idx-1].Score, scores[idx].Name, scores[idx].Score)
 	}
-	*content = msg
-	s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-		Content: content,
-		Files: []*discordgo.File{{
-			Name:        "gpq_scores.json",
-			ContentType: "application/json",
-			Reader:      strings.NewReader(string(out)),
-		}},
+	return strings.Join(append([]string{msg}, messages...), "\n"), append(files, &discordgo.File{
+		Name: "gpq_scores.json", ContentType: "application/json", Reader: strings.NewReader(string(out)),
 	})
 }
 

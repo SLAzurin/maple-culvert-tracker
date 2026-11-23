@@ -24,6 +24,10 @@ func GetActiveCharacters(r *redis.Client, db *sql.DB) (*[]model.Characters, erro
 	if err != nil {
 		return nil, err
 	}
+	chars := []model.Characters{}
+	if len(discordIDsFull) == 0 {
+		return &chars, nil
+	}
 
 	discordIDs := []Expression{}
 	for _, v := range discordIDsFull {
@@ -32,8 +36,6 @@ func GetActiveCharacters(r *redis.Client, db *sql.DB) (*[]model.Characters, erro
 	stmt := SELECT(Characters.AllColumns).FROM(
 		Characters,
 	).WHERE(Characters.DiscordUserID.IN(discordIDs...)).ORDER_BY(Characters.MapleCharacterName)
-	chars := []model.Characters{}
-
 	err = stmt.Query(db, &chars)
 	if err != nil {
 		return nil, err

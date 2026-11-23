@@ -11,7 +11,7 @@ Allow a tracked character to have zero or more secondary characters. When Maplay
 
 | Command | Required options | Behavior |
 | --- | --- | --- |
-| `/add-secondary-character` | `character-name`, `secondary-character-name` | Resolve the parent case-insensitively from `characters`, including inactive parents. Trim input and preserve the secondary’s spelling. Report an existing identical mapping or a conflict with another mapping. |
+| `/add-secondary-character` | `character-name`, `secondary-character-name` | Resolve the parent case-insensitively from `characters`, including inactive parents. Trim input, verify the secondary with `FetchCharacterData` in the configured MapleStory region, and store the name returned by Nexon. The optional `skip-name-check` flag bypasses the Nexon lookup and keeps the supplied spelling. Duplicate and OCR conflict checks still apply. |
 | `/remove-secondary-character` | `secondary-character-name` | Find the globally unique secondary case-insensitively and remove it. Confirm the parent it was linked to, or report that the secondary was not found. |
 | `/list-secondary-characters` | None | Use `GetActiveCharacters` to select parents. Upload `secondary_characters.json`, keyed by each active parent’s current `maple_character_name`. Sort the secondary names within each array. Omit parents with no secondaries and return `{}` if none qualify. |
 

@@ -141,6 +141,32 @@ type ScoreEntry struct {
 // parsed character name/score entries in row order (top to bottom). Names are
 // reconciled against memberNames.
 func ParseSmallImage(imgData []byte, memberNames []string, font *GPQFont) ([]ScoreEntry, error) {
+	rows, err := ParseSmallImageRows(imgData, font)
+	if err != nil {
+		return nil, err
+	}
+	entries := []ScoreEntry{}
+	positions := map[string]int{}
+	for _, row := range rows {
+		if row.Score <= 0 {
+			continue
+		}
+		if matches := MatchGPQNames(row.Name, memberNames); len(matches) > 0 {
+			row.Name = matches[0]
+		}
+		if pos, ok := positions[row.Name]; ok {
+			entries[pos].Score = row.Score
+		} else {
+			positions[row.Name] = len(entries)
+			entries = append(entries, row)
+		}
+	}
+	return entries, nil
+}
+
+// ParseSmallImageRows returns decoded rows before matching names or removing
+// zero scores and repeated rows.
+func ParseSmallImageRows(imgData []byte, font *GPQFont) ([]ScoreEntry, error) {
 	img, _, err := image.Decode(strings.NewReader(string(imgData)))
 	if err != nil {
 		return nil, err
@@ -157,18 +183,15 @@ func ParseSmallImage(imgData []byte, memberNames []string, font *GPQFont) ([]Sco
 	decodedNames := decodeRegion(bin, lay.rows, lay.name, font)
 	decodedScores := decodeRegion(bin, lay.rows, lay.score, font)
 
-	names := make([]string, len(decodedNames))
-	for i, d := range decodedNames {
-		names[i] = reconcileName(cleanDecodedName(d), memberNames)
-	}
-	scores := make([]string, len(decodedScores))
+	entries := make([]ScoreEntry, 0, len(decodedScores))
 	for i, d := range decodedScores {
-		scores[i] = keepDigits(d)
+		score, err := strconv.Atoi(keepDigits(d))
+		if err != nil {
+			break
+		}
+		entries = append(entries, ScoreEntry{Name: cleanDecodedName(decodedNames[i]), Score: score})
 	}
-
-	// names and scores share the same detected rows, so they are always the
-	// same length.
-	return mergeScoresWithNames(scores, names), nil
+	return entries, nil
 }
 
 // cleanDecodedName drops the optional "(...)" suffix the game UI can append to
@@ -560,29 +583,6 @@ func keepDigits(s string) string {
 	return b.String()
 }
 
-// mergeScoresWithNames zips scores and names, stopping at the first non-integer
-// score (mirrors the Python int()/break behaviour).
-func mergeScoresWithNames(scores, names []string) []ScoreEntry {
-	entries := []ScoreEntry{}
-	pos := map[string]int{}
-	for i := range scores {
-		score, err := strconv.Atoi(scores[i])
-		if err != nil {
-			break
-		}
-		if score > 0 && i < len(names) {
-			name := names[i]
-			if idx, ok := pos[name]; ok {
-				entries[idx].Score = score
-			} else {
-				pos[name] = len(entries)
-				entries = append(entries, ScoreEntry{Name: name, Score: score})
-			}
-		}
-	}
-	return entries
-}
-
 // ── Name reconciliation (font_match.py) ─────────────────────────────────────
 
 // fold lowercases and strips diacritical marks (NFD, drop combining marks).
@@ -599,8 +599,8 @@ func fold(s string) string {
 	return b.String()
 }
 
-// normName folds and unifies l/I (identical glyphs in this font).
-func normName(s string) string {
+// NormalizeGPQName folds and unifies l/I (identical glyphs in this font).
+func NormalizeGPQName(s string) string {
 	return strings.ReplaceAll(fold(s), "l", "i")
 }
 
@@ -630,24 +630,26 @@ func nameLikeliness(a, b string) float64 {
 	return prefixScore
 }
 
-func reconcileName(dec string, members []string) string {
+// MatchGPQNames returns every highest-confidence name in roster order.
+// An empty result means the decoded name did not meet the match threshold.
+func MatchGPQNames(dec string, members []string) []string {
 	if len([]rune(dec)) < 2 {
-		return dec
+		return nil
 	}
-	df := normName(dec)
-	bestMember := ""
-	bestConf := 0.0
+	df := NormalizeGPQName(dec)
+	var matches []string
+	bestConf := nameMatchThreshold
 	for _, m := range members {
-		conf := nameLikeliness(df, normName(m))
+		conf := nameLikeliness(df, NormalizeGPQName(m))
 		if conf > bestConf {
 			bestConf = conf
-			bestMember = m
+			matches = matches[:0]
+		}
+		if conf == bestConf {
+			matches = append(matches, m)
 		}
 	}
-	if bestConf >= nameMatchThreshold {
-		return bestMember
-	}
-	return dec
+	return matches
 }
 
 // sequenceRatio replicates Python difflib.SequenceMatcher.ratio()
